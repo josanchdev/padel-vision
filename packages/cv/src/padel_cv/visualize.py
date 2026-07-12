@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 from padel_cv.court import COURT_LENGTH_M, COURT_WIDTH_M, NET_Y_M, SERVICE_LINE_FROM_NET_M
-from padel_cv.pipeline import Frame, ImageArray
+from padel_cv.pipeline import Frame, ImageArray, PoseDetection
 
 # COCO-17 skeleton: pairs of keypoint indices to connect with a line.
 # 0 nose, 1-2 eyes, 3-4 ears, 5-6 shoulders, 7-8 elbows, 9-10 wrists,
@@ -50,6 +50,15 @@ def track_color(track_id: int | None) -> tuple[int, int, int]:
     return TRACK_COLORS[track_id % len(TRACK_COLORS)]
 
 
+def pose_color_and_label(pose: PoseDetection) -> tuple[tuple[int, int, int], str]:
+    """Stable player slots win over volatile track IDs for color and label."""
+    if pose.player_id is not None:
+        return TRACK_COLORS[(pose.player_id - 1) % len(TRACK_COLORS)], f"J{pose.player_id}"
+    if pose.track_id is not None:
+        return track_color(pose.track_id), f"#{pose.track_id}"
+    return BOX_COLOR, f"{pose.confidence:.2f}"
+
+
 def draw_poses(frame: Frame) -> ImageArray:
     """Return a copy of the frame image with boxes and skeletons drawn."""
     canvas = frame.image.copy()
@@ -59,9 +68,8 @@ def draw_poses(frame: Frame) -> ImageArray:
             # Off-court people (spectators, staff): thin grey box, no skeleton.
             cv2.rectangle(canvas, (x1, y1), (x2, y2), (128, 128, 128), 1)
             continue
-        color = track_color(pose.track_id)
+        color, label = pose_color_and_label(pose)
         cv2.rectangle(canvas, (x1, y1), (x2, y2), color, 2)
-        label = f"{pose.confidence:.2f}" if pose.track_id is None else f"#{pose.track_id}"
         cv2.putText(canvas, label, (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
         for a, b in COCO_SKELETON:
             if (
@@ -111,19 +119,10 @@ def draw_minimap(frame: Frame, height_px: int = MINIMAP_HEIGHT_PX) -> ImageArray
         if pose.court_position_m is None or not pose.on_court:
             continue
         x, y = to_px(*pose.court_position_m)
-        color = track_color(pose.track_id)
+        color, label = pose_color_and_label(pose)
         cv2.circle(canvas, (x, y), 8, color, -1)
         cv2.circle(canvas, (x, y), 8, (255, 255, 255), 1)
-        if pose.track_id is not None:
-            cv2.putText(
-                canvas,
-                str(pose.track_id),
-                (x - 4, y + 4),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.4,
-                (0, 0, 0),
-                1,
-            )
+        cv2.putText(canvas, label, (x - 8, y + 4), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0), 1)
     return canvas
 
 

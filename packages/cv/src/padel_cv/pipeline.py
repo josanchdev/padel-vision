@@ -32,6 +32,8 @@ class PoseDetection:
     track_id: int | None = None
     court_position_m: tuple[float, float] | None = None
     on_court: bool | None = None
+    player_id: int | None = None
+    """Stable player slot 1-4 (1-2 near half, 3-4 far half); None if unassigned."""
 
 
 @dataclass

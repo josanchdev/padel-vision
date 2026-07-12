@@ -11,7 +11,7 @@ from pathlib import Path
 import cv2
 
 from padel_cv.pipeline import Pipeline, PipelineStage
-from padel_cv.stages import GroundTruthCourtStage, PlayerPoseStage
+from padel_cv.stages import GroundTruthCourtStage, PlayerIdentityStage, PlayerPoseStage
 from padel_cv.stages.pose import DEFAULT_TRACKER
 from padel_cv.visualize import draw_poses, overlay_minimap
 
@@ -48,6 +48,7 @@ def process_video(
     ]
     if homography_json is not None:
         stages.append(GroundTruthCourtStage(homography_json))
+        stages.append(PlayerIdentityStage())
     pipeline = Pipeline(stages)
     track_ids_seen: set[int] = set()
     start = time.perf_counter()
