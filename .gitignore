@@ -29,3 +29,4 @@ output/
 .vscode/
 .idea/
 .DS_Store
+tools/cvat/cvat-src/
