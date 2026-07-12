@@ -1,9 +1,11 @@
-"""Drawing helpers: skeleton overlay on frames."""
+"""Drawing helpers: skeleton overlay and top-down court minimap."""
 
 from __future__ import annotations
 
 import cv2
+import numpy as np
 
+from padel_cv.court import COURT_LENGTH_M, COURT_WIDTH_M, NET_Y_M, SERVICE_LINE_FROM_NET_M
 from padel_cv.pipeline import Frame, ImageArray
 
 # COCO-17 skeleton: pairs of keypoint indices to connect with a line.
@@ -52,8 +54,12 @@ def draw_poses(frame: Frame) -> ImageArray:
     """Return a copy of the frame image with boxes and skeletons drawn."""
     canvas = frame.image.copy()
     for pose in frame.poses:
-        color = track_color(pose.track_id)
         x1, y1, x2, y2 = (int(v) for v in pose.bbox_xyxy)
+        if pose.on_court is False:
+            # Off-court people (spectators, staff): thin grey box, no skeleton.
+            cv2.rectangle(canvas, (x1, y1), (x2, y2), (128, 128, 128), 1)
+            continue
+        color = track_color(pose.track_id)
         cv2.rectangle(canvas, (x1, y1), (x2, y2), color, 2)
         label = f"{pose.confidence:.2f}" if pose.track_id is None else f"#{pose.track_id}"
         cv2.putText(canvas, label, (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
@@ -68,4 +74,68 @@ def draw_poses(frame: Frame) -> ImageArray:
         for x, y, kp_conf in pose.keypoints:
             if kp_conf >= MIN_KEYPOINT_CONFIDENCE:
                 cv2.circle(canvas, (int(x), int(y)), 3, JOINT_COLOR, -1)
+    return canvas
+
+
+MINIMAP_HEIGHT_PX = 400
+MINIMAP_MARGIN_PX = 20
+COURT_FLOOR_COLOR = (140, 90, 30)
+COURT_LINE_COLOR = (255, 255, 255)
+
+
+def draw_minimap(frame: Frame, height_px: int = MINIMAP_HEIGHT_PX) -> ImageArray:
+    """Top-down court view with on-court players as colored dots."""
+    scale = height_px / COURT_LENGTH_M
+    width_px = int(COURT_WIDTH_M * scale)
+    canvas = np.full((height_px, width_px, 3), COURT_FLOOR_COLOR, dtype=np.uint8)
+
+    def to_px(x_m: float, y_m: float) -> tuple[int, int]:
+        return int(x_m * scale), int(y_m * scale)
+
+    cv2.rectangle(canvas, (0, 0), (width_px - 1, height_px - 1), COURT_LINE_COLOR, 2)
+    net_y = to_px(0, NET_Y_M)[1]
+    cv2.line(canvas, (0, net_y), (width_px, net_y), COURT_LINE_COLOR, 3)
+    for service_y_m in (NET_Y_M - SERVICE_LINE_FROM_NET_M, NET_Y_M + SERVICE_LINE_FROM_NET_M):
+        service_y = to_px(0, service_y_m)[1]
+        cv2.line(canvas, (0, service_y), (width_px, service_y), COURT_LINE_COLOR, 1)
+        center_x = to_px(COURT_WIDTH_M / 2, 0)[0]
+        cv2.line(
+            canvas,
+            (center_x, min(net_y, service_y)),
+            (center_x, max(net_y, service_y)),
+            COURT_LINE_COLOR,
+            1,
+        )
+
+    for pose in frame.poses:
+        if pose.court_position_m is None or not pose.on_court:
+            continue
+        x, y = to_px(*pose.court_position_m)
+        color = track_color(pose.track_id)
+        cv2.circle(canvas, (x, y), 8, color, -1)
+        cv2.circle(canvas, (x, y), 8, (255, 255, 255), 1)
+        if pose.track_id is not None:
+            cv2.putText(
+                canvas,
+                str(pose.track_id),
+                (x - 4, y + 4),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.4,
+                (0, 0, 0),
+                1,
+            )
+    return canvas
+
+
+def overlay_minimap(canvas: ImageArray, frame: Frame) -> ImageArray:
+    """Blend the minimap into the bottom-right corner of an annotated frame."""
+    if frame.homography is None:
+        return canvas
+    minimap = draw_minimap(frame)
+    map_h, map_w = minimap.shape[:2]
+    img_h, img_w = canvas.shape[:2]
+    y0 = img_h - map_h - MINIMAP_MARGIN_PX
+    x0 = img_w - map_w - MINIMAP_MARGIN_PX
+    region = canvas[y0 : y0 + map_h, x0 : x0 + map_w]
+    canvas[y0 : y0 + map_h, x0 : x0 + map_w] = cv2.addWeighted(minimap, 0.85, region, 0.15, 0)
     return canvas

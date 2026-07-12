@@ -30,6 +30,8 @@ class PoseDetection:
     confidence: float
     keypoints: KeypointArray
     track_id: int | None = None
+    court_position_m: tuple[float, float] | None = None
+    on_court: bool | None = None
 
 
 @dataclass
@@ -40,6 +42,7 @@ class Frame:
     timestamp_s: float
     image: ImageArray
     poses: list[PoseDetection] = field(default_factory=list)
+    homography: npt.NDArray[np.float64] | None = None
 
 
 @runtime_checkable
