@@ -11,6 +11,7 @@ import cv2
 
 from padel_cv.pipeline import Pipeline
 from padel_cv.stages import PlayerPoseStage
+from padel_cv.stages.pose import DEFAULT_TRACKER
 from padel_cv.visualize import draw_poses
 
 
@@ -21,6 +22,7 @@ def process_video(
     confidence: float,
     image_size: int,
     max_frames: int | None,
+    tracker: str | None = "bytetrack.yaml",
 ) -> int:
     capture = cv2.VideoCapture(str(input_path))
     if not capture.isOpened():
@@ -35,12 +37,21 @@ def process_video(
     writer = cv2.VideoWriter(str(output_path), fourcc, fps, (width, height))
 
     pipeline = Pipeline(
-        [PlayerPoseStage(model_name=model_name, confidence=confidence, image_size=image_size)]
+        [
+            PlayerPoseStage(
+                model_name=model_name,
+                confidence=confidence,
+                image_size=image_size,
+                tracker=tracker,
+            )
+        ]
     )
+    track_ids_seen: set[int] = set()
     start = time.perf_counter()
     frames_written = 0
     try:
         for frame in pipeline.run(str(input_path)):
+            track_ids_seen.update(p.track_id for p in frame.poses if p.track_id is not None)
             writer.write(draw_poses(frame))
             frames_written += 1
             if max_frames is not None and frames_written >= max_frames:
@@ -52,6 +63,8 @@ def process_video(
         writer.release()
     elapsed = time.perf_counter() - start
     print(f"Wrote {frames_written} frames to {output_path} in {elapsed:.1f}s")
+    if track_ids_seen:
+        print(f"Track IDs seen: {sorted(track_ids_seen)}")
     return frames_written
 
 
@@ -67,11 +80,19 @@ def main() -> int:
     process.add_argument(
         "--imgsz", type=int, default=1920, help="Inference resolution (long side, px)"
     )
+    process.add_argument(
+        "--tracker",
+        default=DEFAULT_TRACKER,
+        help="Tracker config YAML (default: padel-tuned ByteTrack) or 'none' to disable",
+    )
     process.add_argument("--max-frames", type=int, default=None, help="Stop after N frames")
 
     args = parser.parse_args()
     if args.command == "process":
-        process_video(args.input, args.output, args.model, args.conf, args.imgsz, args.max_frames)
+        tracker = None if args.tracker == "none" else args.tracker
+        process_video(
+            args.input, args.output, args.model, args.conf, args.imgsz, args.max_frames, tracker
+        )
     return 0
 
 

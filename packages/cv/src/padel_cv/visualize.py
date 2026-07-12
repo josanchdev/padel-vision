@@ -29,15 +29,34 @@ JOINT_COLOR = (255, 120, 0)
 BOX_COLOR = (80, 220, 80)
 MIN_KEYPOINT_CONFIDENCE = 0.3
 
+# Distinct BGR colors assigned to track IDs so each tracked player keeps a
+# stable color for as long as their ID survives.
+TRACK_COLORS: list[tuple[int, int, int]] = [
+    (80, 220, 80),  # green
+    (60, 80, 255),  # red
+    (255, 160, 0),  # blue
+    (0, 220, 255),  # yellow
+    (255, 0, 200),  # magenta
+    (200, 255, 0),  # cyan
+]
+
+
+def track_color(track_id: int | None) -> tuple[int, int, int]:
+    """Deterministic color for a track ID; default box color for untracked."""
+    if track_id is None:
+        return BOX_COLOR
+    return TRACK_COLORS[track_id % len(TRACK_COLORS)]
+
 
 def draw_poses(frame: Frame) -> ImageArray:
     """Return a copy of the frame image with boxes and skeletons drawn."""
     canvas = frame.image.copy()
     for pose in frame.poses:
+        color = track_color(pose.track_id)
         x1, y1, x2, y2 = (int(v) for v in pose.bbox_xyxy)
-        cv2.rectangle(canvas, (x1, y1), (x2, y2), BOX_COLOR, 2)
+        cv2.rectangle(canvas, (x1, y1), (x2, y2), color, 2)
         label = f"{pose.confidence:.2f}" if pose.track_id is None else f"#{pose.track_id}"
-        cv2.putText(canvas, label, (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, BOX_COLOR, 1)
+        cv2.putText(canvas, label, (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
         for a, b in COCO_SKELETON:
             if (
                 pose.keypoints[a, 2] >= MIN_KEYPOINT_CONFIDENCE

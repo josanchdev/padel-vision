@@ -1,6 +1,13 @@
+from pathlib import Path
+
 import numpy as np
 
 from padel_cv.pipeline import Frame, Pipeline, PipelineStage, PoseDetection
+from padel_cv.stages.pose import DEFAULT_TRACKER
+
+
+def test_default_tracker_config_exists() -> None:
+    assert Path(DEFAULT_TRACKER).is_file()
 
 
 def make_frame(index: int = 0) -> Frame:

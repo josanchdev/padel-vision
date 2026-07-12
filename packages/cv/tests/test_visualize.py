@@ -1,7 +1,7 @@
 import numpy as np
 
 from padel_cv.pipeline import Frame, PoseDetection
-from padel_cv.visualize import draw_poses
+from padel_cv.visualize import BOX_COLOR, TRACK_COLORS, draw_poses, track_color
 
 
 def test_draw_poses_returns_copy_with_annotations() -> None:
@@ -33,3 +33,10 @@ def test_draw_poses_skips_low_confidence_keypoints() -> None:
 
     # Box and label are drawn, but no joints: center of image stays black.
     assert canvas[50, 50].tolist() == [0, 0, 0]
+
+
+def test_track_color_is_deterministic_and_distinct() -> None:
+    assert track_color(None) == BOX_COLOR
+    assert track_color(3) == track_color(3)
+    assert track_color(0) != track_color(1)
+    assert track_color(len(TRACK_COLORS)) == track_color(0)  # palette wraps around

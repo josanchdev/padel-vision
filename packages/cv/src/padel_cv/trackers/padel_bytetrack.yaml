@@ -1,0 +1,10 @@
+# ByteTrack tuned for padel broadcast footage: far-side players are tiny
+# (~60 px), so IoU-based association needs a permissive match threshold and a
+# long buffer to survive fast moves (smash jumps) without ID switches.
+tracker_type: bytetrack
+track_high_thresh: 0.25
+track_low_thresh: 0.1
+new_track_thresh: 0.4
+track_buffer: 120
+match_thresh: 0.95
+fuse_score: True
