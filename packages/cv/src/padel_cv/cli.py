@@ -15,7 +15,12 @@ from padel_cv.visualize import draw_poses
 
 
 def process_video(
-    input_path: Path, output_path: Path, model_name: str, confidence: float, max_frames: int | None
+    input_path: Path,
+    output_path: Path,
+    model_name: str,
+    confidence: float,
+    image_size: int,
+    max_frames: int | None,
 ) -> int:
     capture = cv2.VideoCapture(str(input_path))
     if not capture.isOpened():
@@ -29,7 +34,9 @@ def process_video(
     fourcc = cv2.VideoWriter.fourcc(*"mp4v")
     writer = cv2.VideoWriter(str(output_path), fourcc, fps, (width, height))
 
-    pipeline = Pipeline([PlayerPoseStage(model_name=model_name, confidence=confidence)])
+    pipeline = Pipeline(
+        [PlayerPoseStage(model_name=model_name, confidence=confidence, image_size=image_size)]
+    )
     start = time.perf_counter()
     frames_written = 0
     try:
@@ -57,11 +64,14 @@ def main() -> int:
     process.add_argument("-o", "--output", type=Path, required=True, help="Annotated output path")
     process.add_argument("--model", default="yolo26n-pose.pt", help="Ultralytics pose model")
     process.add_argument("--conf", type=float, default=0.4, help="Detection confidence threshold")
+    process.add_argument(
+        "--imgsz", type=int, default=1920, help="Inference resolution (long side, px)"
+    )
     process.add_argument("--max-frames", type=int, default=None, help="Stop after N frames")
 
     args = parser.parse_args()
     if args.command == "process":
-        process_video(args.input, args.output, args.model, args.conf, args.max_frames)
+        process_video(args.input, args.output, args.model, args.conf, args.imgsz, args.max_frames)
     return 0
 
 

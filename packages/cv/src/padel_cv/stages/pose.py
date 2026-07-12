@@ -23,18 +23,24 @@ class PlayerPoseStage:
         self,
         model_name: str = DEFAULT_MODEL,
         confidence: float = 0.4,
+        image_size: int = 1920,
         device: str | None = None,
     ) -> None:
         from ultralytics import YOLO
 
         self._model = YOLO(model_name)
         self._confidence = confidence
+        # Far-side players are ~60 px tall in 1080p broadcast footage; at the
+        # default 640 inference size they vanish. Full-resolution inference is
+        # required to detect all four players.
+        self._image_size = image_size
         self._device = device
 
     def process(self, frame: Frame) -> Frame:
         results: list[Any] = self._model.predict(
             frame.image,
             conf=self._confidence,
+            imgsz=self._image_size,
             device=self._device,
             verbose=False,
         )
