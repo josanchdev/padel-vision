@@ -111,7 +111,7 @@ def localize_players(frame: Frame) -> None:
 def homography_from_keypoints(
     keypoints_px: npt.NDArray[np.float32],
     min_confidence: float = 0.5,
-    min_points: int = 4,
+    min_points: int = 6,
     max_error_m: float = 0.35,
 ) -> HomographyArray | None:
     """Robust px->m homography from detected court keypoints (13, 3: x, y, conf).

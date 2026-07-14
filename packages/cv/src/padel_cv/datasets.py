@@ -21,15 +21,30 @@ import numpy as np
 
 from padel_cv.court import COURT_KEYPOINTS_M, HomographyArray
 
+# The court is symmetric under a 180° rotation (x -> 10-x, y -> 20-y), which
+# reverses the keypoint order. Annotation convention: "near" is the half
+# closest to the camera (bottom of the image); GT homographies may use either
+# end of the court as y=0, so auto-generated labels must be normalized.
+ROT180_IDX: list[int] = list(range(12, -1, -1))
+
 
 def project_court_points_to_pixels(
     homography_px_to_m: HomographyArray,
 ) -> np.ndarray:
-    """Pixel positions of the 13 schema points given a px->m homography."""
+    """Pixel positions of the 13 schema points given a px->m homography.
+
+    Point order is normalized so that the "near" points are the ones at the
+    bottom of the image (camera-relative convention used by annotators).
+    """
     m_to_px = np.linalg.inv(homography_px_to_m)
     points = np.concatenate([COURT_KEYPOINTS_M, np.ones((len(COURT_KEYPOINTS_M), 1))], axis=1)
     projected = (m_to_px @ points.T).T
-    return np.asarray(projected[:, :2] / projected[:, 2:3])
+    pixels = np.asarray(projected[:, :2] / projected[:, 2:3])
+    near_y = pixels[[0, 1, 2, 3, 4], 1].mean()
+    far_y = pixels[[8, 9, 10, 11, 12], 1].mean()
+    if near_y < far_y:  # "near" ended up at the top: flip the convention
+        pixels = pixels[ROT180_IDX]
+    return pixels
 
 
 def yolo_pose_label(

@@ -161,6 +161,14 @@ def main() -> int:
     build.add_argument("--split", default="train", help="Dataset split (train/val)")
     build.add_argument("--every", type=int, default=150, help="Sample every N frames")
 
+    evaluate = subparsers.add_parser(
+        "eval-court", help="Evaluate a court model against GT homographies (error in meters)"
+    )
+    evaluate.add_argument("model", help="Trained court model weights")
+    evaluate.add_argument("--homography", type=Path, required=True, help="GT homography JSON")
+    evaluate.add_argument("--images", type=Path, required=True, help="Val images directory")
+    evaluate.add_argument("--imgsz", type=int, default=1920, help="Inference resolution")
+
     sample = subparsers.add_parser(
         "sample-frames", help="Extract random frames from videos for annotation"
     )
@@ -188,6 +196,10 @@ def main() -> int:
         from padel_cv.datasets import build_court_dataset
 
         build_court_dataset(args.video, args.homography, args.output, args.split, args.every)
+    elif args.command == "eval-court":
+        from padel_cv.evaluation import evaluate_court_model
+
+        evaluate_court_model(args.model, args.homography, args.images, args.imgsz)
     elif args.command == "sample-frames":
         sample_frames(args.input_dir, args.output, args.per_video, args.seed)
     return 0
