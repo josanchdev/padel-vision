@@ -15,7 +15,7 @@ from pathlib import Path
 
 import numpy as np
 
-from padel_cv.court import HomographyArray, ankle_midpoint, is_on_court, project_point
+from padel_cv.court import HomographyArray, localize_players
 from padel_cv.pipeline import Frame
 
 
@@ -36,9 +36,5 @@ class GroundTruthCourtStage:
         if homography is None:
             return frame
         frame.homography = homography
-        for pose in frame.poses:
-            x_px, y_px = ankle_midpoint(pose)
-            x_m, y_m = project_point(homography, x_px, y_px)
-            pose.court_position_m = (x_m, y_m)
-            pose.on_court = is_on_court(x_m, y_m)
+        localize_players(frame)
         return frame

@@ -11,7 +11,12 @@ from pathlib import Path
 import cv2
 
 from padel_cv.pipeline import Pipeline, PipelineStage
-from padel_cv.stages import GroundTruthCourtStage, PlayerIdentityStage, PlayerPoseStage
+from padel_cv.stages import (
+    CourtDetectionStage,
+    GroundTruthCourtStage,
+    PlayerIdentityStage,
+    PlayerPoseStage,
+)
 from padel_cv.stages.pose import DEFAULT_TRACKER
 from padel_cv.visualize import draw_poses, overlay_minimap
 
@@ -25,6 +30,7 @@ def process_video(
     max_frames: int | None,
     tracker: str | None = "bytetrack.yaml",
     homography_json: Path | None = None,
+    court_model: str | None = None,
 ) -> int:
     capture = cv2.VideoCapture(str(input_path))
     if not capture.isOpened():
@@ -46,8 +52,13 @@ def process_video(
             tracker=tracker,
         )
     ]
-    if homography_json is not None:
-        stages.append(GroundTruthCourtStage(homography_json))
+    court_stage: PipelineStage | None = None
+    if court_model is not None:
+        court_stage = CourtDetectionStage(court_model)
+    elif homography_json is not None:
+        court_stage = GroundTruthCourtStage(homography_json)
+    if court_stage is not None:
+        stages.append(court_stage)
         stages.append(PlayerIdentityStage())
     pipeline = Pipeline(stages)
     track_ids_seen: set[int] = set()
@@ -134,6 +145,21 @@ def main() -> int:
         default=None,
         help="PadelTracker100 homography JSON (dev/eval only): enables minimap + court filter",
     )
+    process.add_argument(
+        "--court-model",
+        default=None,
+        help="Trained court-keypoint model: automatic homography on any video (overrides GT)",
+    )
+
+    build = subparsers.add_parser(
+        "build-court-dataset",
+        help="Auto-label court keypoints from PadelTracker100 GT homographies",
+    )
+    build.add_argument("video", type=Path, help="Match video path")
+    build.add_argument("--homography", type=Path, required=True, help="GT homography JSON")
+    build.add_argument("-o", "--output", type=Path, required=True, help="Dataset root dir")
+    build.add_argument("--split", default="train", help="Dataset split (train/val)")
+    build.add_argument("--every", type=int, default=150, help="Sample every N frames")
 
     sample = subparsers.add_parser(
         "sample-frames", help="Extract random frames from videos for annotation"
@@ -156,7 +182,12 @@ def main() -> int:
             args.max_frames,
             tracker,
             args.homography,
+            args.court_model,
         )
+    elif args.command == "build-court-dataset":
+        from padel_cv.datasets import build_court_dataset
+
+        build_court_dataset(args.video, args.homography, args.output, args.split, args.every)
     elif args.command == "sample-frames":
         sample_frames(args.input_dir, args.output, args.per_video, args.seed)
     return 0
