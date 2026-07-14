@@ -125,11 +125,11 @@ def convert_coco_court_annotations(
     if order != COURT_KEYPOINT_NAMES:
         raise ValueError(f"keypoint order mismatch: {order}")
 
-    annotations_by_image: dict[int, list[dict]] = {}
+    annotations_by_image: dict[int, list[dict[str, object]]] = {}
     for annotation in coco["annotations"]:
         annotations_by_image.setdefault(annotation["image_id"], []).append(annotation)
 
-    by_group: dict[str, list[dict]] = {}
+    by_group: dict[str, list[dict[str, object]]] = {}
     for image in sorted(coco["images"], key=lambda i: i["file_name"]):
         by_group.setdefault(image["file_name"].rsplit("_", 1)[0], []).append(image)
 
