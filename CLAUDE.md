@@ -56,4 +56,16 @@ Cada nivel debe quedar demostrable end-to-end y testeado antes de empezar el sig
 
 ## Comandos
 
-(El repo está en scaffolding; actualizar esta sección cuando existan los comandos reales de build/test/lint, p. ej. `uv run pytest`, `uv run ruff check`, `docker compose up`.)
+```bash
+uv sync --all-packages              # instalar todo el workspace
+uv run pytest                       # tests (packages/*/tests)
+uv run ruff check . && uv run mypy  # lint + tipos (strict)
+uv run padel-cv process VIDEO -o OUT.mp4 [--court-model PESOS.pt | --homography GT.json]
+uv run padel-cv sample-frames DIR -o OUT_DIR --per-video N
+uv run padel-cv build-court-dataset VIDEO --homography GT.json -o DATASET_DIR --split train
+tools/cvat/cvat.sh up|down          # entorno de anotación (ver tools/cvat/README.md)
+```
+
+Datos en `data/` (gitignoreado): `raw/` vídeos, `labels/` PadelTracker100, `datasets/` datasets generados. Pesos entrenados en `runs/` (gitignoreado).
+
+**Aviso entorno**: el WSL de Jorge sufre crashes esporádicos ("catastrophic failure", causa sin diagnosticar, posiblemente bajo carga GPU/IO sostenida). Consolidar trabajo con commits frecuentes; entrenamientos largos con checkpoints reanudables (`resume=True`).
