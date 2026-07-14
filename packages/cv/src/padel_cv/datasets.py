@@ -100,3 +100,63 @@ def build_court_dataset(
     capture.release()
     print(f"{video_path.name} -> {written} labeled frames in {images_dir}")
     return written
+
+
+def convert_coco_court_annotations(
+    coco_json: Path,
+    images_dir: Path,
+    output_dir: Path,
+    val_per_group: int = 3,
+) -> tuple[int, int]:
+    """Convert CVAT COCO-keypoints court annotations to YOLO-pose format.
+
+    Images are grouped by camera (filename prefix); the last `val_per_group`
+    of each group go to the val split so every camera is represented in both
+    splits. Keypoints dragged outside the image (CVAT 'outside' convention)
+    become visibility 0. Returns (train_count, val_count).
+    """
+    import shutil
+
+    with open(coco_json) as f:
+        coco = json.load(f)
+    order = coco["categories"][0]["keypoints"]
+    from padel_cv.court import COURT_KEYPOINT_NAMES
+
+    if order != COURT_KEYPOINT_NAMES:
+        raise ValueError(f"keypoint order mismatch: {order}")
+
+    annotations_by_image: dict[int, list[dict]] = {}
+    for annotation in coco["annotations"]:
+        annotations_by_image.setdefault(annotation["image_id"], []).append(annotation)
+
+    by_group: dict[str, list[dict]] = {}
+    for image in sorted(coco["images"], key=lambda i: i["file_name"]):
+        by_group.setdefault(image["file_name"].rsplit("_", 1)[0], []).append(image)
+
+    counts = {"train": 0, "val": 0}
+    for group_images in by_group.values():
+        for position, image in enumerate(group_images):
+            split = "val" if position >= len(group_images) - val_per_group else "train"
+            anns = annotations_by_image.get(image["id"], [])
+            if len(anns) > 1:
+                print(f"  aviso: {image['file_name']} tiene {len(anns)} skeletons; uso el primero")
+            width, height = image["width"], image["height"]
+            keypoints_px = np.zeros((13, 2))
+            if anns:
+                raw = anns[0]["keypoints"]
+                for i in range(13):
+                    x, y, v = raw[i * 3], raw[i * 3 + 1], raw[i * 3 + 2]
+                    # CVAT exports 'outside' points with out-of-image coords:
+                    # push them far out so yolo_pose_label flags them v=0.
+                    keypoints_px[i] = (x, y) if v > 0 else (-1e6, -1e6)
+            label = yolo_pose_label(keypoints_px, width, height)
+            images_out = output_dir / "images" / split
+            labels_out = output_dir / "labels" / split
+            images_out.mkdir(parents=True, exist_ok=True)
+            labels_out.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(images_dir / image["file_name"], images_out / image["file_name"])
+            stem = Path(image["file_name"]).stem
+            (labels_out / f"{stem}.txt").write_text((label or "") + ("\n" if label else ""))
+            counts[split] += 1
+    print(f"convertidas: {counts['train']} train, {counts['val']} val -> {output_dir}")
+    return counts["train"], counts["val"]
