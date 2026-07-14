@@ -30,3 +30,4 @@ output/
 .idea/
 .DS_Store
 tools/cvat/cvat-src/
+tools/cvat/.env
