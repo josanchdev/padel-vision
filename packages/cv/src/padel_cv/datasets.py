@@ -118,6 +118,84 @@ def build_court_dataset(
     return written
 
 
+def propagate_static_court_labels(
+    coco_json: Path,
+    videos_dir: Path,
+    output_dir: Path,
+    frames_per_camera: int = 150,
+    val_per_camera: int = 25,
+    seed: int = 0,
+) -> tuple[int, int]:
+    """Stamp each static camera's court annotation onto many of its frames.
+
+    PADELVIC cameras are on fixed tripods (verified: <1 px dispersion of the
+    annotated points across frames), so the 13 court points sit at identical
+    pixels in every frame of a video. We therefore replicate the single known
+    annotation onto many frames sampled across the match: same court label,
+    but with players in different positions and varying occlusion/lighting.
+    This forces the detector to key off the court lines rather than the
+    players, which 7 near-duplicate frames per view could not teach.
+
+    Camera name is the annotation filename minus its frame-index suffix, and
+    must match a `<camera>.mp4` under videos_dir. Returns (train, val) counts.
+    """
+    import random
+
+    with open(coco_json) as f:
+        coco = json.load(f)
+    if coco["categories"][0]["keypoints"] != _court_keypoint_names():
+        raise ValueError("keypoint order mismatch with the court schema")
+
+    images_by_id = {i["id"]: i for i in coco["images"]}
+    canonical: dict[str, np.ndarray] = {}
+    for annotation in coco["annotations"]:
+        camera = images_by_id[annotation["image_id"]]["file_name"].rsplit("_", 1)[0]
+        canonical.setdefault(camera, np.array(annotation["keypoints"]).reshape(13, 3))
+
+    rng = random.Random(seed)
+    counts = {"train": 0, "val": 0}
+    for camera, keypoints in sorted(canonical.items()):
+        video_path = videos_dir / f"{camera}.mp4"
+        if not video_path.exists():
+            print(f"  aviso: falta el vídeo {video_path}, cámara {camera} omitida")
+            continue
+        # Points marked 'outside' in the annotation carry out-of-image coords;
+        # yolo_pose_label flags those as not-visible automatically.
+        keypoints_px = np.where(keypoints[:, 2:3] > 0, keypoints[:, :2], np.full((13, 2), -1e6))
+        capture = cv2.VideoCapture(str(video_path))
+        total = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        low, high = int(total * 0.05), int(total * 0.95)
+        indices = sorted(rng.sample(range(low, high), min(frames_per_camera, high - low)))
+        for position, frame_index in enumerate(indices):
+            split = "val" if position >= len(indices) - val_per_camera else "train"
+            capture.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+            ok, image = capture.read()
+            if not ok:
+                continue
+            height, width = image.shape[:2]
+            label = yolo_pose_label(keypoints_px, width, height)
+            if label is None:
+                continue
+            images_out = output_dir / "images" / split
+            labels_out = output_dir / "labels" / split
+            images_out.mkdir(parents=True, exist_ok=True)
+            labels_out.mkdir(parents=True, exist_ok=True)
+            stem = f"{camera}_{frame_index:06d}"
+            cv2.imwrite(str(images_out / f"{stem}.jpg"), image, [cv2.IMWRITE_JPEG_QUALITY, 92])
+            (labels_out / f"{stem}.txt").write_text(label + "\n")
+            counts[split] += 1
+        capture.release()
+        print(f"  {camera}: {counts['train']} train / {counts['val']} val acumulados")
+    print(f"propagadas: {counts['train']} train, {counts['val']} val -> {output_dir}")
+    return counts["train"], counts["val"]
+
+
+def _court_keypoint_names() -> list[str]:
+    from padel_cv.court import COURT_KEYPOINT_NAMES
+
+    return COURT_KEYPOINT_NAMES
+
+
 def convert_coco_court_annotations(
     coco_json: Path,
     images_dir: Path,
