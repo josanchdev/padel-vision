@@ -50,7 +50,14 @@ def project_court_points_to_pixels(
 def yolo_pose_label(
     keypoints_px: np.ndarray, width: int, height: int, margin_px: float = 8.0
 ) -> str | None:
-    """One-line YOLO-pose label for the court object, or None if too few points."""
+    """One-line YOLO-pose label for the court object, or None if too few points.
+
+    The bounding box is the full frame. There is exactly one court per image,
+    and a keypoint-enclosing box degenerates to a thin horizontal strip in
+    court-level views (all visible points land near the horizon), which
+    destabilizes box regression. A constant full-frame box removes that
+    pathology; only the keypoints carry the geometry we actually use.
+    """
     in_bounds = (
         (keypoints_px[:, 0] >= -margin_px)
         & (keypoints_px[:, 0] < width + margin_px)
@@ -59,17 +66,12 @@ def yolo_pose_label(
     )
     if in_bounds.sum() < 4:
         return None
-    visible = keypoints_px[in_bounds]
-    x1, y1 = visible.min(axis=0)
-    x2, y2 = visible.max(axis=0)
-    x1, y1 = max(float(x1), 0.0), max(float(y1), 0.0)
-    x2, y2 = min(float(x2), width - 1.0), min(float(y2), height - 1.0)
-    cx, cy = (x1 + x2) / 2 / width, (y1 + y2) / 2 / height
-    bw, bh = (x2 - x1) / width, (y2 - y1) / height
-    parts = [f"0 {cx:.6f} {cy:.6f} {bw:.6f} {bh:.6f}"]
+    parts = ["0 0.5 0.5 1.0 1.0"]
     for (x, y), ok in zip(keypoints_px, in_bounds, strict=True):
         if ok:
-            parts.append(f"{x / width:.6f} {y / height:.6f} 2")
+            nx = min(max(x / width, 0.0), 1.0)
+            ny = min(max(y / height, 0.0), 1.0)
+            parts.append(f"{nx:.6f} {ny:.6f} 2")
         else:
             parts.append("0 0 0")
     return " ".join(parts)
