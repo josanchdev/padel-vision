@@ -1,0 +1,90 @@
+# Bitácora de experimentos
+
+Registro cronológico de entrenamientos, problemas y decisiones experimentales.
+Materia prima para los capítulos de experimentos y lecciones de la memoria.
+Convención: cada entrenamiento del detector de pista es `court_vN`.
+
+## Detección de pista (ADR-0001)
+
+### Resumen de entrenamientos
+
+| Run | Dataset | Resultado | Problema encontrado | Fix aplicado |
+|-----|---------|-----------|--------------------|--------------|
+| court_v0 | 767 frames WPT auto-etiquetados | ✅ WPT: 0,21 m error medio | Zero-shot en PADELVIC: mitad lejana desplazada, court-level alucinado | → necesidad de diversidad (batch 1 CVAT) |
+| court_v1 | v0 + 40 frames PADELVIC anotados | ❌ Puntos dispersos incluso en train | **Conflicto de orientación**: labels auto usaban convención del GT (near=mitad superior), labels humanos convención cámara (near=inferior). Supervisión contradictoria | Normalización 180° de labels auto (la pista es simétrica bajo rotación); gate RANSAC 4→6 inliers |
+| court_v2 | v1 + propagación cámara-fija (500+100 PADELVIC) | ⚠️ PADELVIC resuelto (4 alturas trazan bien) pero WPT empeoró 0,22→0,44 m | **Divergencia**: val_loss 1,18 (ep10) → 5,68 (ep60); box mAP colapsó a 0,03. Causa: caja envolvente degenerada (banda fina) en vistas court-level | Caja = frame completo |
+| court_v3 | = v2 con caja frame completo | ❌ Estancamiento: pose mAP 0,17, early stop ep28 | **Escala OKS rota**: la loss de keypoints divide por el área de la caja; con caja gigante los gradientes se desvanecen | Caja envolvente con tamaño mínimo (35% de cada dimensión) |
+| court_v4 | = v3 con caja min-size | (pendiente) | | |
+
+### Hallazgos clave (para la memoria)
+
+1. **Auto-etiquetado por homografía GT**: los 13 keypoints de pista se generan
+   proyectando sus coordenadas de mundo por la H⁻¹ del GT de PadelTracker100.
+   767 frames etiquetados con cero clics. Verificación visual obligatoria:
+   detectó el bug de orientación.
+2. **Conflicto de convenciones entre fuentes de datos** (v1): dos datasets
+   pueden ser individualmente correctos y conjuntamente contradictorios. La
+   métrica agregada (pose mAP 0,97) lo ocultaba porque el val estaba dominado
+   por el dominio mayoritario. Lección: evaluar por dominio, no en agregado.
+3. **Propagación en cámaras fijas** (v2): dispersión medida de <1 px en los
+   puntos anotados entre frames → una anotación por cámara se estampa sobre
+   150 frames con jugadores distintos. Convirtió 4 etiquetas útiles en 600.
+   Es el modelo de despliegue real para la URJC (anotar su pista una vez).
+4. **La caja del objeto "pista" es puro andamiaje** pero su escala importa:
+   la loss OKS de keypoints se normaliza por el área de la caja. Caja
+   degenerada → loss explota (v2); caja gigante → gradientes se desvanecen
+   (v3). Ni el mAP ni la loss agregada señalaron la causa: hizo falta leer
+   la trayectoria época a época y conocer la formulación de la loss.
+5. **El gate de calidad de homografía necesita ≥6 inliers**: con 4, RANSAC
+   acepta ajustes degenerados de puntos mal colocados (verificado
+   visualmente en v1). La homografía puede ser auto-consistente y estar
+   completamente equivocada; el error de reproyección interno no basta como
+   única señal de calidad.
+
+### Métricas de referencia
+
+- Benchmark WPT (val = final femenina completa, 229 frames, GT NTT Data):
+  error medio de posición en pista. v0: **0,206 m** (mediana 0,200, p95 0,248)
+  con inferencia a 1920 (a 1280: 0,316 m — el sesgo de ~5 px de resolución
+  vale 10 cm).
+- Cadena pose+tobillos+H_GT vs posiciones GT: **0,109 m** medio (99,1%
+  matching) → cota inferior alcanzable; el detector de pista añade el resto.
+
+## Tracking e identidad
+
+- ByteTrack de serie: jugadores del fondo (~60 px) sufren ID switches — el
+  salto de un remate desplaza la caja más que su tamaño y el IoU cae a 0.
+  Config propia (`padel_bytetrack.yaml`): match_thresh 0,95, buffer 120.
+  Resultado: 4/4 jugadores estables en un rally completo (407 frames).
+- En vídeo real (30 s, entre puntos incluidos): 16 track IDs para 4 personas.
+  Solución: identidad J1-J4 anclada a la geometría (mitades de pista en
+  metros), los tracks huérfanos se heredan tras 2 s. Resultado: exactamente
+  4 identidades, presencia 84-92% de frames.
+- Limitación documentada: los equipos cambian de lado entre juegos; la
+  identidad es estable dentro de cada periodo de lado.
+
+## Detección de golpes (dummy Nivel 1)
+
+- Diseño: pico de velocidad de muñeca normalizada por longitud de torso
+  (comparable entre jugador cercano y lejano), suavizado, máximo local con
+  umbral y periodo refractario. Define el contrato `ShotEvent` que el
+  clasificador de Nivel 2 rellenará.
+- Evaluación sobre esqueletos GT vs 440 golpes GT (final femenina):
+
+  | Umbral | Precisión | Recall | F1 |
+  |--------|-----------|--------|-----|
+  | 0,4 | 0,28 | 0,94 | 0,43 |
+  | 0,6 | 0,28 | 0,83 | 0,42 |
+  | 0,8 | 0,28 | 0,68 | 0,40 |
+
+- Lectura: generador de propuestas de alto recall. El clasificador de
+  Nivel 2 hereda dos misiones: tipo de golpe + rechazo de falsos candidatos
+  (arquitectura en dos etapas). Estos números son el baseline formal.
+
+## Entorno
+
+- WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
+  mitigados subiendo el límite de RAM de WSL de 16 a 20 GB (.wslconfig) y
+  con hábito de commits frecuentes + entrenamientos reanudables.
+- Inferencia pose+tracking a 1920: ~35 fps (más rápido que tiempo real).
+  Entrenamiento court detector (60 ep, 1280): ~16 min; a 1920: ~40 min.
