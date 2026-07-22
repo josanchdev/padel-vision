@@ -14,7 +14,14 @@ Convención: cada entrenamiento del detector de pista es `court_vN`.
 | court_v1 | v0 + 40 frames PADELVIC anotados | ❌ Puntos dispersos incluso en train | **Conflicto de orientación**: labels auto usaban convención del GT (near=mitad superior), labels humanos convención cámara (near=inferior). Supervisión contradictoria | Normalización 180° de labels auto (la pista es simétrica bajo rotación); gate RANSAC 4→6 inliers |
 | court_v2 | v1 + propagación cámara-fija (500+100 PADELVIC) | ⚠️ PADELVIC resuelto (4 alturas trazan bien) pero WPT empeoró 0,22→0,44 m | **Divergencia**: val_loss 1,18 (ep10) → 5,68 (ep60); box mAP colapsó a 0,03. Causa: caja envolvente degenerada (banda fina) en vistas court-level | Caja = frame completo |
 | court_v3 | = v2 con caja frame completo | ❌ Estancamiento: pose mAP 0,17, early stop ep28 | **Escala OKS rota**: la loss de keypoints divide por el área de la caja; con caja gigante los gradientes se desvanecen | Caja envolvente con tamaño mínimo (35% de cada dimensión) |
-| court_v4 | = v3 con caja min-size | (pendiente) | | |
+| court_v4 | = v3 con caja min-size | ❌ Convergencia excelente hasta ep16 (val_pose 0,25, el mejor de la serie) pero **colapso catastrófico en ep19** (val_pose 9,8, explosión de gradientes) sin recuperación. best.pt (ep~16) da 0,78 m en WPT: sin la fase final de LR bajo no hay precisión fina | Cambio de estrategia: fine-tuning desde v1 (experto en WPT) con lr0 bajo |
+| court_v5 | = v4, init desde v1 best, lr0=0.002 cos | (pendiente) | | |
+
+**Insight de v4 (para la memoria):** al imponer caja mínima del 35%, el OKS
+se volvió más indulgente (normaliza por área) y el pose mAP se infló a 0,95
+sin que la precisión en píxeles acompañara. Las métricas estándar pueden
+inflarse por decisiones de formato de datos; la métrica de tarea (error en
+metros sobre la pista) es la única señal fiable de progreso.
 
 ### Hallazgos clave (para la memoria)
 
