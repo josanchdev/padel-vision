@@ -62,7 +62,8 @@ def test_yolo_pose_label_marks_out_of_image_points_invisible() -> None:
     label = yolo_pose_label(pixels, width=800, height=2500)
     assert label is not None
     fields = label.split()
-    assert fields[:5] == ["0", "0.5", "0.5", "1.0", "1.0"]  # constant full-frame box
+    box_w, box_h = float(fields[3]), float(fields[4])
+    assert 0.35 <= box_w <= 1.0 and 0.35 <= box_h <= 1.0  # never degenerate nor forced full
     kpt_fields = fields[5:]
     visibilities = [int(kpt_fields[i * 3 + 2]) for i in range(13)]
     # x range of projected points is [100, 1100]: right-side points fall outside

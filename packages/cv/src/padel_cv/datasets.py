@@ -47,17 +47,22 @@ def project_court_points_to_pixels(
     return pixels
 
 
+MIN_BOX_FRACTION = 0.35
+"""Minimum court box size as a fraction of each image dimension.
+
+The box must be neither degenerate nor inflated: a keypoint-enclosing box
+collapses to a thin strip in court-level views (unstable box regression and
+an exploding OKS keypoint loss, since OKS divides by box area), while a
+constant full-frame box makes the area so large that keypoint errors barely
+register in the loss and training stalls. Clamping the enclosing box to a
+minimum size keeps the OKS scale sane in every view.
+"""
+
+
 def yolo_pose_label(
     keypoints_px: np.ndarray, width: int, height: int, margin_px: float = 8.0
 ) -> str | None:
-    """One-line YOLO-pose label for the court object, or None if too few points.
-
-    The bounding box is the full frame. There is exactly one court per image,
-    and a keypoint-enclosing box degenerates to a thin horizontal strip in
-    court-level views (all visible points land near the horizon), which
-    destabilizes box regression. A constant full-frame box removes that
-    pathology; only the keypoints carry the geometry we actually use.
-    """
+    """One-line YOLO-pose label for the court object, or None if too few points."""
     in_bounds = (
         (keypoints_px[:, 0] >= -margin_px)
         & (keypoints_px[:, 0] < width + margin_px)
@@ -66,7 +71,18 @@ def yolo_pose_label(
     )
     if in_bounds.sum() < 4:
         return None
-    parts = ["0 0.5 0.5 1.0 1.0"]
+    visible = keypoints_px[in_bounds]
+    x1, y1 = visible.min(axis=0)
+    x2, y2 = visible.max(axis=0)
+    cx = (float(x1) + float(x2)) / 2 / width
+    cy = (float(y1) + float(y2)) / 2 / height
+    bw = max((float(x2) - float(x1)) / width, MIN_BOX_FRACTION)
+    bh = max((float(y2) - float(y1)) / height, MIN_BOX_FRACTION)
+    # Clamp so the (possibly expanded) box stays inside the image.
+    bw, bh = min(bw, 1.0), min(bh, 1.0)
+    cx = min(max(cx, bw / 2), 1.0 - bw / 2)
+    cy = min(max(cy, bh / 2), 1.0 - bh / 2)
+    parts = [f"0 {cx:.6f} {cy:.6f} {bw:.6f} {bh:.6f}"]
     for (x, y), ok in zip(keypoints_px, in_bounds, strict=True):
         if ok:
             nx = min(max(x / width, 0.0), 1.0)
