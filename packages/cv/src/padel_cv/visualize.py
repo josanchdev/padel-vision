@@ -138,3 +138,30 @@ def overlay_minimap(canvas: ImageArray, frame: Frame) -> ImageArray:
     region = canvas[y0 : y0 + map_h, x0 : x0 + map_w]
     canvas[y0 : y0 + map_h, x0 : x0 + map_w] = cv2.addWeighted(minimap, 0.85, region, 0.15, 0)
     return canvas
+
+
+SHOT_FLASH_FRAMES = 15
+
+
+def draw_shot_labels(canvas: ImageArray, frame: Frame, active_shots: dict[int, int]) -> ImageArray:
+    """Flash a label over a player who just hit (active_shots: player_id -> ttl)."""
+    for event in frame.shot_events:
+        active_shots[event.player_id] = SHOT_FLASH_FRAMES
+    for pose in frame.poses:
+        if pose.player_id is None or active_shots.get(pose.player_id, 0) <= 0:
+            continue
+        x1, y1, _, _ = (int(v) for v in pose.bbox_xyxy)
+        cv2.putText(
+            canvas,
+            f"J{pose.player_id} GOLPE!",
+            (x1 - 10, max(y1 - 34, 20)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.9,
+            (255, 255, 255),
+            2,
+        )
+    for player_id in list(active_shots):
+        active_shots[player_id] -= 1
+        if active_shots[player_id] <= 0:
+            del active_shots[player_id]
+    return canvas

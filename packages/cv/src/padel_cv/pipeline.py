@@ -37,6 +37,22 @@ class PoseDetection:
 
 
 @dataclass
+class ShotEvent:
+    """A detected stroke: which player hit, when, and what kind of stroke.
+
+    This is the contract between shot detection/classification stages and
+    everything downstream (overlay, stats, API). The Level-1 dummy fills it
+    from a wrist-speed heuristic; the Level-2 skeleton classifier will emit
+    the same structure with real labels.
+    """
+
+    player_id: int
+    frame_index: int
+    label: str
+    confidence: float
+
+
+@dataclass
 class Frame:
     """A single video frame plus everything the pipeline has learned about it."""
 
@@ -45,6 +61,9 @@ class Frame:
     image: ImageArray
     poses: list[PoseDetection] = field(default_factory=list)
     homography: npt.NDArray[np.float64] | None = None
+    shot_events: list[ShotEvent] = field(default_factory=list)
+    """Shots finalized AT this frame (a shot is confirmed a few frames after
+    its wrist-speed peak, so events carry their own frame_index)."""
 
 
 @runtime_checkable

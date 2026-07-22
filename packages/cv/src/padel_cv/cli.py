@@ -13,12 +13,13 @@ import cv2
 from padel_cv.pipeline import Pipeline, PipelineStage
 from padel_cv.stages import (
     CourtDetectionStage,
+    DummyShotStage,
     GroundTruthCourtStage,
     PlayerIdentityStage,
     PlayerPoseStage,
 )
 from padel_cv.stages.pose import DEFAULT_TRACKER
-from padel_cv.visualize import draw_poses, overlay_minimap
+from padel_cv.visualize import draw_poses, draw_shot_labels, overlay_minimap
 
 
 def process_video(
@@ -60,14 +61,19 @@ def process_video(
     if court_stage is not None:
         stages.append(court_stage)
         stages.append(PlayerIdentityStage())
+        stages.append(DummyShotStage())
     pipeline = Pipeline(stages)
     track_ids_seen: set[int] = set()
+    active_shots: dict[int, int] = {}
+    shots_detected = 0
     start = time.perf_counter()
     frames_written = 0
     try:
         for frame in pipeline.run(str(input_path)):
             track_ids_seen.update(p.track_id for p in frame.poses if p.track_id is not None)
-            writer.write(overlay_minimap(draw_poses(frame), frame))
+            shots_detected += len(frame.shot_events)
+            canvas = draw_shot_labels(draw_poses(frame), frame, active_shots)
+            writer.write(overlay_minimap(canvas, frame))
             frames_written += 1
             if max_frames is not None and frames_written >= max_frames:
                 break
@@ -80,6 +86,8 @@ def process_video(
     print(f"Wrote {frames_written} frames to {output_path} in {elapsed:.1f}s")
     if track_ids_seen:
         print(f"Track IDs seen: {sorted(track_ids_seen)}")
+    if shots_detected:
+        print(f"Shots detected: {shots_detected}")
     return frames_written
 
 
