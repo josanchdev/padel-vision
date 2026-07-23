@@ -15,7 +15,18 @@ Convención: cada entrenamiento del detector de pista es `court_vN`.
 | court_v2 | v1 + propagación cámara-fija (500+100 PADELVIC) | ⚠️ PADELVIC resuelto (4 alturas trazan bien) pero WPT empeoró 0,22→0,44 m | **Divergencia**: val_loss 1,18 (ep10) → 5,68 (ep60); box mAP colapsó a 0,03. Causa: caja envolvente degenerada (banda fina) en vistas court-level | Caja = frame completo |
 | court_v3 | = v2 con caja frame completo | ❌ Estancamiento: pose mAP 0,17, early stop ep28 | **Escala OKS rota**: la loss de keypoints divide por el área de la caja; con caja gigante los gradientes se desvanecen | Caja envolvente con tamaño mínimo (35% de cada dimensión) |
 | court_v4 | = v3 con caja min-size | ❌ Convergencia excelente hasta ep16 (val_pose 0,25, el mejor de la serie) pero **colapso catastrófico en ep19** (val_pose 9,8, explosión de gradientes) sin recuperación. best.pt (ep~16) da 0,78 m en WPT: sin la fase final de LR bajo no hay precisión fina | Cambio de estrategia: fine-tuning desde v1 (experto en WPT) con lr0 bajo |
-| court_v5 | = v4, init desde v1 best, lr0=0.002 cos | (pendiente) | | |
+| court_v5 | = v4, init desde v1 best, lr0=0.002 cos | ❌ Colapso en ep9 pese a LR 5× menor → LR descartado como causa. Pesos sin NaN → no es overflow. Cámaras sin deriva (<1 px en 73 min, medido) → labels propagados correctos | Bisección empírica |
+| probe_combined | = v4 data, 1280/batch16, 18 ep | ✅ Estable (val_pose 0,11, mAP 0,99) → el detonante de las explosiones era 1920+batch8 con este dataset. PERO: error WPT 0,70 m con sesgo radial hacia el centro — el modelo predice una pista "encogida" | Diagnóstico: **prior de memorización** — los 500 frames casi-duplicados enseñan a memorizar el layout en vez de mirar la imagen; el prior contamina la precisión en WPT |
+
+**Insight de la sonda (para la memoria):** los datos propagados de cámaras
+fijas son etiquetas perfectas pero ejemplos casi idénticos; en exceso,
+enseñan al modelo a recitar de memoria la pista "promedio" en vez de
+localizarla en la imagen. El síntoma es un sesgo radial (pista encogida) en
+el dominio no-memorizable. Además, la detección con esos lotes correlacionados
+es inestable a 1920+batch8 (explosiones en ep9-19) y estable a 1280+batch16.
+Corolario: para cámaras FIJAS el detector es innecesario — la homografía se
+calcula una vez de la anotación y es exacta para siempre; el detector solo
+aporta valor en vistas nuevas/móviles.
 
 **Insight de v4 (para la memoria):** al imponer caja mínima del 35%, el OKS
 se volvió más indulgente (normaliza por área) y el pose mAP se infló a 0,95
