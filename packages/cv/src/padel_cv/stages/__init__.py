@@ -5,6 +5,7 @@ from padel_cv.stages.gt_court import GroundTruthCourtStage
 from padel_cv.stages.identity import PlayerIdentityStage
 from padel_cv.stages.pose import PlayerPoseStage
 from padel_cv.stages.shots import DummyShotStage
+from padel_cv.stages.static_court import StaticCourtStage
 
 __all__ = [
     "CourtDetectionStage",
@@ -12,4 +13,5 @@ __all__ = [
     "GroundTruthCourtStage",
     "PlayerIdentityStage",
     "PlayerPoseStage",
+    "StaticCourtStage",
 ]

@@ -17,6 +17,7 @@ from padel_cv.stages import (
     GroundTruthCourtStage,
     PlayerIdentityStage,
     PlayerPoseStage,
+    StaticCourtStage,
 )
 from padel_cv.stages.pose import DEFAULT_TRACKER
 from padel_cv.visualize import draw_poses, draw_shot_labels, overlay_minimap
@@ -32,6 +33,7 @@ def process_video(
     tracker: str | None = "bytetrack.yaml",
     homography_json: Path | None = None,
     court_model: str | None = None,
+    static_court: str | None = None,
 ) -> int:
     capture = cv2.VideoCapture(str(input_path))
     if not capture.isOpened():
@@ -56,6 +58,9 @@ def process_video(
     court_stage: PipelineStage | None = None
     if court_model is not None:
         court_stage = CourtDetectionStage(court_model)
+    elif static_court is not None:
+        coco_path, camera = static_court.rsplit(":", 1)
+        court_stage = StaticCourtStage(coco_path, camera)
     elif homography_json is not None:
         court_stage = GroundTruthCourtStage(homography_json)
     if court_stage is not None:
@@ -158,6 +163,12 @@ def main() -> int:
         default=None,
         help="Trained court-keypoint model: automatic homography on any video (overrides GT)",
     )
+    process.add_argument(
+        "--static-court",
+        default=None,
+        metavar="COCO_JSON:CAMERA",
+        help="Fixed-camera mode: exact homography from a one-time CVAT annotation (ADR-0006)",
+    )
 
     build = subparsers.add_parser(
         "build-court-dataset",
@@ -199,6 +210,7 @@ def main() -> int:
             tracker,
             args.homography,
             args.court_model,
+            args.static_court,
         )
     elif args.command == "build-court-dataset":
         from padel_cv.datasets import build_court_dataset
