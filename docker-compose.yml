@@ -19,6 +19,7 @@ services:
 
   api:
     build: .
+    image: padel-vision:local
     container_name: padel_api
     depends_on:
       redis:
@@ -35,6 +36,7 @@ services:
 
   worker:
     build: .
+    image: padel-vision:local
     container_name: padel_worker
     depends_on:
       redis:
