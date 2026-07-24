@@ -6,6 +6,8 @@ import argparse
 import random
 import sys
 import time
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 import cv2
@@ -23,6 +25,12 @@ from padel_cv.stages.pose import DEFAULT_TRACKER
 from padel_cv.visualize import draw_poses, draw_shot_labels, overlay_minimap
 
 
+@dataclass
+class ProcessResult:
+    frames_written: int
+    shots_detected: int
+
+
 def process_video(
     input_path: Path,
     output_path: Path,
@@ -35,13 +43,17 @@ def process_video(
     court_model: str | None = None,
     static_court: str | None = None,
     start_frame: int = 0,
-) -> int:
+    on_progress: Callable[[float], None] | None = None,
+) -> ProcessResult:
     capture = cv2.VideoCapture(str(input_path))
     if not capture.isOpened():
         raise FileNotFoundError(f"Could not open video: {input_path}")
     fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
     width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    total_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT)) - start_frame
+    if max_frames is not None:
+        total_frames = min(total_frames, max_frames)
     capture.release()
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -86,6 +98,8 @@ def process_video(
             if frames_written % 100 == 0:
                 elapsed = time.perf_counter() - start
                 print(f"  {frames_written} frames ({frames_written / elapsed:.1f} fps)")
+                if on_progress is not None and total_frames > 0:
+                    on_progress(min(frames_written / total_frames, 1.0))
     finally:
         writer.release()
     elapsed = time.perf_counter() - start
@@ -94,7 +108,9 @@ def process_video(
         print(f"Track IDs seen: {sorted(track_ids_seen)}")
     if shots_detected:
         print(f"Shots detected: {shots_detected}")
-    return frames_written
+    if on_progress is not None:
+        on_progress(1.0)
+    return ProcessResult(frames_written=frames_written, shots_detected=shots_detected)
 
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv"}

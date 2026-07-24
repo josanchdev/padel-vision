@@ -40,6 +40,10 @@ select = [
     "RUF", # ruff-specific
 ]
 
+[tool.ruff.lint.per-file-ignores]
+# FastAPI's dependency-injection idiom is `arg = Depends(...)` in signatures.
+"packages/api/src/padel_api/main.py" = ["B008"]
+
 [tool.mypy]
 strict = true
 python_version = "3.11"
@@ -50,6 +54,13 @@ packages = ["padel_cv", "padel_api"]
 module = ["cv2", "cv2.*", "ultralytics", "ultralytics.*"]
 ignore_missing_imports = true
 implicit_reexport = true
+
+[[tool.mypy.overrides]]
+# redis/arq/aiofiles ship partial or no type info; their untyped calls would
+# otherwise fail strict mode across the API package.
+module = ["aiofiles", "aiofiles.*", "arq", "arq.*", "redis", "redis.*"]
+ignore_missing_imports = true
+disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 testpaths = ["packages/cv/tests", "packages/api/tests"]

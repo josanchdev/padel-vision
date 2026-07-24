@@ -1,10 +1,111 @@
-"""Minimal API shell. Real endpoints arrive with the Level 1 batch-processing flow."""
+"""Padel Vision API: submit a match video, track its analysis job, get results."""
 
-from fastapi import FastAPI
+from __future__ import annotations
 
-app = FastAPI(title="Padel Vision API", version="0.1.0")
+import uuid
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
+import aiofiles
+import redis.asyncio as redis
+from arq import create_pool
+from arq.connections import RedisSettings
+from fastapi import Depends, FastAPI, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+
+from padel_api.config import Settings, get_settings
+from padel_api.models import Match, MatchStatus
+from padel_api.queue import ArqJobQueue, JobQueue
+from padel_api.store import MatchStore, RedisMatchStore
+
+UPLOAD_CHUNK = 1024 * 1024
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    settings = get_settings()
+    redis_url = str(settings.redis_url)
+    app.state.redis = redis.from_url(redis_url, decode_responses=True)  # type: ignore[no-untyped-call]
+    app.state.store = RedisMatchStore(app.state.redis)
+    app.state.arq = await create_pool(RedisSettings.from_dsn(redis_url))
+    app.state.queue = ArqJobQueue(app.state.arq)
+    try:
+        yield
+    finally:
+        await app.state.redis.aclose()
+        await app.state.arq.aclose()
+
+
+app = FastAPI(title="Padel Vision API", version="0.1.0", lifespan=lifespan)
+
+
+def get_store() -> MatchStore:
+    store: MatchStore = app.state.store
+    return store
+
+
+def get_queue() -> JobQueue:
+    queue: JobQueue = app.state.queue
+    return queue
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
+async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/matches", response_model=Match, status_code=201)
+async def submit_match(
+    video: UploadFile,
+    settings: Settings = Depends(get_settings),
+    store: MatchStore = Depends(get_store),
+    queue: JobQueue = Depends(get_queue),
+) -> Match:
+    if not (video.content_type or "").startswith("video/"):
+        raise HTTPException(status_code=415, detail="Upload must be a video file")
+    match_id = uuid.uuid4().hex
+    dest = settings.uploads_dir / f"{match_id}.mp4"
+    limit = settings.max_upload_mb * 1024 * 1024
+    written = 0
+    async with aiofiles.open(dest, "wb") as out:
+        while chunk := await video.read(UPLOAD_CHUNK):
+            written += len(chunk)
+            if written > limit:
+                await out.close()
+                dest.unlink(missing_ok=True)
+                raise HTTPException(status_code=413, detail="Video exceeds size limit")
+            await out.write(chunk)
+    match = Match(id=match_id, filename=video.filename or f"{match_id}.mp4")
+    await store.save(match)
+    await queue.enqueue(match_id)
+    return match
+
+
+@app.get("/matches", response_model=list[Match])
+async def list_matches(store: MatchStore = Depends(get_store)) -> list[Match]:
+    return await store.list()
+
+
+@app.get("/matches/{match_id}", response_model=Match)
+async def get_match(match_id: str, store: MatchStore = Depends(get_store)) -> Match:
+    match = await store.get(match_id)
+    if match is None:
+        raise HTTPException(status_code=404, detail="Match not found")
+    return match
+
+
+@app.get("/matches/{match_id}/result")
+async def get_result(
+    match_id: str,
+    settings: Settings = Depends(get_settings),
+    store: MatchStore = Depends(get_store),
+) -> FileResponse:
+    match = await store.get(match_id)
+    if match is None:
+        raise HTTPException(status_code=404, detail="Match not found")
+    if match.status is not MatchStatus.DONE:
+        raise HTTPException(status_code=409, detail=f"Match is {match.status.value}")
+    result = settings.results_dir / f"{match_id}.mp4"
+    if not result.exists():
+        raise HTTPException(status_code=404, detail="Result file missing")
+    return FileResponse(result, media_type="video/mp4", filename=f"{match.filename}")
