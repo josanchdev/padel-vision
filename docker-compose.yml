@@ -1,8 +1,7 @@
-# Infrastructure for local development (ADR-0007).
-#
-# Redis backs both the Arq job queue and the match store. The API and the GPU
-# worker run natively during development (`tools/dev.sh`) so the pipeline uses
-# the host GPU directly; containerizing them is the final packaging step.
+# Full Level-1 stack (ADR-0007). Redis backs the queue and match store; the API
+# accepts uploads and the GPU worker runs the CV pipeline. For local iteration
+# without containerizing the GPU services, `tools/dev.sh` runs api+worker native
+# against just the redis service here.
 services:
   redis:
     image: redis:8-alpine
@@ -17,6 +16,39 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+
+  api:
+    build: .
+    container_name: padel_api
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment: &backend_env
+      PADEL_REDIS_URL: redis://redis:6379
+      PADEL_STORAGE_DIR: /app/storage
+      PADEL_COURT_MODEL: /app/models/court_broadcast_v6.pt
+    volumes: &backend_volumes
+      - ./storage:/app/storage
+      - ./runs/archive:/app/models:ro
+    ports:
+      - "8000:8000"
+
+  worker:
+    build: .
+    container_name: padel_worker
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment: *backend_env
+    volumes: *backend_volumes
+    command: ["arq", "padel_api.worker.WorkerSettings"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
 volumes:
   redis_data:
