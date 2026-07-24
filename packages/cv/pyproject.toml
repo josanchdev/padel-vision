@@ -7,6 +7,8 @@ dependencies = [
     "ultralytics>=8.4",
     "opencv-python>=4.10",
     "numpy>=1.26",
+    "imageio>=2.36",
+    "imageio-ffmpeg>=0.5",  # bundles a static ffmpeg: H.264 output, no system dep
 ]
 
 [project.scripts]

@@ -22,6 +22,7 @@ from padel_cv.stages import (
     StaticCourtStage,
 )
 from padel_cv.stages.pose import DEFAULT_TRACKER
+from padel_cv.video_io import H264VideoWriter
 from padel_cv.visualize import draw_poses, draw_shot_labels, overlay_minimap
 
 
@@ -49,16 +50,12 @@ def process_video(
     if not capture.isOpened():
         raise FileNotFoundError(f"Could not open video: {input_path}")
     fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
-    width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT)) - start_frame
     if max_frames is not None:
         total_frames = min(total_frames, max_frames)
     capture.release()
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    fourcc = cv2.VideoWriter.fourcc(*"mp4v")
-    writer = cv2.VideoWriter(str(output_path), fourcc, fps, (width, height))
+    writer = H264VideoWriter(output_path, fps)
 
     stages: list[PipelineStage] = [
         PlayerPoseStage(
