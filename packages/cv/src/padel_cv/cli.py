@@ -34,6 +34,7 @@ def process_video(
     homography_json: Path | None = None,
     court_model: str | None = None,
     static_court: str | None = None,
+    start_frame: int = 0,
 ) -> int:
     capture = cv2.VideoCapture(str(input_path))
     if not capture.isOpened():
@@ -74,7 +75,7 @@ def process_video(
     start = time.perf_counter()
     frames_written = 0
     try:
-        for frame in pipeline.run(str(input_path)):
+        for frame in pipeline.run(str(input_path), start_frame=start_frame):
             track_ids_seen.update(p.track_id for p in frame.poses if p.track_id is not None)
             shots_detected += len(frame.shot_events)
             canvas = draw_shot_labels(draw_poses(frame), frame, active_shots)
@@ -163,6 +164,7 @@ def main() -> int:
         default=None,
         help="Trained court-keypoint model: automatic homography on any video (overrides GT)",
     )
+    process.add_argument("--start", type=int, default=0, help="Start at this frame index")
     process.add_argument(
         "--static-court",
         default=None,
@@ -211,6 +213,7 @@ def main() -> int:
             args.homography,
             args.court_model,
             args.static_court,
+            args.start,
         )
     elif args.command == "build-court-dataset":
         from padel_cv.datasets import build_court_dataset

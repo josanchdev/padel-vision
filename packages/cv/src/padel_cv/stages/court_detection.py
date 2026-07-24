@@ -25,7 +25,9 @@ class CourtDetectionStage:
         self,
         model_path: str,
         confidence: float = 0.3,
-        image_size: int = 1920,
+        # v6 was trained at 1280 and measures best at 1280 inference (0.196 m
+        # vs 0.246 m at 1920 on the WPT benchmark); see docs/experiments.md.
+        image_size: int = 1280,
         keypoint_confidence: float = 0.5,
         device: str | None = None,
     ) -> None:

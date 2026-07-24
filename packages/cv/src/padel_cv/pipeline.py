@@ -86,13 +86,15 @@ class Pipeline:
             frame = stage.process(frame)
         return frame
 
-    def run(self, video_path: str) -> Iterator[Frame]:
+    def run(self, video_path: str, start_frame: int = 0) -> Iterator[Frame]:
         """Yield processed frames from a video file, one at a time."""
         capture = cv2.VideoCapture(video_path)
         if not capture.isOpened():
             raise FileNotFoundError(f"Could not open video: {video_path}")
         fps: float = capture.get(cv2.CAP_PROP_FPS) or 30.0
-        index = 0
+        if start_frame > 0:
+            capture.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+        index = start_frame
         try:
             while True:
                 ok, image = capture.read()

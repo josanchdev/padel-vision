@@ -18,6 +18,12 @@ Convención: cada entrenamiento del detector de pista es `court_vN`.
 | court_v5 | = v4, init desde v1 best, lr0=0.002 cos | ❌ Colapso en ep9 pese a LR 5× menor → LR descartado como causa. Pesos sin NaN → no es overflow. Cámaras sin deriva (<1 px en 73 min, medido) → labels propagados correctos | Bisección empírica |
 | probe_combined | = v4 data, 1280/batch16, 18 ep | ✅ Estable (val_pose 0,11, mAP 0,99) → el detonante de las explosiones era 1920+batch8 con este dataset. PERO: error WPT 0,70 m con sesgo radial hacia el centro — el modelo predice una pista "encogida" | Diagnóstico: **prior de memorización** — los 500 frames casi-duplicados enseñan a memorizar el layout en vez de mirar la imagen; el prior contamina la precisión en WPT |
 
+| court_v6 | WPT + 40 manuales, SIN propagación, 1280/b16 | ✅ **Modelo definitivo Nivel 1**: 54 ep estables, **0,196 m** en WPT (inferencia 1280; a 1920: 0,246). Archivado como `runs/archive/court_broadcast_v6.pt` | Cierra ADR-0006: detector para vistas arbitrarias + StaticCourtStage para cámaras fijas |
+
+**Insight de v6:** el modelo entrenado a 1280 rinde mejor infiriendo a 1280
+(0,196 m) que a 1920 (0,246 m) — al contrario que v0. La resolución de
+inferencia óptima depende del entrenamiento concreto: medir siempre ambas.
+
 **Insight de la sonda (para la memoria):** los datos propagados de cámaras
 fijas son etiquetas perfectas pero ejemplos casi idénticos; en exceso,
 enseñan al modelo a recitar de memoria la pista "promedio" en vez de
