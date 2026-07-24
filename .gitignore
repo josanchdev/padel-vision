@@ -31,3 +31,6 @@ output/
 .DS_Store
 tools/cvat/cvat-src/
 tools/cvat/.env
+
+# Local runtime state
+storage/
