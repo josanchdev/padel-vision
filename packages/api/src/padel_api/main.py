@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import aiofiles
 import redis.asyncio as redis
@@ -19,6 +20,7 @@ from padel_api.queue import ArqJobQueue, JobQueue
 from padel_api.store import MatchStore, RedisMatchStore
 
 UPLOAD_CHUNK = 1024 * 1024
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 @asynccontextmanager
@@ -47,6 +49,11 @@ def get_store() -> MatchStore:
 def get_queue() -> JobQueue:
     queue: JobQueue = app.state.queue
     return queue
+
+
+@app.get("/", include_in_schema=False)
+async def index() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html", media_type="text/html")
 
 
 @app.get("/health")
@@ -108,4 +115,5 @@ async def get_result(
     result = settings.results_dir / f"{match_id}.mp4"
     if not result.exists():
         raise HTTPException(status_code=404, detail="Result file missing")
-    return FileResponse(result, media_type="video/mp4", filename=f"{match.filename}")
+    # No filename= so the browser plays it inline in a <video> tag.
+    return FileResponse(result, media_type="video/mp4")

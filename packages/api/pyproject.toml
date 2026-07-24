@@ -20,6 +20,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/padel_api"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"src/padel_api/static" = "padel_api/static"
+
 [[tool.mypy.overrides]]
 module = ["arq.*", "aiofiles.*"]
 ignore_missing_imports = true

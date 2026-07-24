@@ -86,6 +86,13 @@ def test_health(client: TestClient) -> None:
     assert client.get("/health").json() == {"status": "ok"}
 
 
+def test_index_serves_scaffold_page(client: TestClient) -> None:
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "Padel Vision" in response.text
+
+
 def test_worker_module_imports() -> None:
     # The worker imports the CV pipeline lazily; ensure the module and its
     # Arq entrypoint are importable without a running Redis.

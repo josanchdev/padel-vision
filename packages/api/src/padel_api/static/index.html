@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Padel Vision — scaffold</title>
+    <style>
+      :root { --bg: #0f1115; --panel: #181b22; --line: #262b36; --fg: #e7ebf0;
+              --muted: #8a94a6; --accent: #3ba776; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg);
+             color: var(--fg); }
+      header { padding: 20px 24px; border-bottom: 1px solid var(--line); }
+      header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+      header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+      main { max-width: 900px; margin: 0 auto; padding: 24px; display: grid; gap: 20px; }
+      .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+               padding: 20px; }
+      #drop { border: 2px dashed var(--line); border-radius: 10px; padding: 36px;
+              text-align: center; color: var(--muted); cursor: pointer; transition: .15s; }
+      #drop.over { border-color: var(--accent); color: var(--fg); }
+      .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+      .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+      th { color: var(--muted); font-weight: 500; }
+      .tag { font-size: 12px; padding: 2px 8px; border-radius: 20px; background: var(--line); }
+      .tag.done { background: #143d2b; color: #6ee7a8; }
+      .tag.failed { background: #3d1414; color: #f39; }
+      button { background: var(--accent); color: #fff; border: 0; border-radius: 6px;
+               padding: 8px 14px; font-size: 14px; cursor: pointer; }
+      video { width: 100%; border-radius: 8px; margin-top: 12px; background: #000; }
+      a { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Padel Vision</h1>
+      <p>Andamio de Nivel 1 — sube un partido y recibe el vídeo analizado.</p>
+    </header>
+    <main>
+      <div class="panel">
+        <div id="drop">Arrastra un vídeo aquí o haz clic para elegir</div>
+        <input id="file" type="file" accept="video/*" hidden />
+        <div id="active" style="margin-top:16px; display:none;">
+          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+            <span id="active-name"></span><span id="active-pct">0%</span>
+          </div>
+          <div class="bar"><div id="active-bar"></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 style="margin:0 0 12px; font-size:15px;">Partidos</h3>
+        <table>
+          <thead><tr><th>Archivo</th><th>Estado</th><th>Golpes</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div class="panel" id="player-panel" style="display:none;">
+        <h3 style="margin:0 0 4px; font-size:15px;">Resultado</h3>
+        <video id="player" controls></video>
+      </div>
+    </main>
+
+    <script>
+      const drop = document.getElementById("drop");
+      const fileInput = document.getElementById("file");
+      const active = document.getElementById("active");
+
+      drop.onclick = () => fileInput.click();
+      drop.ondragover = (e) => { e.preventDefault(); drop.classList.add("over"); };
+      drop.ondragleave = () => drop.classList.remove("over");
+      drop.ondrop = (e) => {
+        e.preventDefault();
+        drop.classList.remove("over");
+        if (e.dataTransfer.files[0]) upload(e.dataTransfer.files[0]);
+      };
+      fileInput.onchange = () => fileInput.files[0] && upload(fileInput.files[0]);
+
+      async function upload(file) {
+        const body = new FormData();
+        body.append("video", file);
+        active.style.display = "block";
+        document.getElementById("active-name").textContent = file.name;
+        setProgress(0);
+        const res = await fetch("/matches", { method: "POST", body });
+        if (!res.ok) { alert("Error al subir: " + res.status); return; }
+        const match = await res.json();
+        track(match.id);
+        refresh();
+      }
+
+      function setProgress(p) {
+        document.getElementById("active-bar").style.width = p * 100 + "%";
+        document.getElementById("active-pct").textContent = Math.round(p * 100) + "%";
+      }
+
+      async function track(id) {
+        const state = await (await fetch(`/matches/${id}`)).json();
+        setProgress(state.progress);
+        refresh();
+        if (state.status === "done") { active.style.display = "none"; play(id); }
+        else if (state.status === "failed") { alert("Falló: " + state.error); active.style.display = "none"; }
+        else setTimeout(() => track(id), 1500);
+      }
+
+      function play(id) {
+        document.getElementById("player-panel").style.display = "block";
+        const p = document.getElementById("player");
+        p.src = `/matches/${id}/result`;
+        p.scrollIntoView({ behavior: "smooth" });
+      }
+
+      async function refresh() {
+        const matches = await (await fetch("/matches")).json();
+        document.getElementById("rows").innerHTML = matches.map((m) => `
+          <tr>
+            <td>${m.filename}</td>
+            <td><span class="tag ${m.status}">${m.status} ${m.status === "processing" ? Math.round(m.progress*100)+"%" : ""}</span></td>
+            <td>${m.status === "done" ? m.shots_detected : "—"}</td>
+            <td>${m.status === "done" ? `<button onclick="play('${m.id}')">Ver</button>` : ""}</td>
+          </tr>`).join("");
+      }
+
+      refresh();
+      setInterval(refresh, 4000);
+    </script>
+  </body>
+</html>
