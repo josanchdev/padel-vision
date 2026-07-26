@@ -14,6 +14,7 @@ matches inference, and nothing depends on external annotations at runtime.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
@@ -150,3 +151,62 @@ def sample_no_shot_clips(
 
 def _cached_frames(cache: PoseCache) -> list[int]:
     return sorted(cache.keypoints_by_frame().keys())
+
+
+@dataclass
+class ClipDataset:
+    """Persisted clips ready for training: X (N, T, 17, 3), y (N,) class idx."""
+
+    keypoints: FloatArray
+    labels: npt.NDArray[np.int64]
+    matches: npt.NDArray[np.int64]  # which source match each clip came from
+    classes: list[str]
+
+    def save(self, path: Path | str) -> None:
+        np.savez_compressed(
+            path,
+            keypoints=self.keypoints,
+            labels=self.labels,
+            matches=self.matches,
+            classes=np.array(self.classes),
+        )
+
+
+def assemble_clips_from_match(
+    cache: PoseCache,
+    ball_json: Path,
+    shots_csv: Path,
+    negatives_ratio: float = 0.5,
+    window: int = WINDOW,
+    seed: int = 0,
+) -> list[Clip]:
+    """All shot + NoShot clips for one match, using OUR cached poses."""
+    from padel_cv.shot_clips import attribute_shot, load_ball_positions, load_shot_runs
+
+    poses = cache.keypoints_by_frame()
+    balls = load_ball_positions(ball_json)
+    runs = load_shot_runs(shots_csv)
+    attributed = [s for run in runs if (s := attribute_shot(run, balls, poses)) is not None]
+    shot_clips = build_shot_clips(cache, attributed, window)
+    shot_frames = {s.impact_frame for s in attributed}
+    negatives = sample_no_shot_clips(
+        cache, shot_frames, n_clips=int(len(shot_clips) * negatives_ratio), window=window, seed=seed
+    )
+    return shot_clips + negatives
+
+
+def to_dataset(clips_per_match: list[list[Clip]]) -> ClipDataset:
+    """Stack clips from several matches into arrays with class indices."""
+    class_index = {name: i for i, name in enumerate(CLIP_CLASSES)}
+    keypoints, labels, matches = [], [], []
+    for match_id, clips in enumerate(clips_per_match):
+        for clip in clips:
+            keypoints.append(clip.keypoints)
+            labels.append(class_index[clip.label])
+            matches.append(match_id)
+    return ClipDataset(
+        keypoints=np.stack(keypoints).astype(np.float32),
+        labels=np.array(labels, dtype=np.int64),
+        matches=np.array(matches, dtype=np.int64),
+        classes=list(CLIP_CLASSES),
+    )
