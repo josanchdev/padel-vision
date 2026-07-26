@@ -29,7 +29,7 @@ Cada nivel debe quedar demostrable end-to-end y testeado antes de empezar el sig
 - **Nivel 3 (extensiones)**: detección de botes, trayectoria aproximada de pelota, modo live preview.
 - **Nivel 4 (si todo va perfecto)**: recomendaciones tácticas, highlights.
 
-**Estado actual: Nivel 1, arrancando (repo en scaffolding inicial).**
+**Estado actual: Niveles 1 y 2 cerrados; Nivel 3 en curso** (detección de pelota TrackNet V2/V3 validada, falta botes + stats). Historia experimental en `docs/experiments.md`. Mejoras conscientemente aparcadas (entrenamiento largo, más datos, etc.) en `docs/backlog.md`.
 
 ## Stack técnico
 
