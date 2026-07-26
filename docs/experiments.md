@@ -143,6 +143,15 @@ F1; las clases débiles son Other (mal definida) y Serve (68 clips). Techo
 limitado por tamaño de dataset — el dataset PROPIO futuro lo subirá. Archivado
 en `runs/archive/stgcn_shots.pt`. Siguiente: PoseConv3D para comparar.
 
+### Ablación: data augmentation (flip L-R con swap de índices, rotación, escala)
+
+ST-GCN + augmentation, mismo split cross-match:
+- **macro-F1 0,547 (+0,021) · accuracy 0,656 (+0,023)** vs sin augmentation.
+- Sube sobre todo en golpes reales: Smash 0,68→0,75, Forehand 0,55→0,59,
+  Other 0,11→0,20. Serve baja (clase de 68 clips, ruidosa).
+- Confirma: con dataset pequeño, augmentar da mejora real y barata. Se usa en
+  toda la comparativa de arquitecturas.
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):

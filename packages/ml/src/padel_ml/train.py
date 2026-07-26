@@ -58,10 +58,11 @@ def train(
     lr: float = 1e-3,
     seed: int = 0,
     out_path: Path | None = None,
+    augment: bool = False,
 ) -> EvalResult:
     torch.manual_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    data = load_shot_data(npz_path, val_match=val_match)
+    data = load_shot_data(npz_path, val_match=val_match, augment=augment)
     train_loader = DataLoader(data.train, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(data.val, batch_size=batch_size)
 
@@ -87,7 +88,7 @@ def train(
             best, best_state = result, {k: v.clone() for k, v in model.state_dict().items()}
         if epoch % 10 == 0 or epoch == 1:
             print(
-                f"ep{epoch:>3} loss={total / len(data.train):.3f} "
+                f"ep{epoch:>3} loss={total / data.n_train:.3f} "
                 f"val macro-F1={result.macro_f1:.3f} acc={result.accuracy:.3f}"
             )
 
@@ -111,9 +112,16 @@ def main() -> None:
     parser.add_argument("--data", type=Path, default=Path("data/datasets/shot_clips.npz"))
     parser.add_argument("--val-match", type=int, default=0)
     parser.add_argument("--epochs", type=int, default=60)
+    parser.add_argument("--augment", action="store_true", help="Skeleton augmentation")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
-    train(args.data, val_match=args.val_match, epochs=args.epochs, out_path=args.out)
+    train(
+        args.data,
+        val_match=args.val_match,
+        epochs=args.epochs,
+        out_path=args.out,
+        augment=args.augment,
+    )
 
 
 if __name__ == "__main__":
