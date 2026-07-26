@@ -21,7 +21,9 @@ def _make_video(path, n_frames, size=(1920, 1080)) -> None:
 def _make_ball_json(path, centers_by_frame) -> None:
     images, annotations = [], []
     for idx, center in centers_by_frame.items():
-        images.append({"id": idx + 1, "file_name": f"frame_{idx:06d}.PNG"})
+        images.append(
+            {"id": idx + 1, "file_name": f"frame_{idx:06d}.PNG", "width": 1920, "height": 1080}
+        )
         if center is not None:
             cx, cy = center
             annotations.append(
@@ -57,9 +59,10 @@ def test_extract_caches_downscaled_frames_and_centers(tmp_path) -> None:
 
     first = np.load(shards[0])
     assert first["frames"].shape == (4, FRAME_H, FRAME_W, 3)
-    assert first["centers"][0].tolist() == [960.0, 540.0]
+    # Centres are fractional: (960/1920, 540/1080) = (0.5, 0.5).
+    np.testing.assert_allclose(first["centers"][0], [0.5, 0.5], rtol=1e-6)
     assert np.isnan(first["centers"][1]).all()  # frame 1 has no ball
-    assert first["centers"][2].tolist() == [100.0, 200.0]
+    np.testing.assert_allclose(first["centers"][2], [100.0 / 1920, 200.0 / 1080], rtol=1e-6)
 
 
 def test_extract_resumes_from_existing_shards(tmp_path) -> None:

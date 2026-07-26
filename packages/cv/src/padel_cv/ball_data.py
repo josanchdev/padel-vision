@@ -36,7 +36,11 @@ INPUT_FRAMES = 3
 
 @dataclass(frozen=True)
 class BallFrame:
-    """Ball centre (in original pixels) for one frame, or None if unannotated."""
+    """Ball centre for one frame, or None if unannotated.
+
+    center_xy is FRACTIONAL (each coord in [0, 1], relative to frame width/
+    height) so it is independent of the resolution frames are later cached at.
+    """
 
     frame_index: int
     center_xy: tuple[float, float] | None
@@ -48,18 +52,22 @@ def load_ball_centers(ball_json: Path) -> dict[int, BallFrame]:
 
     file_name is like ``frame_000123.PNG``; the numeric part is the frame index.
     Only the ``Ball`` category is kept (the file also holds wall/shot events).
+    Centres are normalized to [0, 1] using each image's width/height.
     """
     data = json.loads(Path(ball_json).read_text())
     image_frame = {img["id"]: _frame_index(img["file_name"]) for img in data["images"]}
+    image_wh = {img["id"]: (img["width"], img["height"]) for img in data["images"]}
 
     centers: dict[int, BallFrame] = {}
     for ann in data["annotations"]:
         if ann["category_id"] != BALL_CATEGORY_ID:
             continue
         frame = image_frame[ann["image_id"]]
+        img_w, img_h = image_wh[ann["image_id"]]
         x, y, w, h = ann["bbox"]
         occluded = bool(ann.get("attributes", {}).get("occluded", False))
-        centers[frame] = BallFrame(frame, (x + w / 2.0, y + h / 2.0), occluded)
+        center = ((x + w / 2.0) / img_w, (y + h / 2.0) / img_h)
+        centers[frame] = BallFrame(frame, center, occluded)
     return centers
 
 
@@ -70,13 +78,12 @@ def _frame_index(file_name: str) -> int:
 
 def render_heatmap(
     center_xy: tuple[float, float] | None,
-    frame_wh: tuple[int, int],
     grid_wh: tuple[int, int],
     sigma: float = 2.5,
 ) -> FloatArray:
     """Render a Gaussian blob at the ball centre on a grid of size grid_wh.
 
-    center_xy is in original-frame pixels; it is scaled to the (smaller) grid.
+    center_xy is FRACTIONAL ([0, 1] per axis); it is scaled onto the grid.
     None -> all-zero heatmap (ball absent). Fully vectorized.
     """
     grid_w, grid_h = grid_wh
@@ -84,9 +91,8 @@ def render_heatmap(
     if center_xy is None:
         return target
 
-    frame_w, frame_h = frame_wh
-    cx = center_xy[0] * grid_w / frame_w
-    cy = center_xy[1] * grid_h / frame_h
+    cx = center_xy[0] * grid_w
+    cy = center_xy[1] * grid_h
 
     ys = np.arange(grid_h, dtype=np.float32)[:, None]
     xs = np.arange(grid_w, dtype=np.float32)[None, :]

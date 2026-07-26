@@ -57,9 +57,9 @@ def extract_ball_frames_to_cache(
     """Cache downscaled frames + per-frame ball centres, resumably.
 
     Each shard stores: downscaled BGR frames (N, H, W, 3) uint8, their frame
-    indices, and ball centres in ORIGINAL pixels (N, 2) float32 with NaN where
-    the ball is unannotated. Centres stay in original pixels so the heatmap grid
-    size is a training-time choice, not baked into the cache.
+    indices, and FRACTIONAL ball centres (N, 2) float32 in [0, 1] with NaN where
+    the ball is unannotated. Fractional centres are resolution-independent, so
+    the heatmap grid size is a training-time choice, not baked into the cache.
     """
     cache_dir.mkdir(parents=True, exist_ok=True)
     centers = load_ball_centers(ball_json)
