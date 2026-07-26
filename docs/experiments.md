@@ -194,6 +194,48 @@ reales y minimapa. Detalle: la clasificación se emite ~0,5 s tras el impacto
 (necesita frames posteriores para la ventana centrada) — latencia aceptable
 para análisis batch.
 
+## Detección de pelota (Nivel 3, ADR-0009)
+
+### Enfoque: TrackNet (heatmap temporal) sobre detección frame-a-frame
+
+La pelota mide ~8×8 px en 1080p (medido en las cajas COCO de PadelTracker100):
+un detector normal la pierde. Seguimos TrackNet: la red mira 3 frames
+consecutivos y predice un **mapa de calor** de la pelota, usando el movimiento
+entre frames como señal. Comparamos **TrackNetV2 (2020, baseline citable)** vs
+**TrackNetV3 (V2 + refinador de oclusiones)** con el mismo protocolo — segunda
+comparativa baseline-vs-moderno propia del TFG.
+
+### Reto de datos: cajas → heatmaps (Decisión C del ADR)
+
+Sus anotaciones son cajas (formato detección); TrackNet entrena con heatmaps
+gaussianos. Se convierte el centro de cada caja en una gaussiana 2D sobre una
+rejilla a ¼ de resolución. Decisión de diseño adicional: las coordenadas se
+guardan **fraccionales** [0,1], no en píxeles, para que el cache de frames sea
+independiente de la resolución (el tamaño de rejilla del heatmap es una
+elección de entrenamiento, no queda grabada en el cache).
+
+### Hallazgo importante: el flag `occluded` de PadelTracker100 está vacío
+
+El plan era desglosar las métricas en pelotas visibles vs ocluidas (donde
+esperábamos que V3 destacara). Al inspeccionar las anotaciones: el atributo
+`occluded` existe en el esquema COCO pero **está a `False` en las 19.386
+anotaciones** de la final masculina. No podemos derivar el desglose de su
+etiquetado. Consecuencia para la memoria: la comparativa V2-vs-V3 se sostiene
+por F1/precisión/recall global y error de localización; el desglose por
+oclusión requeriría etiquetado propio (candidato para el dataset propio del
+TFG, coherente con [[feedback-no-dataset-dependency]]). La infraestructura de
+desglose queda lista para cuando existan esos datos.
+
+### Infraestructura (probada end-to-end)
+
+Cache de frames reanudable (shards de 1000, 512×288) por los crashes de WSL;
+dataset `BallClips` que solo emite ventanas de frames estrictamente
+consecutivos (no mezcla movimiento a través de huecos ni entre partidos);
+métrica de pico-con-tolerancia (convención TrackNet); MLflow (primera vez en el
+repo — backend sqlite, el file store quedó deprecado en MLflow 3) + PNGs
+autocontenidos para la defensa. Extracción de 4000+3000 frames: ~66s + ~45s
+(WSL estable). 86% de frames con pelota anotada.
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
