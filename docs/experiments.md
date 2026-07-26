@@ -105,6 +105,26 @@ metros sobre la pista) es la única señal fiable de progreso.
   Nivel 2 hereda dos misiones: tipo de golpe + rechazo de falsos candidatos
   (arquitectura en dos etapas). Estos números son el baseline formal.
 
+## Clasificador de golpes (Nivel 2, ADR-0008)
+
+### Atribución de golpe a jugador (Decisión 0)
+
+Validada sobre poses GT de la final femenina (440 eventos de golpe):
+
+- **439/440 golpes atribuidos** (100%): solo 1 run sin pelota anotada.
+- Distancia muñeca-pelota en el frame de impacto: **mediana 29 px, p90 55 px**
+  — la muñeca del jugador atribuido está pegada a la pelota, confirmando que
+  la proximidad identifica correctamente a quien golpea (verificado también
+  visualmente en derecha/revés/remate).
+- Duración media de un evento: 17 frames (~0,6 s a 30 fps).
+- Distribución por evento (canónica, 5 clases): Forehand 147, Backhand 115,
+  Smash 114, Serve 34, Other 29 (incluye la única Dropshot). ~440/partido,
+  ~880 en total → dataset modesto pero viable para baseline.
+
+Nota: las categorías shot-event del ball.json (smash-event, etc.) están
+declaradas pero VACÍAS; la única señal de golpe es el CSV por frame. De ahí
+la necesidad de atribuir por pelota.
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
