@@ -142,26 +142,44 @@ def overlay_minimap(canvas: ImageArray, frame: Frame) -> ImageArray:
 
 SHOT_FLASH_FRAMES = 15
 
+# Spanish shot-type labels for the overlay; NoShot is filtered upstream.
+_SHOT_LABEL_ES = {
+    "Forehand": "Derecha",
+    "Backhand": "Reves",
+    "Smash": "Remate",
+    "Serve": "Saque",
+    "Other": "Otro",
+}
 
-def draw_shot_labels(canvas: ImageArray, frame: Frame, active_shots: dict[int, int]) -> ImageArray:
-    """Flash a label over a player who just hit (active_shots: player_id -> ttl)."""
+
+def draw_shot_labels(
+    canvas: ImageArray, frame: Frame, active_shots: dict[int, tuple[int, str]]
+) -> ImageArray:
+    """Flash the shot type over a player who just hit.
+
+    active_shots maps player_id -> (remaining frames, label to show).
+    """
     for event in frame.shot_events:
-        active_shots[event.player_id] = SHOT_FLASH_FRAMES
+        label = _SHOT_LABEL_ES.get(event.label, event.label)
+        active_shots[event.player_id] = (SHOT_FLASH_FRAMES, label)
     for pose in frame.poses:
-        if pose.player_id is None or active_shots.get(pose.player_id, 0) <= 0:
+        state = active_shots.get(pose.player_id) if pose.player_id is not None else None
+        if state is None or state[0] <= 0:
             continue
         x1, y1, _, _ = (int(v) for v in pose.bbox_xyxy)
         cv2.putText(
             canvas,
-            f"J{pose.player_id} GOLPE!",
+            f"J{pose.player_id}: {state[1]}",
             (x1 - 10, max(y1 - 34, 20)),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.9,
-            (255, 255, 255),
+            (0, 255, 255),
             2,
         )
     for player_id in list(active_shots):
-        active_shots[player_id] -= 1
-        if active_shots[player_id] <= 0:
+        ttl, label = active_shots[player_id]
+        if ttl <= 1:
             del active_shots[player_id]
+        else:
+            active_shots[player_id] = (ttl - 1, label)
     return canvas

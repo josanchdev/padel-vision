@@ -87,7 +87,7 @@ def process_video(
             stages.append(DummyShotStage())
     pipeline = Pipeline(stages)
     track_ids_seen: set[int] = set()
-    active_shots: dict[int, int] = {}
+    active_shots: dict[int, tuple[int, str]] = {}
     shots_detected = 0
     start = time.perf_counter()
     frames_written = 0
