@@ -45,6 +45,7 @@ def process_video(
     static_court: str | None = None,
     start_frame: int = 0,
     on_progress: Callable[[float], None] | None = None,
+    shot_model: str | None = None,
 ) -> ProcessResult:
     capture = cv2.VideoCapture(str(input_path))
     if not capture.isOpened():
@@ -76,7 +77,14 @@ def process_video(
     if court_stage is not None:
         stages.append(court_stage)
         stages.append(PlayerIdentityStage())
-        stages.append(DummyShotStage())
+        if shot_model is not None:
+            # PoseConv3D classifier lives in packages/ml; imported lazily so
+            # packages/cv keeps no hard dependency on torch/ml.
+            from padel_ml.shot_stage import ClassifiedShotStage
+
+            stages.append(ClassifiedShotStage(Path(shot_model)))
+        else:
+            stages.append(DummyShotStage())
     pipeline = Pipeline(stages)
     track_ids_seen: set[int] = set()
     active_shots: dict[int, int] = {}
@@ -184,6 +192,11 @@ def main() -> int:
         metavar="COCO_JSON:CAMERA",
         help="Fixed-camera mode: exact homography from a one-time CVAT annotation (ADR-0006)",
     )
+    process.add_argument(
+        "--shot-model",
+        default=None,
+        help="PoseConv3D checkpoint: classify real shot types (else wrist-speed dummy)",
+    )
 
     extract = subparsers.add_parser(
         "extract-poses",
@@ -237,6 +250,7 @@ def main() -> int:
             args.court_model,
             args.static_court,
             args.start,
+            shot_model=args.shot_model,
         )
     elif args.command == "extract-poses":
         from padel_cv.pose_cache import extract_poses_to_cache
