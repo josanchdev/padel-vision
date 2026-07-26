@@ -120,10 +120,26 @@ familias:
 
 **Recomendación:** una síntesis — el **rigor y los componentes de la analítica
 deportiva** (heatmaps, timelines, tablas densas de verdad) con la **pulcritud
-tipográfica y el espaciado de un SaaS moderno**. Marca URJC como acento (paleta
-por decidir: rojo institucional URJC vs verde pádel — abierto). Lo que hace que
-NO sea genérico no es el estilo elegido, sino que las pantallas están llenas de
-**datos reales de un partido concreto** con densidad de herramienta profesional.
+tipográfica y el espaciado de un SaaS moderno**. Lo que hace que NO sea genérico
+no es el estilo elegido, sino que las pantallas están llenas de **datos reales de
+un partido concreto** con densidad de herramienta profesional.
 
-Material a llevar a Claude Design: este inventario + un export JSON real + la
-decisión de paleta.
+### Paleta: rojo institucional URJC (decidido)
+
+Marca dominante = **rojo URJC**, que identifica el proyecto ante el tribunal.
+Regla de uso para que el rojo NO se coma el dashboard (el rojo es el color
+universal de "error/alerta"):
+
+- **Rojo = identidad, no datos.** Logo, cabecera, botón primario, acento de la
+  sección activa, líneas de énfasis. Es el "esto es URJC".
+- **Los datos se pintan en OTRA gama.** Heatmaps y series con una escala neutra o
+  no-roja (p. ej. azul→amarillo). El rojo en datos solo si significa
+  "intensidad", nunca "malo".
+- **Base neutra premium** (grises tinta, casi negro o casi blanco) para que el
+  rojo resalte al aparecer. Si todo es rojo, nada destaca.
+
+Regla mental: **rojo = "quién soy"; datos = otra gama.** Identidad fuerte sin
+sacrificar legibilidad.
+
+Material a llevar a Claude Design: este inventario + un export JSON real
+(`runs/match_data/*.json`) + esta guía de paleta.
