@@ -37,6 +37,45 @@ ganar**. Prioridad orientativa (no es un compromiso de orden).
   visible-vs-ocluida que mostraría dónde gana V3. *Ganancia esperada:*
   desbloquea esa gráfica comparativa (la infraestructura ya está lista).
 
+## Robustez del vídeo real: la pila de dependencias hacia el análisis de punto
+
+Un vídeo de pádel NO es rally continuo: entre puntos los jugadores caminan,
+recogen pelotas, hablan; hay repeticiones a cámara lenta, planos del público,
+primeros planos de un jugador. Contar golpes/botes sobre TODO el vídeo
+indiscriminadamente contamina cualquier estadística (gestos de calentamiento
+contados como golpes, pelota muerta rodando contada como bote, detector de
+pelota y homografía enloquecidos en el plano del público). Antes de explotar los
+datos hay que **generar datos fiables**. Esta es la pila, de abajo (resolver
+primero) a arriba (bonus final):
+
+1. **[Alta] ¿La cámara está en la pista?** Distinguir frames de pista de
+   público / repetición / primer plano. Sin esto, todo lo demás es ruido. Es el
+   primer eslabón y el más prioritario.
+2. **[Alta] ¿Hay un punto en juego?** Segmentación temporal del vídeo en
+   "puntos" vs "no-puntos" (jugadores caminando, calentando, recogiendo). Define
+   la unidad de análisis.
+3. **[Media] Límites de cada punto:** saque → último golpe válido. La unidad
+   sobre la que se calcula cualquier resultado.
+4. **[Media] Secuencia ordenada de golpes+botes por punto** (quién, cuándo, qué
+   golpe). Ya la empezamos a tener con Nivel 2 (golpes) + Nivel 3 (botes); falta
+   ensamblarla por punto una vez existan los límites del punto (3).
+5. **[Baja/exploración] ¿Cómo terminó el punto?** Winner (nadie llegó) vs error
+   (a la red / fuera / doble bote). Requiere reglas de pádel + geometría. Aquí
+   empieza lo genuinamente difícil.
+6. **[Bonus final, exploración no comprometida] Atribución del resultado y stats
+   por jugador.** Qué equipo suma, qué golpe fue decisivo, quién falló y con qué
+   ("J4 falló el 60% de reveses"), mapas de calor, resúmenes. Es la CIMA de la
+   pila: agregación estadística sobre el nivel 5.
+
+**Decisión de alcance (para la memoria/defensa):** los niveles 1-4 son
+alcanzables y sólidos. Los niveles 5-6 son un salto grande, en terreno donde
+incluso productos comerciales fallan y con vídeo monocular hay ambigüedades a
+veces irresolubles (¿doble bote o el jugador llegó justo?). Se tratan como
+**trabajo futuro / exploración de hasta dónde llegamos con los datos**, NO como
+funcionalidad prometida. Honesto ante el tribunal: reconoce el reto abierto en
+vez de comprometer algo frágil. Coherente con "modelos/datos perfectos primero,
+funcionalidades encima" ([[project-padel-vision-tfg]]).
+
 ## Modelos
 
 - **[Media] Ampliar la taxonomía de golpes a 6 clases.** El clasificador usa 5
@@ -55,8 +94,10 @@ ganar**. Prioridad orientativa (no es un compromiso de orden).
   PoseConv3D está entrenado pero aún no expuesto en el producto; se hará en la
   sesión de rediseño web.
 - **[Media] Rediseño web con estándares UX 2026.** Plataforma de suscripción
-  profesional: mapas de calor, resúmenes, stats por jugador. Sesión propia con
-  investigación de UX y decisión de paleta (rojo URJC vs verde pádel).
+  profesional. Sesión propia con investigación de UX y decisión de paleta (rojo
+  URJC vs verde pádel). Ojo: las stats por jugador que exhibiría dependen de la
+  pila de robustez de arriba (niveles 5-6); la web puede empezar por lo que ya
+  es fiable (trayectoria, golpes, botes, minimapa) y sumar stats cuando existan.
 - **[Baja] Latencia del clasificador de golpes.** Emite ~0,5 s tras el impacto
   (ventana centrada necesita frames posteriores). Aceptable en batch; revisar si
   se quiere modo live (Nivel 3 del roadmap).
