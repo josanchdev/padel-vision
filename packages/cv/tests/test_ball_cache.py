@@ -63,6 +63,9 @@ def test_extract_caches_downscaled_frames_and_centers(tmp_path) -> None:
     np.testing.assert_allclose(first["centers"][0], [0.5, 0.5], rtol=1e-6)
     assert np.isnan(first["centers"][1]).all()  # frame 1 has no ball
     np.testing.assert_allclose(first["centers"][2], [100.0 / 1920, 200.0 / 1080], rtol=1e-6)
+    # occluded array is present, False where there is no ball annotation.
+    assert first["occluded"].dtype == np.bool_
+    assert first["occluded"][1] == False  # noqa: E712 - explicit bool check
 
 
 def test_extract_resumes_from_existing_shards(tmp_path) -> None:

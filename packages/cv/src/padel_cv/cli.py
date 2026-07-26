@@ -208,6 +208,15 @@ def main() -> int:
     extract.add_argument("--imgsz", type=int, default=1920, help="Inference resolution")
     extract.add_argument("--max-frames", type=int, default=None, help="Stop after N frames")
 
+    ball = subparsers.add_parser(
+        "extract-ball-frames",
+        help="Cache downscaled frames + ball centres for TrackNet (resumable shards)",
+    )
+    ball.add_argument("video", type=Path, help="Match video path")
+    ball.add_argument("--ball", type=Path, required=True, help="PadelTracker100 *_ball.json")
+    ball.add_argument("-o", "--cache-dir", type=Path, required=True, help="Shard output dir")
+    ball.add_argument("--max-frames", type=int, default=None, help="Stop after N frames")
+
     build = subparsers.add_parser(
         "build-court-dataset",
         help="Auto-label court keypoints from PadelTracker100 GT homographies",
@@ -257,6 +266,12 @@ def main() -> int:
 
         extract_poses_to_cache(
             args.video, args.cache_dir, args.conf, args.imgsz, max_frames=args.max_frames
+        )
+    elif args.command == "extract-ball-frames":
+        from padel_cv.ball_cache import extract_ball_frames_to_cache
+
+        extract_ball_frames_to_cache(
+            args.video, args.ball, args.cache_dir, max_frames=args.max_frames
         )
     elif args.command == "build-court-dataset":
         from padel_cv.datasets import build_court_dataset

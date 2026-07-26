@@ -42,7 +42,8 @@ class _MatchFrames:
 
     frames: npt.NDArray[np.uint8]  # (N, H, W, 3) BGR
     indices: npt.NDArray[np.int64]  # (N,) original frame index
-    centers: FloatArray  # (N, 2) ball centre in original px, NaN if absent
+    centers: FloatArray  # (N, 2) fractional ball centre, NaN if absent
+    occluded: npt.NDArray[np.bool_]  # (N,) ball marked occluded
 
 
 def _load_match(cache_dir: Path) -> _MatchFrames:
@@ -50,18 +51,20 @@ def _load_match(cache_dir: Path) -> _MatchFrames:
     shards = sorted(cache_dir.glob("frames_*.npz"))
     if not shards:
         raise FileNotFoundError(f"No frame shards in {cache_dir}")
-    frames, indices, centers = [], [], []
+    frames, indices, centers, occluded = [], [], [], []
     for shard in shards:
         data = np.load(shard)
         frames.append(data["frames"])
         indices.append(data["indices"])
         centers.append(data["centers"])
+        occluded.append(data["occluded"])
     idx = np.concatenate(indices)
     order = np.argsort(idx)
     return _MatchFrames(
         frames=np.concatenate(frames)[order],
         indices=idx[order],
         centers=np.concatenate(centers)[order],
+        occluded=np.concatenate(occluded)[order],
     )
 
 
@@ -79,8 +82,12 @@ def _consecutive_windows(indices: npt.NDArray[np.int64]) -> list[int]:
     return ends
 
 
-class BallClips(Dataset[tuple[torch.Tensor, torch.Tensor]]):
-    """Windows of INPUT_FRAMES consecutive frames -> ball heatmap for the last."""
+class BallClips(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
+    """Windows of INPUT_FRAMES consecutive frames -> ball heatmap for the last.
+
+    Each item is (stacked_frames, heatmap, occluded_flag); the flag drives the
+    visible-vs-occluded metric split (ADR-0009).
+    """
 
     def __init__(self, cache_dirs: list[Path], sigma: float = 2.5) -> None:
         self._sigma = sigma
@@ -96,7 +103,7 @@ class BallClips(Dataset[tuple[torch.Tensor, torch.Tensor]]):
     def __len__(self) -> int:
         return len(self._windows)
 
-    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         m, end = self._windows[index]
         match = self._matches[m]
         start = end - (INPUT_FRAMES - 1)
@@ -107,4 +114,5 @@ class BallClips(Dataset[tuple[torch.Tensor, torch.Tensor]]):
         center = match.centers[end]
         center_xy = None if np.isnan(center).any() else (float(center[0]), float(center[1]))
         heatmap = render_heatmap(center_xy, grid_wh=(GRID_W, GRID_H), sigma=self._sigma)
-        return torch.from_numpy(stacked), torch.from_numpy(heatmap)
+        occluded = torch.tensor(bool(match.occluded[end]))
+        return torch.from_numpy(stacked), torch.from_numpy(heatmap), occluded

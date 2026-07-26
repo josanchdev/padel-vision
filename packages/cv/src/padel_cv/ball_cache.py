@@ -57,9 +57,11 @@ def extract_ball_frames_to_cache(
     """Cache downscaled frames + per-frame ball centres, resumably.
 
     Each shard stores: downscaled BGR frames (N, H, W, 3) uint8, their frame
-    indices, and FRACTIONAL ball centres (N, 2) float32 in [0, 1] with NaN where
-    the ball is unannotated. Fractional centres are resolution-independent, so
-    the heatmap grid size is a training-time choice, not baked into the cache.
+    indices, FRACTIONAL ball centres (N, 2) float32 in [0, 1] with NaN where the
+    ball is unannotated, and an occluded flag (N,) bool. Fractional centres are
+    resolution-independent, so the heatmap grid size is a training-time choice,
+    not baked into the cache. The occluded flag drives the visible-vs-occluded
+    metric split (ADR-0009).
     """
     cache_dir.mkdir(parents=True, exist_ok=True)
     centers = load_ball_centers(ball_json)
@@ -75,6 +77,7 @@ def extract_ball_frames_to_cache(
     shard_frames: list[UInt8Array] = []
     shard_indices: list[int] = []
     shard_centers: list[tuple[float, float]] = []
+    shard_occluded: list[bool] = []
 
     def flush(start: int) -> None:
         if not shard_frames:
@@ -84,6 +87,7 @@ def extract_ball_frames_to_cache(
             frames=np.stack(shard_frames),
             indices=np.asarray(shard_indices, dtype=np.int64),
             centers=np.asarray(shard_centers, dtype=np.float32),
+            occluded=np.asarray(shard_occluded, dtype=np.bool_),
         )
 
     shard_start = start_frame
@@ -99,12 +103,13 @@ def extract_ball_frames_to_cache(
         shard_frames.append(small.astype(np.uint8))
         shard_indices.append(frame_index)
         shard_centers.append(center if center is not None else (np.nan, np.nan))
+        shard_occluded.append(ball.occluded if ball is not None else False)
 
         frame_index += 1
         written += 1
         if len(shard_frames) >= shard_size:
             flush(shard_start)
-            shard_frames, shard_indices, shard_centers = [], [], []
+            shard_frames, shard_indices, shard_centers, shard_occluded = [], [], [], []
             shard_start = frame_index
     flush(shard_start)
     capture.release()

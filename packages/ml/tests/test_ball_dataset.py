@@ -5,18 +5,21 @@ from padel_ml.ball_dataset import GRID_H, GRID_W, BallClips, _consecutive_window
 from padel_cv.ball_cache import FRAME_H, FRAME_W
 
 
-def _write_shard(cache_dir, indices, centers) -> None:
+def _write_shard(cache_dir, indices, centers, occluded=None) -> None:
     cache_dir.mkdir(parents=True, exist_ok=True)
     n = len(indices)
     frames = np.zeros((n, FRAME_H, FRAME_W, 3), dtype=np.uint8)
     # Tag each frame with its index in pixel [0,0] so window ordering is checkable.
     for k, idx in enumerate(indices):
         frames[k, 0, 0, 0] = idx
+    if occluded is None:
+        occluded = [False] * n
     np.savez_compressed(
         cache_dir / f"frames_{indices[0]:07d}.npz",
         frames=frames,
         indices=np.asarray(indices, dtype=np.int64),
         centers=np.asarray(centers, dtype=np.float32),
+        occluded=np.asarray(occluded, dtype=np.bool_),
     )
 
 
@@ -38,9 +41,10 @@ def test_dataset_stacks_three_frames_and_targets_last(tmp_path) -> None:
     # 4 consecutive frames -> 2 windows (ending at 2 and 3).
     assert len(ds) == 2
 
-    x, y = ds[0]
+    x, y, occ = ds[0]
     assert x.shape == (9, FRAME_H, FRAME_W)  # 3 frames x 3 channels
     assert y.shape == (GRID_H, GRID_W)
+    assert occ.item() is False
     # Window 0 targets frame 2 (center 0.25,0.25) -> non-empty heatmap.
     assert y.max() > 0.5
 
@@ -59,5 +63,18 @@ def test_dataset_absent_ball_gives_zero_target(tmp_path) -> None:
         centers=[(0.5, 0.5), (0.5, 0.5), (np.nan, np.nan)],
     )
     ds = BallClips([cache])
-    _, y = ds[0]  # targets frame 2, which has no ball
+    _, y, _ = ds[0]  # targets frame 2, which has no ball
     assert not y.any()
+
+
+def test_dataset_carries_occluded_flag_of_target_frame(tmp_path) -> None:
+    cache = tmp_path / "match"
+    _write_shard(
+        cache,
+        indices=[0, 1, 2],
+        centers=[(0.5, 0.5), (0.5, 0.5), (0.5, 0.5)],
+        occluded=[False, False, True],  # target frame (2) is occluded
+    )
+    ds = BallClips([cache])
+    _, _, occ = ds[0]
+    assert occ.item() is True

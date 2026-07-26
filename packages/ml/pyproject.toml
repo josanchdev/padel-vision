@@ -7,6 +7,8 @@ dependencies = [
     "torch>=2.5",
     "numpy>=1.26",
     "scikit-learn>=1.5",
+    "matplotlib>=3.9",
+    "mlflow>=2.16",
     "padel-cv",
 ]
 
@@ -15,6 +17,7 @@ padel-cv = { workspace = true }
 
 [project.scripts]
 padel-train = "padel_ml.train:main"
+padel-ball-train = "padel_ml.ball_train:main"
 
 [build-system]
 requires = ["hatchling"]
