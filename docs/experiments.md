@@ -175,6 +175,25 @@ Dificultad técnica resuelta: la generación de heatmaps al vuelo con bucles
 Python era demasiado lenta (timeout); se vectorizó con broadcasting numpy
 (172 ms/batch), reduciendo el entrenamiento a minutos.
 
+### Integración en el pipeline (arquitectura en dos etapas)
+
+El clasificador sustituye al dummy vía la interfaz `ShotEvent`. Detección de
+golpes en inferencia = dos etapas, **sin ninguna anotación externa**:
+
+1. **Cuándo + quién** (señal propia): pico de velocidad de muñeca POR jugador
+   (recall alto, precisión baja) propone candidatos. Que sea por jugador da la
+   atribución sin pelota: quien golpea es aquel cuya muñeca aceleró.
+2. **Qué** (PoseConv3D): recorta la ventana centrada de 32 frames del jugador
+   propuesto y la clasifica; los falsos positivos del paso 1 caen en NoShot y
+   se descartan.
+
+Resuelve el principio de independencia de datasets: la pelota anotada de
+PadelTracker100 solo etiquetó el training set (offline); en producción el
+sistema es autónomo. Demo verificada: overlay "J2: Remate" etc. con tipos
+reales y minimapa. Detalle: la clasificación se emite ~0,5 s tras el impacto
+(necesita frames posteriores para la ventana centrada) — latencia aceptable
+para análisis batch.
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
