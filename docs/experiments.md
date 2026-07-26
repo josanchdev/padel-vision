@@ -152,6 +152,29 @@ ST-GCN + augmentation, mismo split cross-match:
 - Confirma: con dataset pequeño, augmentar da mejora real y barata. Se usa en
   toda la comparativa de arquitecturas.
 
+### Comparativa de arquitecturas (val = final femenina, cross-jugador)
+
+Mismo split, class weights, augmentation. **La comparación es la contribución
+científica** (ADR-0008): baseline clásico vs moderno en igualdad de condiciones.
+
+| Modelo | macro-F1 | accuracy | Fore | Back | Smash | Serve | Other | NoShot |
+|--------|:--------:|:--------:|:----:|:----:|:-----:|:-----:|:-----:|:------:|
+| ST-GCN (2018) | 0,526 | 0,633 | 0,55 | 0,63 | 0,68 | 0,44 | 0,11 | 0,75 |
+| ST-GCN + aug | 0,547 | 0,656 | 0,59 | 0,63 | 0,75 | 0,36 | 0,20 | 0,76 |
+| **PoseConv3D + aug** | **0,632** | **0,693** | 0,66 | 0,68 | 0,75 | **0,75** | 0,18 | 0,78 |
+
+**Conclusión:** PoseConv3D bate a ST-GCN por **+8,5 pts de macro-F1**. La
+mejora más llamativa es Serve (0,36→0,75): los heatmaps + CNN 3D distinguen el
+saque, que ST-GCN confundía. Los golpes principales suben todos. "Other" sigue
+mal (clase cajón-desastre, ~65 clips) — es problema de datos, no de modelo.
+Ambos limitados por el tamaño del dataset (1346 clips); el techo lo subirá el
+dataset propio. Modelo elegido para producción: **PoseConv3D**
+(`runs/archive/poseconv3d_shots.pt`).
+
+Dificultad técnica resuelta: la generación de heatmaps al vuelo con bucles
+Python era demasiado lenta (timeout); se vectorizó con broadcasting numpy
+(172 ms/batch), reduciendo el entrenamiento a minutos.
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
