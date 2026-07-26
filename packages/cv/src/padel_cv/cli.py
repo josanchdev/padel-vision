@@ -23,7 +23,7 @@ from padel_cv.stages import (
 )
 from padel_cv.stages.pose import DEFAULT_TRACKER
 from padel_cv.video_io import H264VideoWriter
-from padel_cv.visualize import draw_poses, draw_shot_labels, overlay_minimap
+from padel_cv.visualize import draw_ball, draw_poses, draw_shot_labels, overlay_minimap
 
 
 @dataclass
@@ -46,6 +46,7 @@ def process_video(
     start_frame: int = 0,
     on_progress: Callable[[float], None] | None = None,
     shot_model: str | None = None,
+    ball_model: str | None = None,
 ) -> ProcessResult:
     capture = cv2.VideoCapture(str(input_path))
     if not capture.isOpened():
@@ -85,6 +86,12 @@ def process_video(
             stages.append(ClassifiedShotStage(Path(shot_model)))
         else:
             stages.append(DummyShotStage())
+    if ball_model is not None:
+        # After the court stage so the ball can be projected to court metres;
+        # works without a court too (records only image coords). Lazy import.
+        from padel_ml.ball_stage import BallDetectionStage
+
+        stages.append(BallDetectionStage(Path(ball_model)))
     pipeline = Pipeline(stages)
     track_ids_seen: set[int] = set()
     active_shots: dict[int, tuple[int, str]] = {}
@@ -95,7 +102,8 @@ def process_video(
         for frame in pipeline.run(str(input_path), start_frame=start_frame):
             track_ids_seen.update(p.track_id for p in frame.poses if p.track_id is not None)
             shots_detected += len(frame.shot_events)
-            canvas = draw_shot_labels(draw_poses(frame), frame, active_shots)
+            canvas = draw_ball(draw_poses(frame), frame)
+            canvas = draw_shot_labels(canvas, frame, active_shots)
             writer.write(overlay_minimap(canvas, frame))
             frames_written += 1
             if max_frames is not None and frames_written >= max_frames:
@@ -197,6 +205,11 @@ def main() -> int:
         default=None,
         help="PoseConv3D checkpoint: classify real shot types (else wrist-speed dummy)",
     )
+    process.add_argument(
+        "--ball-model",
+        default=None,
+        help="TrackNet checkpoint: detect the ball and its court position each frame",
+    )
 
     extract = subparsers.add_parser(
         "extract-poses",
@@ -260,6 +273,7 @@ def main() -> int:
             args.static_court,
             args.start,
             shot_model=args.shot_model,
+            ball_model=args.ball_model,
         )
     elif args.command == "extract-poses":
         from padel_cv.pose_cache import extract_poses_to_cache

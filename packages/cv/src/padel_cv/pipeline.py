@@ -53,6 +53,21 @@ class ShotEvent:
 
 
 @dataclass
+class BallDetection:
+    """The ball's location in one frame, as found by the ball detector.
+
+    image_xy is the pixel position of the heatmap peak; court_xy_m is that point
+    projected to court metres via the homography (None if no homography or the
+    ball is off the modelled plane). confidence is the peak height in [0, 1].
+    Our own TrackNet model fills this — no external annotation at inference.
+    """
+
+    image_xy: tuple[float, float]
+    confidence: float
+    court_xy_m: tuple[float, float] | None = None
+
+
+@dataclass
 class Frame:
     """A single video frame plus everything the pipeline has learned about it."""
 
@@ -64,6 +79,8 @@ class Frame:
     shot_events: list[ShotEvent] = field(default_factory=list)
     """Shots finalized AT this frame (a shot is confirmed a few frames after
     its wrist-speed peak, so events carry their own frame_index)."""
+    ball: BallDetection | None = None
+    """The ball in this frame, or None if the detector found none."""
 
 
 @runtime_checkable

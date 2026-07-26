@@ -59,6 +59,19 @@ def pose_color_and_label(pose: PoseDetection) -> tuple[tuple[int, int, int], str
     return BOX_COLOR, f"{pose.confidence:.2f}"
 
 
+BALL_COLOR = (0, 255, 255)  # yellow, like a padel ball
+
+
+def draw_ball(canvas: ImageArray, frame: Frame) -> ImageArray:
+    """Mark the detected ball with a small circle on the annotated frame."""
+    if frame.ball is None:
+        return canvas
+    x, y = (int(v) for v in frame.ball.image_xy)
+    cv2.circle(canvas, (x, y), 6, BALL_COLOR, 2)
+    cv2.circle(canvas, (x, y), 1, BALL_COLOR, -1)
+    return canvas
+
+
 def draw_poses(frame: Frame) -> ImageArray:
     """Return a copy of the frame image with boxes and skeletons drawn."""
     canvas = frame.image.copy()
@@ -123,6 +136,11 @@ def draw_minimap(frame: Frame, height_px: int = MINIMAP_HEIGHT_PX) -> ImageArray
         cv2.circle(canvas, (x, y), 8, color, -1)
         cv2.circle(canvas, (x, y), 8, (255, 255, 255), 1)
         cv2.putText(canvas, label, (x - 8, y + 4), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0), 1)
+
+    if frame.ball is not None and frame.ball.court_xy_m is not None:
+        bx, by = to_px(*frame.ball.court_xy_m)
+        cv2.circle(canvas, (bx, by), 4, BALL_COLOR, -1)
+        cv2.circle(canvas, (bx, by), 4, (0, 0, 0), 1)
     return canvas
 
 
