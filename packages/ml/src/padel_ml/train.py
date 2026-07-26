@@ -7,6 +7,7 @@ for an imbalanced problem, where plain accuracy would hide the rare classes.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -16,9 +17,21 @@ from sklearn.metrics import confusion_matrix, f1_score
 from torch.utils.data import DataLoader
 
 from padel_ml.data import load_shot_data
+from padel_ml.heatmap import batch_to_heatmaps
+from padel_ml.poseconv3d import PoseConv3D
 from padel_ml.stgcn import STGCN
 
 Batch = tuple[torch.Tensor, ...]
+InputTransform = Callable[[torch.Tensor], torch.Tensor]
+
+
+def _make_model(name: str, num_classes: int) -> tuple[torch.nn.Module, InputTransform | None]:
+    """Returns the model and an optional input transform (heatmaps for 3D CNN)."""
+    if name == "stgcn":
+        return STGCN(num_classes=num_classes), None
+    if name == "poseconv3d":
+        return PoseConv3D(num_classes=num_classes), batch_to_heatmaps
+    raise ValueError(f"unknown model: {name}")
 
 
 @dataclass
@@ -30,13 +43,19 @@ class EvalResult:
 
 
 def evaluate(
-    model: torch.nn.Module, loader: DataLoader[Batch], classes: list[str], device: str
+    model: torch.nn.Module,
+    loader: DataLoader[Batch],
+    classes: list[str],
+    device: str,
+    transform: InputTransform | None = None,
 ) -> EvalResult:
     model.eval()
     preds: list[int] = []
     trues: list[int] = []
     with torch.no_grad():
         for x, y in loader:
+            if transform is not None:
+                x = transform(x)
             logits = model(x.to(device))
             preds.extend(logits.argmax(1).cpu().tolist())
             trues.extend(y.tolist())
@@ -59,6 +78,7 @@ def train(
     seed: int = 0,
     out_path: Path | None = None,
     augment: bool = False,
+    model_name: str = "stgcn",
 ) -> EvalResult:
     torch.manual_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -66,7 +86,8 @@ def train(
     train_loader = DataLoader(data.train, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(data.val, batch_size=batch_size)
 
-    model = STGCN(num_classes=len(data.classes)).to(device)
+    model_obj, transform = _make_model(model_name, len(data.classes))
+    model = model_obj.to(device)
     criterion = torch.nn.CrossEntropyLoss(weight=data.class_weights.to(device))
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
@@ -77,13 +98,15 @@ def train(
         model.train()
         total = 0.0
         for x, y in train_loader:
+            if transform is not None:
+                x = transform(x)
             optimizer.zero_grad()
             loss = criterion(model(x.to(device)), y.to(device))
             loss.backward()
             optimizer.step()
             total += loss.item() * len(x)
         scheduler.step()
-        result = evaluate(model, val_loader, data.classes, device)
+        result = evaluate(model, val_loader, data.classes, device, transform)
         if result.macro_f1 > best.macro_f1:
             best, best_state = result, {k: v.clone() for k, v in model.state_dict().items()}
         if epoch % 10 == 0 or epoch == 1:
@@ -113,6 +136,7 @@ def main() -> None:
     parser.add_argument("--val-match", type=int, default=0)
     parser.add_argument("--epochs", type=int, default=60)
     parser.add_argument("--augment", action="store_true", help="Skeleton augmentation")
+    parser.add_argument("--model", default="stgcn", choices=["stgcn", "poseconv3d"])
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
     train(
@@ -121,6 +145,7 @@ def main() -> None:
         epochs=args.epochs,
         out_path=args.out,
         augment=args.augment,
+        model_name=args.model,
     )
 
 
