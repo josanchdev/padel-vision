@@ -14,6 +14,23 @@ El Nivel 2 sustituye el dummy de golpes (heurística de muñeca, recall 0,94 / p
 - **Desbalanceo:** class weights (o focal loss) en vez de descartar clases minoritarias.
 - **Arquitecturas (Decisión 2):** ST-GCN (2018) como baseline citable vs PoseConv3D (heatmaps 3D + CNN 3D, más robusto al ruido de keypoints) como moderna. La comparación con métricas por clase y matrices de confusión es la contribución científica.
 
+## Diseño de los clips (windowing, decidido al construir)
+
+- **Ventana de 32 frames centrada en el impacto** (~1 s a 30 fps): más ancha
+  que el golpe medio (17 frames) para que el modelo vea preparación y
+  acompañamiento, no solo el impacto. Potencia de 2 por comodidad.
+- **Seguimiento por track id**: la atribución da el track del que golpea; se
+  extrae su esqueleto en toda la ventana siguiendo ese id. Huecos (oclusión)
+  se rellenan con la última pose válida (hold-fill); si falta en más de media
+  ventana, el clip se descarta.
+- **Normalización invariante**: cada esqueleto se centra en el punto medio de
+  caderas y se escala por la longitud del torso. Una derecha en fondo cercano
+  y otra en lejano quedan idénticas para el modelo (invarianza a
+  posición/tamaño/cámara).
+- **Clips negativos "NoShot"**: ventanas de rally lejos de cualquier golpe
+  (>45 frames), para que el clasificador rechace movimientos que no son golpe
+  — ataca directamente los falsos positivos del dummy. 6 clases finales.
+
 ## Consecuencias
 
 - (+) El clasificador entrena y evalúa sobre datos representativos del despliegue real.
