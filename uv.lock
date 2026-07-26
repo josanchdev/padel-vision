@@ -893,6 +893,7 @@ version = "0.1.0"
 source = { editable = "packages/ml" }
 dependencies = [
     { name = "numpy" },
+    { name = "padel-cv" },
     { name = "scikit-learn" },
     { name = "torch" },
 ]
@@ -900,6 +901,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "numpy", specifier = ">=1.26" },
+    { name = "padel-cv", editable = "packages/cv" },
     { name = "scikit-learn", specifier = ">=1.5" },
     { name = "torch", specifier = ">=2.5" },
 ]
