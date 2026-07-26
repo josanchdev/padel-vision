@@ -12,6 +12,7 @@ from pathlib import Path
 
 import cv2
 
+from padel_cv.bounces import BallSample, detect_bounces
 from padel_cv.pipeline import Pipeline, PipelineStage
 from padel_cv.stages import (
     CourtDetectionStage,
@@ -30,6 +31,7 @@ from padel_cv.visualize import draw_ball, draw_poses, draw_shot_labels, overlay_
 class ProcessResult:
     frames_written: int
     shots_detected: int
+    bounces_detected: int = 0
 
 
 def process_video(
@@ -96,12 +98,19 @@ def process_video(
     track_ids_seen: set[int] = set()
     active_shots: dict[int, tuple[int, str]] = {}
     shots_detected = 0
+    ball_track: list[BallSample] = []
+    shot_frames: set[int] = set()
     start = time.perf_counter()
     frames_written = 0
     try:
         for frame in pipeline.run(str(input_path), start_frame=start_frame):
             track_ids_seen.update(p.track_id for p in frame.poses if p.track_id is not None)
             shots_detected += len(frame.shot_events)
+            shot_frames.update(e.frame_index for e in frame.shot_events)
+            if frame.ball is not None:
+                ball_track.append(
+                    BallSample(frame.index, frame.ball.image_xy[0], frame.ball.image_xy[1])
+                )
             canvas = draw_ball(draw_poses(frame), frame)
             canvas = draw_shot_labels(canvas, frame, active_shots)
             writer.write(overlay_minimap(canvas, frame))
@@ -116,14 +125,21 @@ def process_video(
     finally:
         writer.release()
     elapsed = time.perf_counter() - start
+    bounces = detect_bounces(ball_track, shot_frames) if ball_track else []
     print(f"Wrote {frames_written} frames to {output_path} in {elapsed:.1f}s")
     if track_ids_seen:
         print(f"Track IDs seen: {sorted(track_ids_seen)}")
     if shots_detected:
         print(f"Shots detected: {shots_detected}")
+    if bounces:
+        print(f"Bounces detected: {len(bounces)}")
     if on_progress is not None:
         on_progress(1.0)
-    return ProcessResult(frames_written=frames_written, shots_detected=shots_detected)
+    return ProcessResult(
+        frames_written=frames_written,
+        shots_detected=shots_detected,
+        bounces_detected=len(bounces),
+    )
 
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv"}

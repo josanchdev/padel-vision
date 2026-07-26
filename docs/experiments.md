@@ -236,6 +236,38 @@ repo — backend sqlite, el file store quedó deprecado en MLflow 3) + PNGs
 autocontenidos para la defensa. Extracción de 4000+3000 frames: ~66s + ~45s
 (WSL estable). 86% de frames con pelota anotada.
 
+### Integración: `BallDetectionStage` sobre vídeo real
+
+La etapa bufferea 3 frames (TrackNet los necesita), corre el modelo, coge el
+pico del heatmap y lo proyecta a metros de pista con la homografía. Vive en
+`packages/ml` (lazy import) para no meter torch en `cv`. Verificado sobre metraje
+WPT real: **198/200 frames con pelota detectada a 0,83-0,99 de confianza**, pelota
+dibujada en overlay y minimapa junto a poses+pista+golpes. El modelo de prueba
+corta ya localiza bien.
+
+### Detección de botes: trayectoria vertical en píxeles (Decisión F)
+
+Un bote = valle en la trayectoria vertical de la pelota (mínimo de altura =
+máximo de y en píxeles). Se trabaja en píxeles de imagen, NO en metros
+proyectados: la homografía mapea el plano del suelo, así que una pelota en el
+aire proyecta con error creciente con la altura y distorsionaría el valle. La
+homografía solo sitúa el bote confirmado en la pista.
+
+**Hallazgo clave (composición de subsistemas):** no todo cambio de dirección es
+un bote — un jugador golpeando también invierte la pelota. Se descartan los
+candidatos cercanos a un golpe. Pero esto expone una dependencia: la calidad de
+los botes depende de la **precisión del clasificador de golpes**. Con el dummy
+(precisión 0,28, muchos falsos positivos) el guard de golpes se come TODOS los
+botes (0 detectados en 200 frames). Con el clasificador PoseConv3D real (alta
+precisión) los botes reales sobreviven: en el mismo tramo, el candidato en el
+frame 634 (bote de suelo lejos de cualquier golpe) se detecta correctamente,
+mientras los del 509/585 se descartan por coincidir con golpes reales. Es decir:
+**los tres subsistemas (pelota + golpes + pista) se necesitan mutuamente**, y el
+Nivel 2 no es solo un entregable previo sino un requisito del Nivel 3.
+
+Distinguir bote de suelo vs pared/cristal queda para más adelante
+(`docs/backlog.md`).
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
