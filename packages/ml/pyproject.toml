@@ -7,7 +7,11 @@ dependencies = [
     "torch>=2.5",
     "numpy>=1.26",
     "scikit-learn>=1.5",
+    "padel-cv",
 ]
+
+[tool.uv.sources]
+padel-cv = { workspace = true }
 
 [project.scripts]
 padel-train = "padel_ml.train:main"
