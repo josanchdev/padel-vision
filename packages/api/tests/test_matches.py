@@ -17,6 +17,7 @@ def client(tmp_path, monkeypatch) -> TestClient:
     settings = Settings(storage_dir=tmp_path)
     settings.uploads_dir.mkdir(parents=True, exist_ok=True)
     settings.results_dir.mkdir(parents=True, exist_ok=True)
+    settings.data_dir.mkdir(parents=True, exist_ok=True)
     store = InMemoryMatchStore()
     queue = InMemoryJobQueue()
     app.dependency_overrides[get_settings] = lambda: settings
@@ -80,6 +81,55 @@ def test_result_served_when_done(client: TestClient) -> None:
     response = client.get(f"/matches/{match_id}/result")
     assert response.status_code == 200
     assert response.content == b"annotated video"
+
+
+def _mark_done(client: TestClient, match_id: str) -> None:
+    import asyncio
+
+    match = Match(id=match_id, filename="match.mp4", status=MatchStatus.DONE)
+    asyncio.get_event_loop().run_until_complete(client.store.save(match))  # type: ignore[attr-defined]
+
+
+def test_data_served_when_done(client: TestClient) -> None:
+    match_id = _upload(client)
+    data_file = client.settings.data_dir / f"{match_id}.json"  # type: ignore[attr-defined]
+    data_file.write_text('{"schema_version": 1, "shots": [], "fps": 30.0}')
+    _mark_done(client, match_id)
+    response = client.get(f"/matches/{match_id}/data")
+    assert response.status_code == 200
+    assert response.json()["schema_version"] == 1
+
+
+def test_data_conflict_while_not_done(client: TestClient) -> None:
+    match_id = _upload(client)
+    assert client.get(f"/matches/{match_id}/data").status_code == 409
+
+
+def test_clip_cut_on_demand(client: TestClient) -> None:
+    import cv2
+    import numpy as np
+
+    match_id = _upload(client)
+    # A real (tiny) processed video so ffmpeg has something to cut.
+    result_file = client.settings.results_dir / f"{match_id}.mp4"  # type: ignore[attr-defined]
+    writer = cv2.VideoWriter(str(result_file), cv2.VideoWriter_fourcc(*"mp4v"), 30.0, (64, 64))
+    for _ in range(60):  # 2 seconds
+        writer.write(np.zeros((64, 64, 3), dtype=np.uint8))
+    writer.release()
+    (client.settings.data_dir / f"{match_id}.json").write_text('{"fps": 30.0}')  # type: ignore[attr-defined]
+    _mark_done(client, match_id)
+
+    response = client.get(f"/matches/{match_id}/clip", params={"frame": 30})
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "video/mp4"
+    assert len(response.content) > 0
+    # The cut file is cached for reuse.
+    assert (client.settings.data_dir / f"{match_id}_clip_30.mp4").exists()  # type: ignore[attr-defined]
+
+
+def test_clip_conflict_while_not_done(client: TestClient) -> None:
+    match_id = _upload(client)
+    assert client.get(f"/matches/{match_id}/clip", params={"frame": 10}).status_code == 409
 
 
 def test_health(client: TestClient) -> None:

@@ -117,3 +117,65 @@ async def get_result(
         raise HTTPException(status_code=404, detail="Result file missing")
     # No filename= so the browser plays it inline in a <video> tag.
     return FileResponse(result, media_type="video/mp4")
+
+
+@app.get("/matches/{match_id}/data")
+async def get_data(
+    match_id: str,
+    settings: Settings = Depends(get_settings),
+    store: MatchStore = Depends(get_store),
+) -> FileResponse:
+    """Structured analysis JSON — the queryable product the web consumes (ADR-0010)."""
+    match = await store.get(match_id)
+    if match is None:
+        raise HTTPException(status_code=404, detail="Match not found")
+    if match.status is not MatchStatus.DONE:
+        raise HTTPException(status_code=409, detail=f"Match is {match.status.value}")
+    data = settings.data_dir / f"{match_id}.json"
+    if not data.exists():
+        raise HTTPException(status_code=404, detail="Data file missing")
+    return FileResponse(data, media_type="application/json")
+
+
+@app.get("/matches/{match_id}/clip")
+async def get_clip(
+    match_id: str,
+    frame: int,
+    settings: Settings = Depends(get_settings),
+    store: MatchStore = Depends(get_store),
+) -> FileResponse:
+    """A short clip (3s each side) around a frame, cut on-demand from the result.
+
+    Powers the shot-table modal: click a shot -> see it in context, skeleton and
+    label baked in. Cut lazily (not pre-generated) to avoid a file per shot.
+    """
+    import asyncio
+
+    from padel_cv.clip_export import cut_clip
+
+    match = await store.get(match_id)
+    if match is None:
+        raise HTTPException(status_code=404, detail="Match not found")
+    if match.status is not MatchStatus.DONE:
+        raise HTTPException(status_code=409, detail=f"Match is {match.status.value}")
+    result = settings.results_dir / f"{match_id}.mp4"
+    if not result.exists():
+        raise HTTPException(status_code=404, detail="Result file missing")
+    fps = _read_fps(settings.data_dir / f"{match_id}.json")
+    clip_path = settings.data_dir / f"{match_id}_clip_{frame}.mp4"
+    if not clip_path.exists():
+        try:
+            await asyncio.to_thread(cut_clip, result, clip_path, frame, fps)
+        except Exception as exc:  # ffmpeg failure
+            raise HTTPException(status_code=500, detail=f"Clip generation failed: {exc}") from exc
+    return FileResponse(clip_path, media_type="video/mp4")
+
+
+def _read_fps(data_json: Path, default: float = 30.0) -> float:
+    """Read the match fps from its data JSON, falling back to a sane default."""
+    import json
+
+    if not data_json.exists():
+        return default
+    fps = json.loads(data_json.read_text()).get("fps")
+    return float(fps) if fps else default

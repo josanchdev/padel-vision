@@ -26,10 +26,16 @@ class Settings(BaseSettings):
     def results_dir(self) -> Path:
         return self.storage_dir / "results"
 
+    @property
+    def data_dir(self) -> Path:
+        """Structured match data (JSON/CSV) — the queryable product (ADR-0010)."""
+        return self.storage_dir / "data"
+
 
 @lru_cache
 def get_settings() -> Settings:
     settings = Settings()
     settings.uploads_dir.mkdir(parents=True, exist_ok=True)
     settings.results_dir.mkdir(parents=True, exist_ok=True)
+    settings.data_dir.mkdir(parents=True, exist_ok=True)
     return settings

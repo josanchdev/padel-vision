@@ -49,6 +49,7 @@ def _run_pipeline(match_id: str, redis_url: str) -> int:
             max_frames=None,
             court_model=court_model,
             on_progress=lambda p: _write_progress(sync_redis, match_id, p),
+            data_out=settings.data_dir / match_id,  # writes {id}.json and {id}.csv (ADR-0010)
         )
         return result.shots_detected
     finally:
