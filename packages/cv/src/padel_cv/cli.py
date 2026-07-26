@@ -13,6 +13,7 @@ from pathlib import Path
 import cv2
 
 from padel_cv.bounces import BallSample, detect_bounces
+from padel_cv.match_data import MatchAnalysis
 from padel_cv.pipeline import Pipeline, PipelineStage
 from padel_cv.stages import (
     CourtDetectionStage,
@@ -49,6 +50,8 @@ def process_video(
     on_progress: Callable[[float], None] | None = None,
     shot_model: str | None = None,
     ball_model: str | None = None,
+    data_out: Path | None = None,
+    write_video: bool = True,
 ) -> ProcessResult:
     capture = cv2.VideoCapture(str(input_path))
     if not capture.isOpened():
@@ -59,7 +62,10 @@ def process_video(
         total_frames = min(total_frames, max_frames)
     capture.release()
 
-    writer = H264VideoWriter(output_path, fps)
+    # Data extraction (ADR-0010) is separate from video rendering: with
+    # write_video=False we skip the writer and all drawing for a fast data-only run.
+    writer = H264VideoWriter(output_path, fps) if write_video else None
+    analysis = MatchAnalysis(source_video=str(input_path), fps=fps)
 
     stages: list[PipelineStage] = [
         PlayerPoseStage(
@@ -111,9 +117,11 @@ def process_video(
                 ball_track.append(
                     BallSample(frame.index, frame.ball.image_xy[0], frame.ball.image_xy[1])
                 )
-            canvas = draw_ball(draw_poses(frame), frame)
-            canvas = draw_shot_labels(canvas, frame, active_shots)
-            writer.write(overlay_minimap(canvas, frame))
+            analysis.accumulate_frame(frame)
+            if writer is not None:
+                canvas = draw_ball(draw_poses(frame), frame)
+                canvas = draw_shot_labels(canvas, frame, active_shots)
+                writer.write(overlay_minimap(canvas, frame))
             frames_written += 1
             if max_frames is not None and frames_written >= max_frames:
                 break
@@ -123,10 +131,19 @@ def process_video(
                 if on_progress is not None and total_frames > 0:
                     on_progress(min(frames_written / total_frames, 1.0))
     finally:
-        writer.release()
+        if writer is not None:
+            writer.release()
     elapsed = time.perf_counter() - start
     bounces = detect_bounces(ball_track, shot_frames) if ball_track else []
-    print(f"Wrote {frames_written} frames to {output_path} in {elapsed:.1f}s")
+    analysis.set_bounces(bounces)
+    if data_out is not None:
+        analysis.write_json(data_out.with_suffix(".json"))
+        analysis.write_csv(data_out.with_suffix(".csv"))
+        print(f"Data written to {data_out.with_suffix('.json')} and .csv")
+    if write_video:
+        print(f"Wrote {frames_written} frames to {output_path} in {elapsed:.1f}s")
+    else:
+        print(f"Processed {frames_written} frames (data-only) in {elapsed:.1f}s")
     if track_ids_seen:
         print(f"Track IDs seen: {sorted(track_ids_seen)}")
     if shots_detected:
@@ -187,7 +204,18 @@ def main() -> int:
 
     process = subparsers.add_parser("process", help="Run the pipeline on a video")
     process.add_argument("input", type=Path, help="Input video path")
-    process.add_argument("-o", "--output", type=Path, required=True, help="Annotated output path")
+    process.add_argument(
+        "-o", "--output", type=Path, default=None, help="Annotated video output path"
+    )
+    process.add_argument(
+        "--data-out",
+        type=Path,
+        default=None,
+        help="Write structured data here (.json and .csv are appended); ADR-0010",
+    )
+    process.add_argument(
+        "--no-video", action="store_true", help="Skip video rendering (fast data-only run)"
+    )
     process.add_argument("--model", default="yolo26n-pose.pt", help="Ultralytics pose model")
     process.add_argument("--conf", type=float, default=0.4, help="Detection confidence threshold")
     process.add_argument(
@@ -276,9 +304,14 @@ def main() -> int:
     args = parser.parse_args()
     if args.command == "process":
         tracker = None if args.tracker == "none" else args.tracker
+        write_video = not args.no_video
+        if write_video and args.output is None:
+            parser.error("--output is required unless --no-video is given")
+        if not write_video and args.data_out is None:
+            parser.error("--no-video needs --data-out (there would be no output otherwise)")
         process_video(
             args.input,
-            args.output,
+            args.output or Path("/dev/null"),
             args.model,
             args.conf,
             args.imgsz,
@@ -290,6 +323,8 @@ def main() -> int:
             args.start,
             shot_model=args.shot_model,
             ball_model=args.ball_model,
+            data_out=args.data_out,
+            write_video=write_video,
         )
     elif args.command == "extract-poses":
         from padel_cv.pose_cache import extract_poses_to_cache

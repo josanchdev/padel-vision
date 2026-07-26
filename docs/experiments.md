@@ -268,6 +268,28 @@ Nivel 2 no es solo un entregable previo sino un requisito del Nivel 3.
 Distinguir bote de suelo vs pared/cristal queda para más adelante
 (`docs/backlog.md`).
 
+## Capa de datos estructurados (ADR-0010)
+
+**Insight que reorienta el producto:** el vídeo procesado es *show* (verificación
+visual); el valor real está en los DATOS estructurados que permiten tomar
+decisiones — como en Ferrovial el entregable era el CSV de detecciones, no el
+vídeo con cajas. Hasta ahora el pipeline generaba toda esa información y la
+tiraba (solo la pintaba en frames). Ahora se persiste.
+
+`MatchAnalysis` acumula por partido: posiciones de jugador (metros), golpes,
+pelota (imagen + metros), botes. Serializa a **JSON canónico** (`schema_version`,
+lo que consume la API/web) + **CSV** (una fila por evento, formato Excel del
+entrenador). La extracción de datos se separó del renderizado de vídeo: modo
+`--no-video --data-out` corre sin escribir vídeo.
+
+Verificado sobre metraje real (200 frames): JSON con 796 posiciones de jugador,
+10 golpes, 198 de pelota, 1 bote; CSV con filas tipo
+`shot,509,17.5,3,Smash,0.99` (segundo 17.5, jugador 3 hizo un Smash). Un
+entrenador filtra/agrupa en Excel sin ver el vídeo — esto es la plataforma, no
+el reproductor. Base sobre la que se construirán las secciones de la web
+(tabla filtrable, mapa de calor, timeline) y donde encajará la futura pila de
+robustez como columnas más (¿cámara en pista? ¿punto en juego?).
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
