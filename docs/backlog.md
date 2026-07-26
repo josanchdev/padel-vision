@@ -106,6 +106,13 @@ funcionalidades encima" ([[project-padel-vision-tfg]]).
   URJC vs verde pádel). Ojo: las stats por jugador que exhibiría dependen de la
   pila de robustez de arriba (niveles 5-6); la web puede empezar por lo que ya
   es fiable (trayectoria, golpes, botes, minimapa) y sumar stats cuando existan.
+- **[Media] Marcar el golpe exacto dentro del clip del modal.** En pádel 6 s
+  (±3 s) pueden contener 2-4 golpes, así que el clip del modal muestra varios y
+  no se distingue CUÁL es el golpe que se pulsó. Idea (Jorge, 27 jul 2026):
+  señalarlo visualmente. Opciones a valorar: (a) un marcador en la barra de
+  progreso en el instante del golpe; (b) resaltar solo al jugador que golpea en
+  ese frame; (c) reducir el margen (p. ej. ±1,5 s); (d) auto-pausar en el frame
+  del golpe. Datos ya disponibles (`frame_index`/`timestamp_s` del golpe).
 - **[Baja] Latencia del clasificador de golpes.** Emite ~0,5 s tras el impacto
   (ventana centrada necesita frames posteriores). Aceptable en batch; revisar si
   se quiere modo live (Nivel 3 del roadmap).
