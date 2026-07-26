@@ -9,7 +9,7 @@ dependencies = []
 package = false
 
 [tool.uv.workspace]
-members = ["packages/cv", "packages/api"]
+members = ["packages/cv", "packages/api", "packages/ml"]
 
 [dependency-groups]
 dev = [
@@ -47,8 +47,8 @@ select = [
 [tool.mypy]
 strict = true
 python_version = "3.11"
-mypy_path = ["packages/cv/src", "packages/api/src"]
-packages = ["padel_cv", "padel_api"]
+mypy_path = ["packages/cv/src", "packages/api/src", "packages/ml/src"]
+packages = ["padel_cv", "padel_api", "padel_ml"]
 
 [[tool.mypy.overrides]]
 module = ["cv2", "cv2.*", "ultralytics", "ultralytics.*", "imageio", "imageio.*"]
@@ -58,10 +58,10 @@ implicit_reexport = true
 [[tool.mypy.overrides]]
 # redis/arq/aiofiles ship partial or no type info; their untyped calls would
 # otherwise fail strict mode across the API package.
-module = ["aiofiles", "aiofiles.*", "arq", "arq.*", "redis", "redis.*"]
+module = ["aiofiles", "aiofiles.*", "arq", "arq.*", "redis", "redis.*", "sklearn", "sklearn.*"]
 ignore_missing_imports = true
 disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
-testpaths = ["packages/cv/tests", "packages/api/tests"]
+testpaths = ["packages/cv/tests", "packages/api/tests", "packages/ml/tests"]
 addopts = "-q"
