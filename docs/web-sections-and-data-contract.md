@@ -40,14 +40,22 @@ y qué falta.
 - **Falta:** nada — se calcula de lo que hay. Es la sección más barata y de las
   más útiles.
 
-### 2. Tabla de golpes (filtrable / exportable)
+### 2. Tabla de golpes (filtrable / exportable) + modal de clip
 
 - **Muestra:** una fila por golpe: minuto, jugador, tipo, confianza. Filtros por
-  jugador y tipo; orden; botón "exportar CSV".
+  jugador y tipo; orden; botón "exportar CSV". **Al pulsar una fila, un modal
+  abre el clip del golpe (3s antes / 3s después).**
 - **Decisión:** "enséñame todos los reveses de J4" — el equivalente al CSV de
-  Ferrovial pero interactivo. La sección más cercana al núcleo del producto.
-- **Datos:** `shots` directo. El CSV ya se genera (ADR-0010).
-- **Falta:** nada del dato; es UI sobre `shots`.
+  Ferrovial pero interactivo. Y el modal responde al "no me lo listes, MUÉSTRAMELO":
+  convierte la tabla de listado abstracto en índice navegable de momentos. La
+  sección más cercana al núcleo del producto.
+- **Datos:** `shots` directo (tiene `frame_index`/`timestamp_s` para recortar el
+  clip). El CSV ya se genera (ADR-0010).
+- **Falta (descubierto al diseñar, 27 jul 2026):** un endpoint que, dado un golpe
+  (frame_index) + margen (±3s), devuelva el **clip del vídeo PROCESADO**
+  (esqueleto + etiqueta), recortado **on-demand** (no pre-generar todos; ffmpeg
+  corta la ventana al abrir el modal — ligero, sin duplicar almacenamiento).
+  Implica que el vídeo procesado completo debe existir (modo `-o`).
 
 ### 3. Mapa de calor de posiciones
 
