@@ -185,6 +185,16 @@ def main() -> int:
         help="Fixed-camera mode: exact homography from a one-time CVAT annotation (ADR-0006)",
     )
 
+    extract = subparsers.add_parser(
+        "extract-poses",
+        help="Cache YOLO26-pose+tracking for a video (resumable shards)",
+    )
+    extract.add_argument("video", type=Path, help="Input video path")
+    extract.add_argument("-o", "--cache-dir", type=Path, required=True, help="Shard output dir")
+    extract.add_argument("--conf", type=float, default=0.3, help="Detection confidence")
+    extract.add_argument("--imgsz", type=int, default=1920, help="Inference resolution")
+    extract.add_argument("--max-frames", type=int, default=None, help="Stop after N frames")
+
     build = subparsers.add_parser(
         "build-court-dataset",
         help="Auto-label court keypoints from PadelTracker100 GT homographies",
@@ -227,6 +237,12 @@ def main() -> int:
             args.court_model,
             args.static_court,
             args.start,
+        )
+    elif args.command == "extract-poses":
+        from padel_cv.pose_cache import extract_poses_to_cache
+
+        extract_poses_to_cache(
+            args.video, args.cache_dir, args.conf, args.imgsz, max_frames=args.max_frames
         )
     elif args.command == "build-court-dataset":
         from padel_cv.datasets import build_court_dataset
