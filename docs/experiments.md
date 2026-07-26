@@ -125,6 +125,24 @@ Nota: las categorías shot-event del ball.json (smash-event, etc.) están
 declaradas pero VACÍAS; la única señal de golpe es el CSV por frame. De ahí
 la necesidad de atribuir por pelota.
 
+### Baseline ST-GCN (cross-match: train masculina, val femenina)
+
+Dataset: 1346 clips (32×17×3), 6 clases, poses propias YOLO26. Split por
+partido (jugadores no vistos en val) + class weights inversa-frecuencia.
+
+- **macro-F1 0,526 · accuracy 0,633** (val = final femenina completa).
+- F1 por clase: NoShot 0,75 · Smash 0,68 · Backhand 0,63 · Forehand 0,55 ·
+  Serve 0,44 · **Other 0,11** (era de esperar: clase cajón-desastre + 65 clips).
+- Matriz de confusión: los golpes bien separados entre sí; las confusiones
+  principales son Forehand↔Backhand (esperable, gestos parecidos de perfil) y
+  Smash→NoShot (el remate a veces se solapa con movimiento sin golpe).
+
+Lectura: baseline decente para 1346 clips con test cross-jugador (honesto, no
+memoriza). Los golpes "de verdad" (derecha/revés/remate) rondan 0,55-0,68 de
+F1; las clases débiles son Other (mal definida) y Serve (68 clips). Techo
+limitado por tamaño de dataset — el dataset PROPIO futuro lo subirá. Archivado
+en `runs/archive/stgcn_shots.pt`. Siguiente: PoseConv3D para comparar.
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
