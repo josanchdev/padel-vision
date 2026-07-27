@@ -13,6 +13,7 @@ from arq import create_pool
 from arq.connections import RedisSettings
 from fastapi import Depends, FastAPI, HTTPException, UploadFile
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from padel_api.config import Settings, get_settings
 from padel_api.models import Match, MatchStatus
@@ -39,6 +40,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="Padel Vision API", version="0.1.0", lifespan=lifespan)
+
+# Serve the compiled web bundle's assets (Vite output; ADR-0011). Mounted only
+# when present so tests and API-only runs don't require a build.
+_ASSETS_DIR = STATIC_DIR / "assets"
+if _ASSETS_DIR.is_dir():
+    app.mount("/assets", StaticFiles(directory=_ASSETS_DIR), name="assets")
 
 
 def get_store() -> MatchStore:

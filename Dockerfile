@@ -1,3 +1,14 @@
+# Web build stage: compile the React/Vite frontend to static assets (ADR-0011).
+# Kept separate so Node never lands in the runtime image.
+FROM node:22-slim AS web
+WORKDIR /web
+COPY packages/web/package.json packages/web/package-lock.json ./
+RUN npm ci
+COPY packages/web/ ./
+# Type-check, then build. Vite's config outDir points at the api static dir,
+# which doesn't exist in this stage, so redirect the output here explicitly.
+RUN npx tsc -b && npx vite build --outDir /web/dist --emptyOutDir
+
 # Single image for both the API and the GPU worker (they differ only in the
 # command). Torch's cu13 wheels bundle the CUDA runtime, so a plain Python base
 # plus the host NVIDIA driver (via the container toolkit) is enough for the GPU.
@@ -28,6 +39,9 @@ RUN uv sync --all-packages --frozen
 
 # Bake the pose model so the container is self-contained (no runtime download).
 RUN python -c "from ultralytics import YOLO; YOLO('yolo26n-pose.pt')"
+
+# Compiled web bundle from the web stage (served as static files by FastAPI).
+COPY --from=web /web/dist/ ./packages/api/src/padel_api/static/
 
 EXPOSE 8000
 CMD ["uvicorn", "padel_api.main:app", "--host", "0.0.0.0", "--port", "8000"]

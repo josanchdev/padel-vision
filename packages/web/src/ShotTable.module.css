@@ -1,0 +1,118 @@
+.wrap {
+  width: 100%;
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+
+.filterLabel {
+  font-size: var(--step-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-faint);
+  margin-left: var(--space-2);
+}
+.filterLabel:first-child {
+  margin-left: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: var(--step-sm);
+  transition: opacity 0.15s, border-color 0.15s;
+}
+.chip:hover {
+  border-color: var(--fg-muted);
+}
+.chip.off {
+  opacity: 0.35;
+}
+
+.chipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.count {
+  font-size: var(--step-sm);
+  color: var(--fg-muted);
+  margin-bottom: var(--space-3);
+}
+.count strong {
+  color: var(--fg);
+  font-size: var(--step-md);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step-md);
+}
+
+.table th {
+  text-align: left;
+  padding: var(--space-3) var(--space-3);
+  font-size: var(--step-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-faint);
+  font-weight: 500;
+  border-bottom: 1px solid var(--line);
+}
+
+.table td {
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+
+.right {
+  text-align: right;
+}
+
+.row {
+  cursor: pointer;
+}
+
+.low {
+  color: var(--fg-faint);
+}
+
+.jdot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: var(--space-2);
+}
+
+.confBar {
+  display: inline-block;
+  width: 80px;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  margin-right: var(--space-3);
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+.confFill {
+  display: block;
+  height: 100%;
+  background: var(--data-1);
+}

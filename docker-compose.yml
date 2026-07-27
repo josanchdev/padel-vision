@@ -31,8 +31,6 @@ services:
     volumes: &backend_volumes
       - ./storage:/app/storage
       - ./runs/archive:/app/models:ro
-      # Serve the live static frontend so web edits show without an image rebuild.
-      - ./packages/api/src/padel_api/static:/app/packages/api/src/padel_api/static:ro
     ports:
       - "8000:8000"
 

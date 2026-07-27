@@ -1,0 +1,175 @@
+.app {
+  min-height: 100vh;
+}
+
+/* Hero: type as the design (big, confident). */
+.hero {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-16) var(--space-6) var(--space-8);
+}
+
+.kicker {
+  margin: 0 0 var(--space-4);
+  font-size: var(--step-sm);
+  letter-spacing: 0.22em;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--step-hero);
+  line-height: 0.98;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.sub {
+  margin: var(--space-4) 0 0;
+  font-size: var(--step-lg);
+  color: var(--fg-muted);
+  max-width: 40ch;
+}
+
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--space-6) var(--space-16);
+  display: grid;
+  gap: var(--space-12);
+}
+
+/* Upload. */
+.drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-16);
+  text-align: center;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.drop.over {
+  border-color: var(--accent);
+  color: var(--fg);
+  background: var(--accent-soft);
+}
+
+/* Match list. */
+.list {
+  display: grid;
+  gap: var(--space-2);
+}
+.listTitle,
+.detailTitle {
+  font-size: var(--step-xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-4);
+}
+
+.matchRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-6);
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--fg);
+  font-size: var(--step-md);
+  cursor: pointer;
+  text-align: left;
+}
+.matchRow:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.matchName {
+  font-weight: 500;
+}
+.matchShots {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  font-size: var(--step-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 100px;
+  background: var(--line);
+  color: var(--fg-muted);
+}
+.done {
+  background: #10371f;
+  color: #6ee7a8;
+}
+.failed {
+  background: #3a1414;
+  color: #ff8a8a;
+}
+
+/* Detail view. */
+.detail {
+  display: grid;
+  gap: var(--space-6);
+}
+.back {
+  justify-self: start;
+  background: transparent;
+  border: 0;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-size: var(--step-sm);
+  padding: 0;
+}
+.back:hover {
+  color: var(--fg);
+}
+
+/* KPI row: numbers as the hero. */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-4);
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.kpiValue {
+  font-size: var(--step-hero);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.kpiLabel {
+  font-size: var(--step-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-faint);
+}
+
+.result {
+  width: 100%;
+  border-radius: var(--radius);
+  background: #000;
+}
+
+.empty {
+  color: var(--fg-faint);
+  font-size: var(--step-sm);
+}
