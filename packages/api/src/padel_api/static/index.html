@@ -49,6 +49,16 @@
                     margin-bottom: 10px; }
       .modal-head .x { background: transparent; color: var(--muted); font-size: 20px;
                        padding: 0 6px; }
+      /* Custom timeline showing WHERE the clicked shot is inside the 6s clip. */
+      .timeline { position: relative; height: 6px; background: var(--line);
+                  border-radius: 3px; margin-top: 10px; cursor: pointer; }
+      .timeline-fill { position: absolute; left: 0; top: 0; height: 100%; width: 0;
+                       background: var(--accent); border-radius: 3px; }
+      .timeline-mark { position: absolute; top: -5px; width: 3px; height: 16px;
+                       background: #ffd23f; border-radius: 2px; transform: translateX(-50%); }
+      .timeline-mark-label { position: absolute; top: -18px; left: 50%;
+                             transform: translateX(-50%); font-size: 10px; color: #ffd23f;
+                             white-space: nowrap; }
     </style>
   </head>
   <body>
@@ -103,6 +113,12 @@
           <button class="x" onclick="closeModal()">&times;</button>
         </div>
         <video id="modal-video" controls autoplay></video>
+        <div class="timeline" id="timeline">
+          <div class="timeline-fill" id="timeline-fill"></div>
+          <div class="timeline-mark" id="timeline-mark" title="Golpe">
+            <span class="timeline-mark-label">golpe</span>
+          </div>
+        </div>
         <div style="font-size:12px; color:var(--muted); margin-top:8px;" id="modal-meta"></div>
       </div>
     </div>
@@ -169,6 +185,8 @@
       // --- Shot table: fetch structured data, render, filter, open clip modal ---
       let currentMatch = null;
       let shots = [];
+      let matchFps = 30;
+      const CLIP_MARGIN_S = 3; // must match clip_export.cut_clip
       const activePlayers = new Set();
       const activeTypes = new Set();
 
@@ -176,6 +194,7 @@
         currentMatch = id;
         const data = await api.data(id);
         shots = data.shots || [];
+        matchFps = data.fps || 30;
         activePlayers.clear();
         activeTypes.clear();
         for (const s of shots) { activePlayers.add(s.player_id); activeTypes.add(s.label); }
@@ -226,10 +245,40 @@
 
       function openClip(frame, player, label, ts) {
         document.getElementById("modal-title").textContent = `J${player} · ${label} · ${fmtTime(ts)}`;
-        document.getElementById("modal-meta").textContent = `frame ${frame} · clip 3s antes / 3s después`;
-        document.getElementById("modal-video").src = api.clipUrl(currentMatch, frame);
+        document.getElementById("modal-meta").textContent =
+          `frame ${frame} · el marcador señala el golpe dentro del clip`;
+        const video = document.getElementById("modal-video");
+        video.src = api.clipUrl(currentMatch, frame);
         document.getElementById("modal").classList.add("open");
+
+        // Where the shot falls inside the clip: normally CLIP_MARGIN_S (centre),
+        // less only when the clip was clamped at the video start (backend does
+        // start = max(centre - margin, 0)).
+        const shotOffset = Math.min(CLIP_MARGIN_S, frame / matchFps);
+        video.onloadedmetadata = () => {
+          positionMark(shotOffset / video.duration);
+          // Start ~1s before the shot so it's seen at once, not after 3s of lead-in.
+          video.currentTime = Math.max(shotOffset - 1, 0);
+        };
+        video.ontimeupdate = () => {
+          if (video.duration) {
+            document.getElementById("timeline-fill").style.width =
+              (video.currentTime / video.duration) * 100 + "%";
+          }
+        };
       }
+
+      function positionMark(fraction) {
+        document.getElementById("timeline-mark").style.left = fraction * 100 + "%";
+      }
+
+      // Click the custom timeline to scrub.
+      document.getElementById("timeline").onclick = (e) => {
+        const video = document.getElementById("modal-video");
+        if (!video.duration) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
+      };
       function closeModal() {
         document.getElementById("modal").classList.remove("open");
         document.getElementById("modal-video").src = "";
