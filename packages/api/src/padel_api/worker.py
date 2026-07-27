@@ -7,6 +7,7 @@ async task owns the pending->processing->done/failed transitions.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, ClassVar, cast
 
 import redis
@@ -32,17 +33,18 @@ def _write_progress(sync_redis: redis.Redis, match_id: str, progress: float) -> 
     sync_redis.set(_KEY_PREFIX + match_id, match.model_dump_json())
 
 
-def _run_pipeline(match_id: str, redis_url: str) -> int:
-    """Synchronous body executed in a worker thread. Returns shots detected."""
+def _run_pipeline(match_id: str, redis_url: str) -> tuple[int, float | None]:
+    """Synchronous body in a worker thread. Returns (shots detected, duration s)."""
     from padel_cv.cli import process_video
 
     settings = get_settings()
     sync_redis = redis.from_url(redis_url, decode_responses=True)  # type: ignore[no-untyped-call]
     try:
         court_model = str(settings.court_model) if settings.court_model else None
+        result_path = settings.results_dir / f"{match_id}.mp4"
         result = process_video(
             input_path=settings.uploads_dir / f"{match_id}.mp4",
-            output_path=settings.results_dir / f"{match_id}.mp4",
+            output_path=result_path,
             model_name="yolo26n-pose.pt",
             confidence=0.3,
             image_size=1920,
@@ -51,9 +53,24 @@ def _run_pipeline(match_id: str, redis_url: str) -> int:
             on_progress=lambda p: _write_progress(sync_redis, match_id, p),
             data_out=settings.data_dir / match_id,  # writes {id}.json and {id}.csv (ADR-0010)
         )
-        return result.shots_detected
+        # Dashboard card assets: a thumbnail from the processed video + duration.
+        from padel_cv.thumbnail import write_thumbnail
+
+        write_thumbnail(result_path, settings.data_dir / f"{match_id}.jpg")
+        duration_s = _read_duration(settings.data_dir / f"{match_id}.json", result.frames_written)
+        return result.shots_detected, duration_s
     finally:
         sync_redis.close()
+
+
+def _read_duration(data_json: Path, frames: int) -> float | None:
+    """Video length in seconds = frames / fps (fps from the data JSON)."""
+    import json
+
+    if not data_json.exists() or frames <= 0:
+        return None
+    fps = json.loads(data_json.read_text()).get("fps") or 30.0
+    return frames / float(fps)
 
 
 async def process_match(ctx: dict[str, Any], match_id: str) -> None:
@@ -67,11 +84,12 @@ async def process_match(ctx: dict[str, Any], match_id: str) -> None:
     match.status = MatchStatus.PROCESSING
     await store.save(match)
     try:
-        shots = await asyncio.to_thread(_run_pipeline, match_id, redis_url)
+        shots, duration_s = await asyncio.to_thread(_run_pipeline, match_id, redis_url)
         match = await store.get(match_id) or match
         match.status = MatchStatus.DONE
         match.progress = 1.0
         match.shots_detected = shots
+        match.duration_s = duration_s
         await store.save(match)
     except Exception as exc:
         match = await store.get(match_id) or match

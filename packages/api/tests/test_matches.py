@@ -132,6 +132,22 @@ def test_clip_conflict_while_not_done(client: TestClient) -> None:
     assert client.get(f"/matches/{match_id}/clip", params={"frame": 10}).status_code == 409
 
 
+def test_thumbnail_served_when_present(client: TestClient) -> None:
+    match_id = _upload(client)
+    thumb = client.settings.data_dir / f"{match_id}.jpg"  # type: ignore[attr-defined]
+    thumb.write_bytes(b"\xff\xd8\xff\xe0jpegbytes")
+    _mark_done(client, match_id)
+    response = client.get(f"/matches/{match_id}/thumbnail")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+
+
+def test_thumbnail_404_when_missing(client: TestClient) -> None:
+    match_id = _upload(client)
+    _mark_done(client, match_id)
+    assert client.get(f"/matches/{match_id}/thumbnail").status_code == 404
+
+
 def test_health(client: TestClient) -> None:
     assert client.get("/health").json() == {"status": "ok"}
 

@@ -27,6 +27,7 @@ class Match(BaseModel):
     status: MatchStatus = MatchStatus.PENDING
     progress: float = 0.0  # 0..1 fraction of frames processed
     shots_detected: int = 0
+    duration_s: float | None = None  # analysed video length, for the dashboard card
     error: str | None = None
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)

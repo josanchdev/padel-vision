@@ -126,6 +126,22 @@ async def get_result(
     return FileResponse(result, media_type="video/mp4")
 
 
+@app.get("/matches/{match_id}/thumbnail")
+async def get_thumbnail(
+    match_id: str,
+    settings: Settings = Depends(get_settings),
+    store: MatchStore = Depends(get_store),
+) -> FileResponse:
+    """A still from the processed video for the dashboard match card."""
+    match = await store.get(match_id)
+    if match is None:
+        raise HTTPException(status_code=404, detail="Match not found")
+    thumb = settings.data_dir / f"{match_id}.jpg"
+    if not thumb.exists():
+        raise HTTPException(status_code=404, detail="Thumbnail not available")
+    return FileResponse(thumb, media_type="image/jpeg")
+
+
 @app.get("/matches/{match_id}/data")
 async def get_data(
     match_id: str,
