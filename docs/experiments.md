@@ -366,6 +366,28 @@ con la prueba corta (0,91). ~40 epochs × 2 modelos × ~6,4 min ≈ 8,5 h (acept
 como en la vida real). Falta al cerrar Fase 1: validar visualmente sobre los
 vídeos de YouTube de pistas nuevas.
 
+**Por qué super-entreno con WPT si el objetivo es generalizar (razonamiento
+estratégico, cuestión planteada por Jorge).** Los ~100k frames WPT NO generalizan
+por sí solos a pistas nuevas (más azul no enseña negro). El super-entreno vale
+por tres cosas distintas: (1) **base para fine-tuning** — el modelo aprende del
+volumen "qué es una pelota, cómo se mueve, cómo separarla del fondo"; luego 1-2k
+frames nuevos etiquetados bastan para especializarlo a pistas nuevas VÍA
+FINE-TUNING (no desde cero: 2k frames solos no aprenderían). Es el patrón del
+dataset de vehículos de noche en Ferrovial. (2) **Mejor pre-labeling** — un
+modelo robusto en azul pre-anota rápido los vídeos de pistas parecidas, ahorrando
+etiquetado. (3) **Métrica base honesta** — para afirmar "los datos nuevos mejoran
+X" hace falta un "antes" bien medido, no un modelo cutre de prueba. Conclusión: el
+volumen da conocimiento general; la diversidad (pocos datos nuevos) da
+especialización. Ambos se necesitan.
+
+**Estrategia de etiquetado (Fase 2, decidida).** Pre-label = acelerador
+oportunista, NO sustituto. Por pista: si el modelo Fase 1 propone bien (>~50%),
+corregir; si propone basura (<~40%, p.ej. pista muy distinta), etiquetar de cero
+(más rápido y GT más limpio; evita el sesgo de anclaje). **El conjunto de TEST
+se etiqueta SIEMPRE de cero a mano** (sin pre-label) para que la métrica no esté
+contaminada por el propio modelo. Etiquetar es el trabajo que hace mejorar todo;
+no se esquiva.
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
