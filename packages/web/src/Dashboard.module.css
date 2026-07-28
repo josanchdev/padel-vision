@@ -122,24 +122,14 @@
   text-align: left;
   color: var(--fg);
   background: var(--card-bg);
+  border: 1px solid var(--line);
   box-shadow: var(--card-shadow);
-  transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
-}
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: var(--card-border-grad);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  z-index: 1;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
 }
 .card:hover {
   transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
   box-shadow: var(--card-shadow-hover);
 }
 /* Reveal the accent on the thumbnail edge as it lifts. */
@@ -161,6 +151,8 @@
   aspect-ratio: 16 / 9;
   background: var(--surface-2);
   overflow: hidden;
+  margin: 6px 6px 0;
+  border-radius: calc(var(--card-radius) - 8px);
 }
 .thumb img {
   width: 100%;
