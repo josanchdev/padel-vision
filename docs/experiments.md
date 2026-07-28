@@ -290,6 +290,40 @@ el reproductor. Base sobre la que se construirán las secciones de la web
 (tabla filtrable, mapa de calor, timeline) y donde encajará la futura pila de
 robustez como columnas más (¿cámara en pista? ¿punto en juego?).
 
+## Detección de escena y diversidad de datos (28 jul 2026)
+
+Al abordar la robustez ("¿cámara en pista?") se probó reutilizar la señal del
+detector de pista (homografía válida = frame de juego) como detector de escena.
+
+**Hallazgo 1 — los WPT no tienen el problema.** 200 frames repartidos por la
+final masculina WPT: **100% pista**. PadelTracker100 es un feed de broadcast
+casi estático (por eso NTT lo eligió para tracking); no tiene repeticiones ni
+planos de público con los que validar detección de escena.
+
+**Hallazgo 2 — con vídeo real variado, el problema aparece.** Se descargaron 3
+partidos de YouTube (uso académico, `data/raw/youtube/`): un highlights
+(Match of the Century) y dos full games en pistas no-WPT. La señal de pista da:
+Match of the Century **5% pista** (95% gráficos/repeticiones/primeros planos),
+City's Cup **20%**. El problema es real fuera del feed limpio.
+
+**Hallazgo 3 — el detector de escena por homografía funciona PERO con sesgo.**
+Inspección visual de frames: rechaza bien gráficos de título y primeros planos
+(correcto), pero da **falsos negativos en pistas de color distinto al entrenado**
+(la pista negra/naranja del City's Cup, vista de juego válida, se rechaza como
+"no-pista"). El detector de pista (entrenado solo con azul WPT + 40 PADELVIC) no
+generaliza a pistas nuevas → keypoints insuficientes.
+
+**Matiz clave (Jorge):** un vídeo = una pista (nunca cambia a mitad). Así que el
+sesgo NO es "detectar cambio de pista" (irrelevante) sino que el detector debe
+poner bien los keypoints en CUALQUIER pista de un vídeo dado. Solución: más datos
+de entrenamiento diversos (estos vídeos), no una arquitectura de cambio de escena.
+
+**Prioridad de mejora (Jorge):** viendo los vídeos, donde más falla el sistema es
+la **detección de pelota** (modelo actual = prueba corta, solo WPT, 6 epochs).
+Los vídeos nuevos son munición kickstarter para mejorar pelota, pista, golpes
+(incl. dejada) y validar escena/segmentación — respetando que son material de
+entrenamiento/prueba, nunca dependencia (ADR-0005).
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
