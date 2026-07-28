@@ -18,6 +18,7 @@ padel-cv = { workspace = true }
 [project.scripts]
 padel-train = "padel_ml.train:main"
 padel-ball-train = "padel_ml.ball_train:main"
+padel-ball-infer = "padel_ml.ball_infer_cli:main"
 
 [build-system]
 requires = ["hatchling"]
