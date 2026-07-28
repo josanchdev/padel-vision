@@ -27,6 +27,7 @@ from torch.utils.data import Dataset
 
 from padel_cv.ball_cache import FRAME_H, FRAME_W
 from padel_cv.ball_data import INPUT_FRAMES, render_heatmap
+from padel_ml.ball_augment import augment_window
 
 FloatArray = npt.NDArray[np.float32]
 
@@ -89,8 +90,10 @@ class BallClips(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
     visible-vs-occluded metric split (ADR-0009).
     """
 
-    def __init__(self, cache_dirs: list[Path], sigma: float = 2.5) -> None:
+    def __init__(self, cache_dirs: list[Path], sigma: float = 2.5, augment: bool = False) -> None:
         self._sigma = sigma
+        self._augment = augment
+        self._rng = np.random.default_rng(0)
         self._matches: list[_MatchFrames] = []
         # Flat index of (match, end_position) for every valid window.
         self._windows: list[tuple[int, int]] = []
@@ -107,9 +110,13 @@ class BallClips(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
         m, end = self._windows[index]
         match = self._matches[m]
         start = end - (INPUT_FRAMES - 1)
-        # (INPUT_FRAMES, H, W, 3) BGR uint8 -> concat on channels -> (9, H, W).
+        # (INPUT_FRAMES, H, W, 3) BGR uint8 -> (T, 3, H, W) float, optional colour
+        # jitter (photometric only, same across frames), then concat -> (9, H, W).
         window = match.frames[start : end + 1].astype(np.float32) / 255.0
-        stacked = np.transpose(window, (0, 3, 1, 2)).reshape(-1, FRAME_H, FRAME_W)
+        chw = np.transpose(window, (0, 3, 1, 2))  # (T, 3, H, W)
+        if self._augment:
+            chw = augment_window(chw, self._rng)
+        stacked = chw.reshape(-1, FRAME_H, FRAME_W)
 
         center = match.centers[end]
         center_xy = None if np.isnan(center).any() else (float(center[0]), float(center[1]))

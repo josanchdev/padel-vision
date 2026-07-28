@@ -68,10 +68,14 @@ def train_ball(
     seed: int = 0,
     out_path: Path | None = None,
     plots_dir: Path | None = None,
+    augment: bool = False,
 ) -> BallTrainResult:
     torch.manual_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    train_loader = DataLoader(BallClips(train_dirs), batch_size=batch_size, shuffle=True)
+    # Colour augmentation on the training split only (never on val — ADR-0009).
+    train_loader = DataLoader(
+        BallClips(train_dirs, augment=augment), batch_size=batch_size, shuffle=True
+    )
     val_ds = BallClips(val_dirs)
     val_loader = DataLoader(val_ds, batch_size=batch_size)
 
@@ -185,6 +189,7 @@ def compare_models(
     epochs: int,
     plots_dir: Path,
     out_dir: Path | None,
+    augment: bool = False,
 ) -> dict[str, BallEval]:
     """Train V2 and V3 under one protocol, then draw the headline plot.
 
@@ -202,6 +207,7 @@ def compare_models(
                 epochs=epochs,
                 out_path=out,
                 plots_dir=plots_dir,
+                augment=augment,
             )
             results[model_name] = res.best
     comp_path = plots_dir / "occlusion_comparison.png"
@@ -223,6 +229,9 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=None)
     parser.add_argument("--plots", type=Path, default=Path("runs/ball_plots"))
     parser.add_argument(
+        "--augment", action="store_true", help="Colour jitter on train (generalise to courts)"
+    )
+    parser.add_argument(
         "--mlflow-uri",
         default="sqlite:///mlruns.db",
         help="MLflow tracking backend (file store is deprecated in MLflow 3)",
@@ -231,7 +240,9 @@ def main() -> None:
     mlflow.set_tracking_uri(args.mlflow_uri)
     mlflow.set_experiment("ball-detection")
     if args.compare:
-        compare_models(args.train_dir, args.val_dir, args.epochs, args.plots, args.out)
+        compare_models(
+            args.train_dir, args.val_dir, args.epochs, args.plots, args.out, augment=args.augment
+        )
     else:
         with mlflow.start_run(run_name=args.model):
             train_ball(
@@ -241,6 +252,7 @@ def main() -> None:
                 epochs=args.epochs,
                 out_path=args.out,
                 plots_dir=args.plots,
+                augment=args.augment,
             )
 
 
