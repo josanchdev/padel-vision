@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api, type Match, type MatchData, type Shot } from "./api.ts";
 import { ClipModal } from "./ClipModal.tsx";
 import { Dashboard } from "./Dashboard.tsx";
+import { Heatmap } from "./Heatmap.tsx";
 import { ShotTable } from "./ShotTable.tsx";
 import styles from "./App.module.css";
 
@@ -110,10 +111,13 @@ function MatchDetail({
           <div className={styles.cellHead}>
             <span className={styles.cellTitle}>Mapa de calor</span>
           </div>
-          <div className={styles.heatPlaceholder}>
-            <span>Posiciones sobre la pista</span>
-            <small>próximamente</small>
-          </div>
+          {data && data.players.length > 0 ? (
+            <Heatmap players={data.players} />
+          ) : (
+            <div className={styles.heatPlaceholder}>
+              <span>Sin datos de posición</span>
+            </div>
+          )}
         </section>
 
         <section className={`${styles.cell} ${styles.tableCell}`}>

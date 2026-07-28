@@ -16,13 +16,21 @@ export interface Bounce {
   image_y: number;
 }
 
+export interface PlayerFrame {
+  frame_index: number;
+  player_id: number;
+  court_x_m: number | null;
+  court_y_m: number | null;
+  on_court: boolean | null;
+}
+
 export interface MatchData {
   schema_version: number;
   source_video: string;
   fps: number;
   shots: Shot[];
   bounces: Bounce[];
-  players: unknown[];
+  players: PlayerFrame[];
   ball: unknown[];
 }
 
