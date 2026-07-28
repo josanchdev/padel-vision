@@ -90,18 +90,36 @@ class BallClips(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
     visible-vs-occluded metric split (ADR-0009).
     """
 
-    def __init__(self, cache_dirs: list[Path], sigma: float = 2.5, augment: bool = False) -> None:
+    def __init__(
+        self,
+        cache_dirs: list[Path],
+        sigma: float = 2.5,
+        augment: bool = False,
+        neg_ratio: float | None = None,
+    ) -> None:
+        """neg_ratio: keep at most this many ball-absent windows per ball-present
+        one (e.g. 1.0 = balanced). None keeps every window. A full match is ~64%
+        ball-absent; too many negatives teach the net to stay silent and hurt
+        recall, so training subsamples them (ADR-0009)."""
         self._sigma = sigma
         self._augment = augment
         self._rng = np.random.default_rng(0)
         self._matches: list[_MatchFrames] = []
         # Flat index of (match, end_position) for every valid window.
-        self._windows: list[tuple[int, int]] = []
+        pos: list[tuple[int, int]] = []
+        neg: list[tuple[int, int]] = []
         for cache_dir in cache_dirs:
             match = _load_match(cache_dir)
             m = len(self._matches)
             self._matches.append(match)
-            self._windows.extend((m, p) for p in _consecutive_windows(match.indices))
+            for p in _consecutive_windows(match.indices):
+                has_ball = not np.isnan(match.centers[p]).any()
+                (pos if has_ball else neg).append((m, p))
+        if neg_ratio is not None and len(neg) > neg_ratio * len(pos):
+            keep = int(neg_ratio * len(pos))
+            picked = self._rng.choice(len(neg), size=keep, replace=False)
+            neg = [neg[i] for i in picked]
+        self._windows = pos + neg
 
     def __len__(self) -> int:
         return len(self._windows)

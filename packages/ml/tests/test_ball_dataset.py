@@ -30,6 +30,22 @@ def test_consecutive_windows_skips_gaps() -> None:
     assert _consecutive_windows(indices) == [2, 5]
 
 
+def test_neg_ratio_subsamples_ball_absent_windows(tmp_path) -> None:
+    cache = tmp_path / "match"
+    # 10 consecutive frames: 2 with a ball (targets), 8 without.
+    nan = (np.nan, np.nan)
+    centers = [(0.5, 0.5), (0.5, 0.5)] + [nan] * 8  # windows end at pos 2..9
+    _write_shard(cache, indices=list(range(10)), centers=centers)
+    # Windows end at positions 2..9 (8 windows). Positives: end at 2 (ball) only,
+    # since ball is at frames 0,1 and window target is the LAST frame.
+    full = BallClips([cache])
+    balanced = BallClips([cache], neg_ratio=1.0)
+    assert len(balanced) < len(full)
+    # With 1 positive window, neg_ratio=1.0 keeps at most 1 negative -> 2 total.
+    positives = sum(1 for i in range(len(full)) if full[i][1].max() > 0)
+    assert len(balanced) <= 2 * max(positives, 1)
+
+
 def test_dataset_stacks_three_frames_and_targets_last(tmp_path) -> None:
     cache = tmp_path / "match"
     _write_shard(

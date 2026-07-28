@@ -69,12 +69,16 @@ def train_ball(
     out_path: Path | None = None,
     plots_dir: Path | None = None,
     augment: bool = False,
+    neg_ratio: float | None = 2.0,
 ) -> BallTrainResult:
     torch.manual_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    # Colour augmentation on the training split only (never on val — ADR-0009).
+    # Train split: colour augmentation + subsampled negatives. Val keeps the real
+    # distribution (no augment, all frames) so metrics are honest (ADR-0009).
     train_loader = DataLoader(
-        BallClips(train_dirs, augment=augment), batch_size=batch_size, shuffle=True
+        BallClips(train_dirs, augment=augment, neg_ratio=neg_ratio),
+        batch_size=batch_size,
+        shuffle=True,
     )
     val_ds = BallClips(val_dirs)
     val_loader = DataLoader(val_ds, batch_size=batch_size)
