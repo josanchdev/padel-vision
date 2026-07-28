@@ -34,6 +34,53 @@ def _shard_path(cache_dir: Path, start: int) -> Path:
     return cache_dir / f"frames_{start:07d}.npz"
 
 
+def consolidate_to_memmap(cache_dir: Path) -> tuple[Path, Path]:
+    """Rewrite compressed shards as one uint8 memmap + a metadata npz.
+
+    Training needs fast RANDOM access to single frames, but a full match is too
+    big for RAM and decompressing a whole .npz shard to read 3 frames is slow.
+    A flat uint8 memmap (frames.dat) lets np.memmap read any frame straight from
+    disk with ~zero RAM and no decompression. meta.npz keeps the light arrays.
+    Frames end up in ascending frame-index order.
+    """
+    shards = sorted(cache_dir.glob("frames_*.npz"))
+    if not shards:
+        raise FileNotFoundError(f"No frame shards in {cache_dir}")
+
+    indices, centers, occluded = [], [], []
+    for shard in shards:
+        data = np.load(shard)
+        indices.append(data["indices"])
+        centers.append(data["centers"])
+        occluded.append(data["occluded"])
+    idx = np.concatenate(indices)
+    order = np.argsort(idx)
+    n = len(idx)
+
+    dat_path = cache_dir / "frames.dat"
+    memmap = np.memmap(dat_path, dtype=np.uint8, mode="w+", shape=(n, FRAME_H, FRAME_W, 3))
+    # Fill in ascending order; write each shard's rows to their sorted slots.
+    rank = np.empty(n, dtype=np.int64)
+    rank[order] = np.arange(n)
+    cursor = 0
+    for shard in shards:
+        frames = np.load(shard)["frames"]
+        rows = rank[cursor : cursor + len(frames)]
+        memmap[rows] = frames
+        cursor += len(frames)
+    memmap.flush()
+
+    meta_path = cache_dir / "meta.npz"
+    np.savez(
+        meta_path,
+        indices=idx[order],
+        centers=np.concatenate(centers)[order],
+        occluded=np.concatenate(occluded)[order],
+        n=n,
+    )
+    return dat_path, meta_path
+
+
 def _covered_frames(cache_dir: Path) -> int:
     """Length of the contiguous frame prefix [0, N) already cached."""
     if not cache_dir.exists():

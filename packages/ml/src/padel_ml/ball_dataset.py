@@ -39,33 +39,35 @@ GRID_H = FRAME_H // 4  # 72
 
 @dataclass
 class _MatchFrames:
-    """One match's cached frames, in ascending frame order."""
+    """One match's metadata + a memmap over its frame pixels (ascending order).
 
-    frames: npt.NDArray[np.uint8]  # (N, H, W, 3) BGR
+    The pixels live in frames.dat (uint8 memmap on disk) so any frame is read at
+    random with ~zero RAM and no decompression. The light arrays stay in memory.
+    Requires the cache to be consolidated first (ball_cache.consolidate_to_memmap).
+    """
+
     indices: npt.NDArray[np.int64]  # (N,) original frame index
     centers: FloatArray  # (N, 2) fractional ball centre, NaN if absent
     occluded: npt.NDArray[np.bool_]  # (N,) ball marked occluded
+    frames: npt.NDArray[np.uint8]  # memmap (N, H, W, 3), same order as above
 
 
 def _load_match(cache_dir: Path) -> _MatchFrames:
-    """Concatenate all shards of one match into ascending-order arrays."""
-    shards = sorted(cache_dir.glob("frames_*.npz"))
-    if not shards:
-        raise FileNotFoundError(f"No frame shards in {cache_dir}")
-    frames, indices, centers, occluded = [], [], [], []
-    for shard in shards:
-        data = np.load(shard)
-        frames.append(data["frames"])
-        indices.append(data["indices"])
-        centers.append(data["centers"])
-        occluded.append(data["occluded"])
-    idx = np.concatenate(indices)
-    order = np.argsort(idx)
+    """Open a match's memmap + metadata. Consolidate the shards first if needed."""
+    meta_path = cache_dir / "meta.npz"
+    dat_path = cache_dir / "frames.dat"
+    if not (meta_path.exists() and dat_path.exists()):
+        from padel_cv.ball_cache import consolidate_to_memmap
+
+        consolidate_to_memmap(cache_dir)
+    meta = np.load(meta_path)
+    n = int(meta["n"])
+    frames = np.memmap(dat_path, dtype=np.uint8, mode="r", shape=(n, FRAME_H, FRAME_W, 3))
     return _MatchFrames(
-        frames=np.concatenate(frames)[order],
-        indices=idx[order],
-        centers=np.concatenate(centers)[order],
-        occluded=np.concatenate(occluded)[order],
+        indices=meta["indices"],
+        centers=meta["centers"],
+        occluded=meta["occluded"],
+        frames=frames,
     )
 
 
@@ -128,9 +130,10 @@ class BallClips(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
         m, end = self._windows[index]
         match = self._matches[m]
         start = end - (INPUT_FRAMES - 1)
-        # (INPUT_FRAMES, H, W, 3) BGR uint8 -> (T, 3, H, W) float, optional colour
-        # jitter (photometric only, same across frames), then concat -> (9, H, W).
-        window = match.frames[start : end + 1].astype(np.float32) / 255.0
+        # Read the 3 consecutive frames straight from the memmap (random access,
+        # no decompression). (T, H, W, 3) uint8 -> (T, 3, H, W) float, optional
+        # colour jitter (photometric, same across frames), then -> (9, H, W).
+        window = np.asarray(match.frames[start : end + 1], dtype=np.float32) / 255.0
         chw = np.transpose(window, (0, 3, 1, 2))  # (T, 3, H, W)
         if self._augment:
             chw = augment_window(chw, self._rng)

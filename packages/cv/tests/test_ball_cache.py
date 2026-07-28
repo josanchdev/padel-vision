@@ -6,6 +6,7 @@ import numpy as np
 from padel_cv.ball_cache import (
     FRAME_H,
     FRAME_W,
+    consolidate_to_memmap,
     extract_ball_frames_to_cache,
 )
 
@@ -85,3 +86,23 @@ def test_extract_resumes_from_existing_shards(tmp_path) -> None:
 
     all_indices = sorted(int(i) for s in cache.glob("frames_*.npz") for i in np.load(s)["indices"])
     assert all_indices == list(range(10))
+
+
+def test_consolidate_to_memmap_orders_frames(tmp_path) -> None:
+    video = tmp_path / "match.mp4"
+    _make_video(video, n_frames=10)
+    ball_json = tmp_path / "ball.json"
+    _make_ball_json(ball_json, {i: (100.0 + i, 200.0) for i in range(10)})
+    cache = tmp_path / "cache"
+    extract_ball_frames_to_cache(video, ball_json, cache, shard_size=4)  # 3 shards
+
+    dat, meta = consolidate_to_memmap(cache)
+    assert dat.exists() and meta.exists()
+    m = np.load(meta)
+    assert int(m["n"]) == 10
+    # Frame indices are ascending and complete.
+    assert list(m["indices"]) == list(range(10))
+    # The memmap has the right shape and is readable per-frame.
+    frames = np.memmap(dat, dtype=np.uint8, mode="r", shape=(10, FRAME_H, FRAME_W, 3))
+    assert frames.shape == (10, FRAME_H, FRAME_W, 3)
+    assert frames[5].max() >= 0  # a single frame reads without loading all

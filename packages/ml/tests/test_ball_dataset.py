@@ -30,6 +30,30 @@ def test_consecutive_windows_skips_gaps() -> None:
     assert _consecutive_windows(indices) == [2, 5]
 
 
+def test_lazy_multishard_reads_correct_frames(tmp_path) -> None:
+    # Two shards (frames 0-3 and 4-7). A window spanning the boundary (rows 3,4,5)
+    # must read the right frames from the right shards, in order.
+    cache = tmp_path / "match"
+    _write_shard(cache, indices=[0, 1, 2, 3], centers=[(0.5, 0.5)] * 4)
+    _write_shard(cache, indices=[4, 5, 6, 7], centers=[(0.5, 0.5)] * 4)
+    ds = BallClips([cache])
+    # 8 consecutive frames -> 6 windows (ends at 2..7).
+    assert len(ds) == 6
+    # Window ending at frame 5 stacks frames 3,4,5 (crosses the shard boundary).
+    # Frame tag lives at [0,0,0]; channels are frame-major (0,3,6).
+    ends = sorted(e for _, e in ds._windows)  # type: ignore[attr-defined]
+    # Find the item whose target frame is 5 and check its 3 frames are 3,4,5.
+    for i in range(len(ds)):
+        xi, _, _ = ds[i]
+        tags = [round(xi[c, 0, 0].item() * 255) for c in (0, 3, 6)]
+        if tags[2] == 5:
+            assert tags == [3, 4, 5]
+            break
+    else:
+        raise AssertionError("no window targeting frame 5")
+    assert ends[0] == 2
+
+
 def test_neg_ratio_subsamples_ball_absent_windows(tmp_path) -> None:
     cache = tmp_path / "match"
     # 10 consecutive frames: 2 with a ball (targets), 8 without.
