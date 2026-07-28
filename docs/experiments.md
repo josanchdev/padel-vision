@@ -366,6 +366,22 @@ con la prueba corta (0,91). ~40 epochs × 2 modelos × ~6,4 min ≈ 8,5 h (acept
 como en la vida real). Falta al cerrar Fase 1: validar visualmente sobre los
 vídeos de YouTube de pistas nuevas.
 
+**Estado (28 jul, noche):** V2 completo entrenado — `runs/ball_full/tracknetv2.pt`,
+**best val_f1 0,942** (vs 0,896 de la prueba corta). Se paró tras V2 (calor/ruido
+toda la noche). **Falta entrenar V3** — comando (solo V3, sin `--compare`):
+
+```bash
+uv run padel-ball-train --model tracknetv3 \
+  --train-dir data/datasets/ball_cache/finalM \
+  --val-dir   data/datasets/ball_cache/finalF \
+  --epochs 40 --augment \
+  --out runs/ball_full/tracknetv3.pt \
+  --plots runs/ball_plots_full \
+  --mlflow-uri sqlite:///runs/mlruns.db
+```
+
+Con V3 entrenado: comparativa V2 vs V3 + Fase 1d (`padel-ball-generalization`).
+
 **Por qué super-entreno con WPT si el objetivo es generalizar (razonamiento
 estratégico, cuestión planteada por Jorge).** Los ~100k frames WPT NO generalizan
 por sí solos a pistas nuevas (más azul no enseña negro). El super-entreno vale
