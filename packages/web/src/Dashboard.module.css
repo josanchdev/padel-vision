@@ -20,29 +20,40 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: var(--step-md);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .brandDot {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft), 0 0 12px -1px var(--accent);
 }
 
 .upload {
   background: var(--accent);
   color: #fff;
   border: 0;
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-4);
+  border-radius: 100px;
+  padding: var(--space-2) var(--space-5);
+  font-family: var(--font-display);
   font-size: var(--step-sm);
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 6px 18px -8px var(--accent);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+    background var(--dur) var(--ease);
 }
 .upload:hover {
-  filter: brightness(1.08);
+  background: var(--accent-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px -8px var(--accent);
+}
+.upload:active {
+  transform: translateY(0);
 }
 
 .main {
@@ -58,14 +69,18 @@
   margin-bottom: var(--space-6);
 }
 .title {
+  font-family: var(--font-display);
   font-size: var(--step-xl);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  line-height: 1;
   margin: 0;
 }
 .count {
+  font-family: var(--font-display);
   font-size: var(--step-sm);
   color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Processing strip. */
@@ -97,25 +112,55 @@
 }
 
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 0;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--card-radius);
   overflow: hidden;
   cursor: pointer;
   text-align: left;
   color: var(--fg);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--card-border-grad);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
 }
 .card:hover {
-  border-color: var(--fg-faint);
+  transform: translateY(-3px);
+  box-shadow: var(--card-shadow-hover);
+}
+/* Reveal the accent on the thumbnail edge as it lifts. */
+.card:hover .thumb::after {
+  opacity: 1;
+}
+.thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 -2px 0 0 var(--accent);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+  pointer-events: none;
 }
 
 .thumb {
   position: relative;
   aspect-ratio: 16 / 9;
   background: var(--surface-2);
+  overflow: hidden;
 }
 .thumb img {
   width: 100%;
@@ -127,23 +172,27 @@
   position: absolute;
   bottom: var(--space-2);
   right: var(--space-2);
-  background: rgba(0, 0, 0, 0.72);
+  background: rgba(10, 12, 16, 0.78);
   color: #fff;
+  font-family: var(--font-display);
   font-size: var(--step-xs);
-  padding: 2px var(--space-2);
-  border-radius: 4px;
+  padding: 3px var(--space-2);
+  border-radius: 6px;
   font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(4px);
 }
 
 .cardBody {
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-5) var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 .cardName {
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: var(--step-md);
+  letter-spacing: -0.01em;
 }
 .cardDate {
   font-size: var(--step-sm);

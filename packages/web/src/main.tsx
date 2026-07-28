@@ -1,3 +1,6 @@
+import "@fontsource-variable/sora"; // display / numbers
+import "@fontsource-variable/geist"; // body / UI
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 

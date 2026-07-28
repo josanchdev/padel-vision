@@ -1,78 +1,98 @@
-/* Detail view (opened from a dashboard card): a bento grid, one screen. */
+/* Detail view (opened from a dashboard card): a bento grid. */
 .detail {
   min-height: 100vh;
 }
 
+/* Top bar: just a clean back control + the match title. Nothing else. */
 .detailBar {
   display: flex;
   align-items: center;
-  gap: var(--space-6);
-  padding: var(--space-4) var(--space-8);
-  border-bottom: 1px solid var(--line);
-  position: sticky;
-  top: 0;
-  background: color-mix(in srgb, var(--bg) 90%, transparent);
-  backdrop-filter: blur(10px);
-  z-index: 10;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-8) var(--space-3);
+  flex-shrink: 0;
 }
 .back {
-  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--surface-2);
   border: 0;
+  border-radius: 100px;
   color: var(--fg-muted);
   cursor: pointer;
+  font-family: var(--font-display);
   font-size: var(--step-sm);
-  padding: 0;
+  font-weight: 500;
+  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-3);
   white-space: nowrap;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
 }
 .back:hover {
-  color: var(--fg);
+  color: var(--accent);
+  background: var(--accent-soft);
+  transform: translateX(-2px);
+}
+.back svg {
+  flex-shrink: 0;
 }
 .detailTitle {
-  font-size: var(--step-lg);
+  font-family: var(--font-display);
+  font-size: var(--step-xl);
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
+  line-height: 1;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
 }
 
-/* KPI strip in the top bar — compact, inline. */
-.kpiStrip {
-  display: flex;
-  gap: var(--space-6);
-}
-.kpiInline {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-}
-.kpiInlineValue {
-  font-size: var(--step-lg);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-.kpiInlineLabel {
-  font-size: var(--step-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--fg-faint);
-}
-
-/* Bento grid. Video + heatmap on the top row, wide table below. */
+/* Bento grid fills the viewport: the video+heatmap row grows to use the height,
+   the timeline is a strip at the foot. Scrolls only on short screens. */
 .bento {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: var(--space-6) var(--space-8) var(--space-16);
+  padding: var(--space-2) var(--space-8) var(--space-8);
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 1.7fr 1fr;
+  grid-template-rows: 1fr auto;
   grid-template-areas:
     "video heat"
-    "timeline timeline"
-    "table table";
-  gap: var(--space-6);
+    "timeline timeline";
+  gap: var(--space-5);
+  min-height: calc(100vh - 96px); /* fill below the bar */
+  align-items: stretch;
+}
+/* Both top cells fill the tall row; the video letterboxes to keep 16:9, the
+   heatmap centres its portrait court — the row height comes from the viewport,
+   not the content, so there's no dead space below. */
+.videoCell {
+  min-height: 0;
+  padding: 6px;
+}
+.videoCell .pane {
+  aspect-ratio: auto;
+  height: 100%;
+  border-radius: calc(var(--card-radius) - 6px);
+}
+.heatCell {
+  position: relative;
+  min-height: 0;
+}
+.heatCell .pane {
+  position: absolute;
+  inset: var(--space-5);
+  min-height: 0;
+}
+@media (max-height: 640px) {
+  .bento {
+    min-height: 0;
+  }
 }
 @media (max-width: 900px) {
   .bento {
@@ -80,53 +100,103 @@
     grid-template-areas:
       "video"
       "heat"
-      "timeline"
-      "table";
+      "timeline";
   }
 }
 
+/* Soft-depth card (Variant A): squircle corners, gradient surface, a masked
+   gradient border with a whisper of accent, layered diffused shadow. */
 .cell {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: var(--space-4);
+  position: relative;
+  border-radius: var(--card-radius);
+  min-width: 0;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--card-border-grad);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.cell:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+/* Video fills the card edge to edge (its own inner wrapper). */
+.pane {
+  flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
 }
+/* Video card hugs the video (16:9) edge to edge — no card padding. */
 .videoCell {
   grid-area: video;
+  padding: 6px;
+}
+.videoCell .pane {
+  aspect-ratio: 16 / 9;
+  border-radius: calc(var(--card-radius) - 6px);
+  overflow: hidden;
 }
 .heatCell {
   grid-area: heat;
+  align-self: stretch;
 }
 .timelineCell {
   grid-area: timeline;
 }
-.tableCell {
-  grid-area: table;
-}
 
+/* Section header integrated into the cell: an accent tick + label, with a
+   hairline that runs to the edge so the title belongs to its panel. */
 .cellHead {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-3);
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 .cellTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: var(--step-xs);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--fg-faint);
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
   font-weight: 600;
+}
+.cellTitle::before {
+  content: "";
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.cellHead::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line), transparent);
 }
 
 .video {
   width: 100%;
-  border-radius: var(--radius-sm);
+  height: 100%;
+  display: block;
   background: #000;
-  flex: 1;
-  min-height: 0;
+  object-fit: contain;
 }
 
 /* Heatmap placeholder (real heatmap is the next section to build). */

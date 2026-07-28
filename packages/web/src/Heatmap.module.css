@@ -22,24 +22,36 @@
   background: transparent;
   color: var(--fg-muted);
   cursor: pointer;
+  font-family: var(--font-display);
   font-size: var(--step-sm);
+  font-weight: 500;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+.chip:hover {
+  border-color: var(--c);
+  color: var(--fg);
 }
 .chip.active {
   border-color: var(--c);
   color: var(--fg);
-  background: color-mix(in srgb, var(--c) 10%, transparent);
+  background: color-mix(in srgb, var(--c) 12%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 14%, transparent);
 }
 
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  box-shadow: 0 0 8px -1px currentColor;
 }
 
 .canvas {
-  width: 100%;
-  height: auto;
-  max-height: 460px;
+  flex: 1;
+  min-height: 0;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
   align-self: center;
 }

@@ -10,6 +10,7 @@ interface Props {
   bounces: Bounce[];
   fps: number;
   onSeek: (seconds: number) => void;
+  onSelectShot: (shot: Shot) => void;
 }
 
 interface Marker {
@@ -17,9 +18,10 @@ interface Marker {
   kind: "shot" | "bounce";
   color: string;
   label: string;
+  shot?: Shot;
 }
 
-export function Timeline({ shots, bounces, fps, onSeek }: Props) {
+export function Timeline({ shots, bounces, fps, onSeek, onSelectShot }: Props) {
   const [hover, setHover] = useState<Marker | null>(null);
 
   const { markers, span } = useMemo(() => {
@@ -28,6 +30,7 @@ export function Timeline({ shots, bounces, fps, onSeek }: Props) {
       kind: "shot",
       color: playerColor(s.player_id),
       label: `J${s.player_id} · ${s.label} · ${fmtTime(s.timestamp_s)}`,
+      shot: s,
     }));
     const bounceMarks: Marker[] = bounces.map((b) => ({
       t: b.frame_index / fps,
@@ -39,6 +42,9 @@ export function Timeline({ shots, bounces, fps, onSeek }: Props) {
     const maxT = all.length ? Math.max(...all.map((m) => m.t)) : 1;
     return { markers: all, span: maxT * 1.02 || 1 };
   }, [shots, bounces, fps]);
+
+  // Shots open their clip; bounces (no clip) just seek the video.
+  const activate = (m: Marker) => (m.shot ? onSelectShot(m.shot) : onSeek(m.t));
 
   return (
     <div className={styles.wrap}>
@@ -52,7 +58,7 @@ export function Timeline({ shots, bounces, fps, onSeek }: Props) {
             animate={{ opacity: 1, scaleY: 1 }}
             transition={{ delay: Math.min(i * 0.008, 0.25) }}
             whileHover={{ scaleY: 1.4 }}
-            onClick={() => onSeek(m.t)}
+            onClick={() => activate(m)}
             onMouseEnter={() => setHover(m)}
             onMouseLeave={() => setHover(null)}
             aria-label={m.label}
@@ -63,7 +69,7 @@ export function Timeline({ shots, bounces, fps, onSeek }: Props) {
           <span>{fmtTime(span)}</span>
         </div>
       </div>
-      {hover && <div className={styles.tip}>{hover.label}</div>}
+      <div className={styles.tip}>{hover ? hover.label : "Pasa el ratón por un evento · clic para verlo"}</div>
     </div>
   );
 }

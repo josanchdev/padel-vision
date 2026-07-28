@@ -1,30 +1,48 @@
-/* Design tokens (ADR-0011). Identity colours are tokens so the URJC red / logo
-   can change after the tutor meeting without touching components.
-   Base: dark premium (ink greys). Accent: URJC red — used for IDENTITY only
-   (never to encode data; data gets its own scales). */
+/* Design system (ADR-0011). Padel Vision — a data-dense analysis TOOL, not a
+   landing page. Display face Sora (geometric, confident) + body Geist (clean UI).
+   Neutrals carry a slight cool bias so they read as chosen, not defaulted.
+   URJC red is the brand accent: identity + interaction (glow, ring), never data
+   — data has its own blue→amber scale. Committed light theme. */
 :root {
-  /* Brand / identity — swap these when the tutor fixes the palette. */
-  --accent: #d1101f; /* URJC institutional red (placeholder value) */
-  --accent-soft: #d1101f14;
+  /* Brand / identity — swap when the tutor fixes the palette. */
+  --accent: #e01123; /* URJC institutional red */
+  --accent-strong: #b60d1c;
+  --accent-soft: #e011230f;
+  --accent-glow: 0 0 0 1px #e0112322, 0 8px 28px -10px #e0112359;
 
-  /* Light base — clean, paper-like premium light. */
-  --bg: #f6f7f9;
+  /* Card style: soft depth (Variant A). Organic squircle corners, a surface
+     with a faint vertical gradient, a gradient border with a whisper of accent,
+     and a diffused layered shadow so the card floats — not a flat grey box. */
+  --card-bg: linear-gradient(180deg, #ffffff, #fbfcfe);
+  --card-radius: 22px;
+  --card-shadow: 0 1px 2px rgba(16, 20, 30, 0.04), 0 18px 40px -24px rgba(16, 20, 30, 0.28);
+  --card-shadow-hover: 0 1px 2px rgba(16, 20, 30, 0.04), 0 24px 50px -22px rgba(224, 17, 35, 0.3);
+  /* Gradient border painted via a masked ::before layer. */
+  --card-border-grad: linear-gradient(160deg, #ffffff, #e3e6ee 42%, #e0112322 100%);
+
+  /* Cool-tinted neutrals (a whisper of the accent's warmth balanced by blue). */
+  --bg: #f4f5f8;
   --surface: #ffffff;
-  --surface-2: #eef1f4;
-  --line: #e2e6ec;
+  --surface-2: #eef0f5;
+  --line: #e3e6ee;
+  --line-strong: #d2d7e2;
 
   /* Text. */
-  --fg: #10131a;
-  --fg-muted: #5a6472;
-  --fg-faint: #8b95a3;
+  --fg: #0f1218;
+  --fg-muted: #565f70;
+  --fg-faint: #8a93a4;
 
-  /* Data scale — NOT red, so it never reads as "alert". */
-  --data-1: #2563eb;
-  --data-2: #d97706;
+  /* Data scale — NOT the accent, so it never reads as "alert". */
+  --data-1: #2f6bff;
+  --data-2: #f59e0b;
 
-  /* Type scale — big and confident (2026: type is the design). */
-  --step-hero: clamp(2.5rem, 6vw, 5rem);
-  --step-xl: clamp(1.75rem, 3vw, 2.75rem);
+  /* Typefaces. */
+  --font-display: "Sora Variable", system-ui, sans-serif;
+  --font-body: "Geist Variable", system-ui, sans-serif;
+
+  /* Type scale. */
+  --step-hero: clamp(2.75rem, 6vw, 5.5rem);
+  --step-xl: clamp(1.85rem, 3.2vw, 2.9rem);
   --step-lg: 1.375rem;
   --step-md: 1rem;
   --step-sm: 0.8125rem;
@@ -35,20 +53,24 @@
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
+  --space-5: 1.25rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
   --space-12: 3rem;
   --space-16: 4rem;
 
-  --radius: 12px;
-  --radius-sm: 8px;
+  --radius: 16px;
+  --radius-sm: 10px;
 
-  /* Per-player colours (identity of J1-J4, not a data scale). Deepened to read
-     on a light background. */
-  --p1: #16a34a;
-  --p2: #ea580c;
-  --p3: #0284c7;
-  --p4: #ca8a04;
+  /* Motion. */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 0.22s;
+
+  /* Per-player colours (identity of J1-J4). */
+  --p1: #12a150;
+  --p2: #f0631f;
+  --p3: #1b7fe0;
+  --p4: #d69a09;
 
   font-synthesis: none;
   color-scheme: light;
@@ -67,8 +89,15 @@ body {
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family:
-    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  font-feature-settings: "tnum" 1; /* tabular numbers for data alignment */
+  font-family: var(--font-body);
+  font-feature-settings: "tnum" 1;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

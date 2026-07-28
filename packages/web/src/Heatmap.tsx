@@ -9,13 +9,16 @@ interface Props {
   players: PlayerFrame[];
 }
 
-// Density gradient (low -> high). Blue -> yellow -> red as INTENSITY, not alarm.
+// Thermal density ramp (low -> high) as INTENSITY, not alarm. A smooth
+// transparent -> indigo -> cyan -> green -> amber -> red thermal curve.
 const GRADIENT: [number, string][] = [
   [0.0, "rgba(37, 99, 235, 0)"],
-  [0.25, "rgba(37, 99, 235, 0.5)"],
-  [0.5, "rgba(16, 185, 129, 0.7)"],
-  [0.75, "rgba(217, 119, 6, 0.8)"],
-  [1.0, "rgba(209, 16, 31, 0.9)"],
+  [0.15, "rgba(49, 46, 220, 0.35)"],
+  [0.35, "rgba(20, 130, 230, 0.65)"],
+  [0.5, "rgba(16, 200, 180, 0.75)"],
+  [0.65, "rgba(120, 200, 40, 0.82)"],
+  [0.8, "rgba(240, 160, 20, 0.88)"],
+  [1.0, "rgba(224, 17, 35, 0.95)"],
 ];
 
 export function Heatmap({ players }: Props) {
@@ -46,10 +49,20 @@ export function Heatmap({ players }: Props) {
 
     ctx.clearRect(0, 0, W, H);
 
-    // Court floor + lines.
-    ctx.fillStyle = "#eef1f4";
+    // Court floor: a soft vertical gradient + rounded corners give the panel
+    // depth instead of a flat grey rectangle.
     const [cx0, cy0] = toPx(0, 0);
-    ctx.fillRect(cx0, cy0, COURT_WIDTH_M * scale, COURT_LENGTH_M * scale);
+    const cw = COURT_WIDTH_M * scale;
+    const ch = COURT_LENGTH_M * scale;
+    const floor = ctx.createLinearGradient(0, cy0, 0, cy0 + ch);
+    floor.addColorStop(0, "#eef1f7");
+    floor.addColorStop(1, "#e4e8f0");
+    ctx.save();
+    _roundRect(ctx, cx0, cy0, cw, ch, 10);
+    ctx.clip();
+    ctx.fillStyle = floor;
+    ctx.fillRect(cx0, cy0, cw, ch);
+    ctx.restore();
 
     // Heatmap: accumulate the selected player's positions into a density blob
     // layer, then colour-map it. Drawn before the lines so lines stay crisp.
@@ -61,12 +74,12 @@ export function Heatmap({ players }: Props) {
       density.width = W;
       density.height = H;
       const dctx = density.getContext("2d")!;
-      const radius = scale * 1.6; // ~1.6 m soft blob per sample
+      const radius = scale * 1.5; // ~1.5 m soft blob per sample
       dctx.globalCompositeOperation = "lighter";
       for (const p of pts) {
         const [px, py] = toPx(p.court_x_m!, p.court_y_m!);
         const g = dctx.createRadialGradient(px, py, 0, px, py, radius);
-        g.addColorStop(0, "rgba(0,0,0,0.10)");
+        g.addColorStop(0, "rgba(0,0,0,0.14)");
         g.addColorStop(1, "rgba(0,0,0,0)");
         dctx.fillStyle = g;
         dctx.beginPath();
@@ -121,6 +134,18 @@ function line(
   ctx.moveTo(x0, y0);
   ctx.lineTo(x1, y1);
   ctx.stroke();
+}
+
+function _roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
 }
 
 // Map the grayscale density (alpha) to the colour gradient.

@@ -1,11 +1,10 @@
 import { motion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { api, type Match, type MatchData, type Shot } from "./api.ts";
 import { ClipModal } from "./ClipModal.tsx";
 import { Dashboard } from "./Dashboard.tsx";
 import { Heatmap } from "./Heatmap.tsx";
-import { ShotTable } from "./ShotTable.tsx";
 import { Timeline } from "./Timeline.tsx";
 import styles from "./App.module.css";
 
@@ -74,102 +73,95 @@ function MatchDetail({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const kpis = useMemo(() => {
-    if (!data) return null;
-    const types = new Set(data.shots.map((s) => s.label));
-    return { shots: data.shots.length, bounces: data.bounces.length, types: types.size };
-  }, [data]);
-
   const seek = (seconds: number) => {
     const v = videoRef.current;
     if (!v) return;
     v.currentTime = seconds;
     void v.play();
-    v.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
   if (!match) return null;
+  const hasEvents = !!data && (data.shots.length > 0 || data.bounces.length > 0);
   return (
     <motion.div
       className={styles.detail}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <div className={styles.detailBar}>
-        <button className={styles.back} onClick={onBack}>
-          ← Partidos
+      <header className={styles.detailBar}>
+        <button className={styles.back} onClick={onBack} aria-label="Volver a partidos">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M15 18l-6-6 6-6"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Partidos
         </button>
         <h1 className={styles.detailTitle}>{match.filename}</h1>
-        {kpis && (
-          <div className={styles.kpiStrip}>
-            <KpiInline label="Golpes" value={kpis.shots} />
-            <KpiInline label="Botes" value={kpis.bounces} />
-            <KpiInline label="Tipos" value={kpis.types} />
-          </div>
-        )}
-      </div>
+      </header>
 
-      {/* Bento grid: everything on one screen, no stacked scroll. */}
+      {/* Bento grid: everything on one screen, no stacked scroll. Cells reveal
+          in a short choreographed sequence on load. */}
       <div className={styles.bento}>
-        <section className={`${styles.cell} ${styles.videoCell}`}>
-          <div className={styles.cellHead}>
-            <span className={styles.cellTitle}>Vídeo analizado</span>
-          </div>
-          <video
-            ref={videoRef}
-            className={styles.video}
-            src={api.resultUrl(match.id)}
-            controls
-          />
-        </section>
-
-        <section className={`${styles.cell} ${styles.heatCell}`}>
-          <div className={styles.cellHead}>
-            <span className={styles.cellTitle}>Mapa de calor</span>
-          </div>
-          {data && data.players.length > 0 ? (
-            <Heatmap players={data.players} />
-          ) : (
-            <div className={styles.heatPlaceholder}>
-              <span>Sin datos de posición</span>
-            </div>
-          )}
-        </section>
-
-        {data && (data.shots.length > 0 || data.bounces.length > 0) && (
-          <section className={`${styles.cell} ${styles.timelineCell}`}>
-            <div className={styles.cellHead}>
-              <span className={styles.cellTitle}>Cronología</span>
-            </div>
-            <Timeline
-              shots={data.shots}
-              bounces={data.bounces}
-              fps={data.fps}
-              onSeek={seek}
+        <motion.section className={`${styles.cell} ${styles.videoCell}`} {...cellReveal(0)}>
+          <div className={styles.pane}>
+            <video
+              ref={videoRef}
+              className={styles.video}
+              src={api.resultUrl(match.id)}
+              controls
             />
-          </section>
-        )}
-
-        <section className={`${styles.cell} ${styles.tableCell}`}>
-          <div className={styles.cellHead}>
-            <span className={styles.cellTitle}>Golpes</span>
           </div>
-          {data && data.shots.length > 0 ? (
-            <ShotTable shots={data.shots} onSelect={onSelectShot} />
-          ) : (
-            <p className={styles.empty}>Sin datos estructurados para este partido.</p>
-          )}
-        </section>
+        </motion.section>
+
+        <motion.section className={`${styles.cell} ${styles.heatCell}`} {...cellReveal(1)}>
+          <div className={styles.pane}>
+            <div className={styles.cellHead}>
+              <span className={styles.cellTitle}>Mapa de calor</span>
+            </div>
+            {data && data.players.length > 0 ? (
+              <Heatmap players={data.players} />
+            ) : (
+              <div className={styles.heatPlaceholder}>
+                <span>Sin datos de posición</span>
+              </div>
+            )}
+          </div>
+        </motion.section>
+
+        {hasEvents && (
+          <motion.section
+            className={`${styles.cell} ${styles.timelineCell}`}
+            {...cellReveal(2)}
+          >
+            <div className={styles.pane}>
+              <div className={styles.cellHead}>
+                <span className={styles.cellTitle}>Cronología del partido</span>
+              </div>
+              <Timeline
+                shots={data.shots}
+                bounces={data.bounces}
+                fps={data.fps}
+                onSeek={seek}
+                onSelectShot={onSelectShot}
+              />
+            </div>
+          </motion.section>
+        )}
       </div>
     </motion.div>
   );
 }
 
-function KpiInline({ label, value }: { label: string; value: number }) {
-  return (
-    <div className={styles.kpiInline}>
-      <span className={styles.kpiInlineValue}>{value}</span>
-      <span className={styles.kpiInlineLabel}>{label}</span>
-    </div>
-  );
+// Staggered reveal for the bento cells — a short choreographed load sequence.
+function cellReveal(index: number) {
+  return {
+    initial: { opacity: 0, y: 16 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay: 0.06 + index * 0.08, ease: [0.22, 1, 0.36, 1] as const },
+  };
 }
