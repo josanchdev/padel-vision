@@ -90,17 +90,11 @@ funcionalidades encima" ([[project-padel-vision-tfg]]).
 
 ## Pipeline / producto
 
-- **[Alta] Conectar el clasificador de golpes entrenado a la API/web.** El
-  PoseConv3D está entrenado pero aún no expuesto en el producto; se hará en la
-  sesión de rediseño web.
-- **[Alta] El contenedor Docker no incluye `packages/ml`.** El Dockerfile solo
-  instala cv+api, así que el worker containerizado procesa con el dummy de golpes
-  y SIN detección de pelota (los modelos torch viven en `padel_ml`). Por eso los
-  partidos procesados vía Docker dan ~18 "golpes" (dummy, falsos positivos) en
-  vez de ~10 (clasificador real). Falta: añadir `packages/ml` + modelos (pesos)
-  al Dockerfile y pasar `--shot-model`/`--ball-model` desde el worker. Implica
-  imagen más grande (torch ya está, pero hay que copiar pesos). Nativo
-  (`tools/dev.sh`) sí puede usar los modelos.
+- **[HECHO 28 jul] Conectar el clasificador de golpes entrenado a la API/web.**
+  El worker pasa `shot_model` (config `PADEL_SHOT_MODEL`) → usa el PoseConv3D
+  real en vez del dummy. Docker instala `packages/ml`; los pesos llegan por el
+  volumen `./runs/archive`. Pelota aún NO conectada (se reentrena en Fase 1;
+  se cablea al tener el modelo bueno).
 - **[Media] Rediseño web con estándares UX 2026.** Plataforma de suscripción
   profesional. Sesión propia con investigación de UX y decisión de paleta (rojo
   URJC vs verde pádel). Ojo: las stats por jugador que exhibiría dependen de la

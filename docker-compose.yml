@@ -28,6 +28,7 @@ services:
       PADEL_REDIS_URL: redis://redis:6379
       PADEL_STORAGE_DIR: /app/storage
       PADEL_COURT_MODEL: /app/models/court_broadcast_v6.pt
+      PADEL_SHOT_MODEL: /app/models/poseconv3d_shots.pt
     volumes: &backend_volumes
       - ./storage:/app/storage
       - ./runs/archive:/app/models:ro

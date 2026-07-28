@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     storage_dir: Path = Path("storage")
     court_model: Path | None = None
     """Trained court detector; falls back to GT-free processing when unset."""
+    shot_model: Path | None = None
+    """Trained PoseConv3D shot classifier; falls back to the wrist-speed dummy."""
     max_upload_mb: int = 8192
 
     @property

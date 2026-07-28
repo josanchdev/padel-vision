@@ -27,10 +27,12 @@ ENV UV_LINK_MODE=copy \
 
 WORKDIR /app
 
-# Dependency layer first (cached until manifests change).
+# Dependency layer first (cached until manifests change). ml is included so the
+# worker can run the trained PoseConv3D shot classifier (and, later, the ball).
 COPY pyproject.toml uv.lock ./
 COPY packages/cv/pyproject.toml packages/cv/pyproject.toml
 COPY packages/api/pyproject.toml packages/api/pyproject.toml
+COPY packages/ml/pyproject.toml packages/ml/pyproject.toml
 RUN uv sync --all-packages --frozen --no-install-workspace
 
 # Workspace source.
@@ -38,6 +40,8 @@ COPY packages ./packages
 RUN uv sync --all-packages --frozen
 
 # Bake the pose model so the container is self-contained (no runtime download).
+# Court + shot classifier weights come from the ./runs/archive volume mount
+# (see docker-compose), same as the court model — not baked into the image.
 RUN python -c "from ultralytics import YOLO; YOLO('yolo26n-pose.pt')"
 
 # Compiled web bundle from the web stage (served as static files by FastAPI).

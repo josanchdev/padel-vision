@@ -41,6 +41,7 @@ def _run_pipeline(match_id: str, redis_url: str) -> tuple[int, float | None]:
     sync_redis = redis.from_url(redis_url, decode_responses=True)  # type: ignore[no-untyped-call]
     try:
         court_model = str(settings.court_model) if settings.court_model else None
+        shot_model = str(settings.shot_model) if settings.shot_model else None
         result_path = settings.results_dir / f"{match_id}.mp4"
         result = process_video(
             input_path=settings.uploads_dir / f"{match_id}.mp4",
@@ -50,6 +51,7 @@ def _run_pipeline(match_id: str, redis_url: str) -> tuple[int, float | None]:
             image_size=1920,
             max_frames=None,
             court_model=court_model,
+            shot_model=shot_model,  # PoseConv3D classifier; else the wrist-speed dummy
             on_progress=lambda p: _write_progress(sync_redis, match_id, p),
             data_out=settings.data_dir / match_id,  # writes {id}.json and {id}.csv (ADR-0010)
         )
