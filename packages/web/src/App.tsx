@@ -1,11 +1,12 @@
 import { motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { api, type Match, type MatchData, type Shot } from "./api.ts";
 import { ClipModal } from "./ClipModal.tsx";
 import { Dashboard } from "./Dashboard.tsx";
 import { Heatmap } from "./Heatmap.tsx";
 import { ShotTable } from "./ShotTable.tsx";
+import { Timeline } from "./Timeline.tsx";
 import styles from "./App.module.css";
 
 export function App() {
@@ -71,11 +72,21 @@ function MatchDetail({
   onBack: () => void;
   onSelectShot: (s: Shot) => void;
 }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const kpis = useMemo(() => {
     if (!data) return null;
     const types = new Set(data.shots.map((s) => s.label));
     return { shots: data.shots.length, bounces: data.bounces.length, types: types.size };
   }, [data]);
+
+  const seek = (seconds: number) => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.currentTime = seconds;
+    void v.play();
+    v.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
 
   if (!match) return null;
   return (
@@ -104,7 +115,12 @@ function MatchDetail({
           <div className={styles.cellHead}>
             <span className={styles.cellTitle}>Vídeo analizado</span>
           </div>
-          <video className={styles.video} src={api.resultUrl(match.id)} controls />
+          <video
+            ref={videoRef}
+            className={styles.video}
+            src={api.resultUrl(match.id)}
+            controls
+          />
         </section>
 
         <section className={`${styles.cell} ${styles.heatCell}`}>
@@ -119,6 +135,20 @@ function MatchDetail({
             </div>
           )}
         </section>
+
+        {data && (data.shots.length > 0 || data.bounces.length > 0) && (
+          <section className={`${styles.cell} ${styles.timelineCell}`}>
+            <div className={styles.cellHead}>
+              <span className={styles.cellTitle}>Cronología</span>
+            </div>
+            <Timeline
+              shots={data.shots}
+              bounces={data.bounces}
+              fps={data.fps}
+              onSeek={seek}
+            />
+          </section>
+        )}
 
         <section className={`${styles.cell} ${styles.tableCell}`}>
           <div className={styles.cellHead}>

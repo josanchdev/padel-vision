@@ -70,6 +70,7 @@
   grid-template-columns: 1.6fr 1fr;
   grid-template-areas:
     "video heat"
+    "timeline timeline"
     "table table";
   gap: var(--space-6);
 }
@@ -79,6 +80,7 @@
     grid-template-areas:
       "video"
       "heat"
+      "timeline"
       "table";
   }
 }
@@ -97,6 +99,9 @@
 }
 .heatCell {
   grid-area: heat;
+}
+.timelineCell {
+  grid-area: timeline;
 }
 .tableCell {
   grid-area: table;

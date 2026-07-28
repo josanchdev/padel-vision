@@ -1,0 +1,65 @@
+.wrap {
+  width: 100%;
+}
+
+.track {
+  position: relative;
+  height: 44px;
+  margin-top: var(--space-6);
+}
+
+/* The baseline the markers sit on. */
+.track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 20px;
+  height: 2px;
+  background: var(--line);
+  border-radius: 1px;
+}
+
+.mark {
+  position: absolute;
+  top: 8px;
+  width: 3px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: var(--m);
+  transform: translateX(-50%);
+  transform-origin: center;
+  cursor: pointer;
+}
+
+/* Bounces read as a small diamond on the baseline, distinct from shot bars. */
+.bounce {
+  top: 15px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--bg);
+  border: 2px solid var(--m);
+}
+
+.axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--step-xs);
+  color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.tip {
+  margin-top: var(--space-2);
+  font-size: var(--step-sm);
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
