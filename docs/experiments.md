@@ -381,6 +381,11 @@ uv run padel-ball-train --model tracknetv3 \
 ```
 
 Con V3 entrenado: comparativa V2 vs V3 + Fase 1d (`padel-ball-generalization`).
+**Decisión Jorge:** V3 (moderno, refinador de oclusiones) será el modelo de
+PRODUCCIÓN si confirma su mejora (esperado; en prueba corta 0,911 vs 0,896),
+igual que se eligió PoseConv3D sobre ST-GCN en golpes. V2 queda como baseline de
+la comparativa (evidencia científica). El criterio final es el F1 con el
+protocolo completo, no la asunción — se elige con el número delante.
 
 **Por qué super-entreno con WPT si el objetivo es generalizar (razonamiento
 estratégico, cuestión planteada por Jorge).** Los ~100k frames WPT NO generalizan
