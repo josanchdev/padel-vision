@@ -324,6 +324,40 @@ Los vídeos nuevos son munición kickstarter para mejorar pelota, pista, golpes
 (incl. dejada) y validar escena/segmentación — respetando que son material de
 entrenamiento/prueba, nunca dependencia (ADR-0005).
 
+## Mejora de la pelota — Fase 1 (28 jul 2026)
+
+El modelo de pelota era de prueba corta (4k frames WPT, 6 epochs, F1 0,91 en su
+propia pista). Se aborda una mejora seria con estas piezas:
+
+- **Augmentation de color** (brillo/contraste/tono, foto­métrico, igual en los 3
+  frames de la ventana): generaliza a pistas/iluminaciones distintas sin
+  etiquetar. Nunca mueve la pelota (el heatmap no se transforma).
+- **Submuestreo de negativos** (`neg_ratio`, def. 2,0 en train): un partido
+  completo es ~64% sin pelota; demasiados negativos hunden el recall (0,98, el
+  punto fuerte). Val mantiene la distribución real para métricas honestas.
+- **Cache memmap** — problema de ingeniería resuelto: los ~100k frames (44 GB)
+  no caben en 19 GB de RAM (cargarlos causaba OOM, probable causa de crashes de
+  WSL) y leer .npz comprimido era 1,9 s/ventana. `consolidate_to_memmap`
+  reescribe los shards como un uint8 memory-mapped (`frames.dat`) + `meta.npz`;
+  `BallClips` lee frames sueltos del disco al instante. Medido: **2,6 ms/ventana
+  (era 1900), RSS 1,0 GB (iba a 44), época ~2 min**. Cross-match completo =
+  99.883 ventanas.
+
+**Comando del entrenamiento completo** (a lanzar vigilando el WSL):
+
+```bash
+uv run padel-ball-train --compare \
+  --train-dir data/datasets/ball_cache/finalM \
+  --val-dir   data/datasets/ball_cache/finalF \
+  --epochs 40 --augment --workers 4 \
+  --out runs/ball_full --plots runs/ball_plots_full \
+  --mlflow-uri sqlite:///runs/mlruns.db
+```
+
+Entrena V2 vs V3 (cross-match: train masculina, val femenina), con augmentation y
+negativos balanceados. Compara con la prueba corta (0,91). Falta al cerrar Fase 1:
+validar visualmente sobre los vídeos de YouTube de pistas nuevas.
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
