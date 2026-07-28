@@ -5,22 +5,22 @@
 :root {
   /* Brand / identity — swap these when the tutor fixes the palette. */
   --accent: #d1101f; /* URJC institutional red (placeholder value) */
-  --accent-soft: #d1101f22;
+  --accent-soft: #d1101f14;
 
-  /* Ink base — near-black premium dark. */
-  --bg: #0a0b0d;
-  --surface: #111317;
-  --surface-2: #171a20;
-  --line: #23272f;
+  /* Light base — clean, paper-like premium light. */
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #eef1f4;
+  --line: #e2e6ec;
 
   /* Text. */
-  --fg: #f2f4f7;
-  --fg-muted: #98a2b3;
-  --fg-faint: #667085;
+  --fg: #10131a;
+  --fg-muted: #5a6472;
+  --fg-faint: #8b95a3;
 
   /* Data scale — NOT red, so it never reads as "alert". */
-  --data-1: #4a9eff;
-  --data-2: #ffd23f;
+  --data-1: #2563eb;
+  --data-2: #d97706;
 
   /* Type scale — big and confident (2026: type is the design). */
   --step-hero: clamp(2.5rem, 6vw, 5rem);
@@ -43,14 +43,15 @@
   --radius: 12px;
   --radius-sm: 8px;
 
-  /* Per-player colours (identity of J1-J4, not a data scale). */
-  --p1: #4ade80;
-  --p2: #f97316;
-  --p3: #38bdf8;
-  --p4: #facc15;
+  /* Per-player colours (identity of J1-J4, not a data scale). Deepened to read
+     on a light background. */
+  --p1: #16a34a;
+  --p2: #ea580c;
+  --p3: #0284c7;
+  --p4: #ca8a04;
 
   font-synthesis: none;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {

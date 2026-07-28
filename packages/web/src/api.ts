@@ -34,6 +34,8 @@ export interface Match {
   status: MatchStatus;
   progress: number;
   shots_detected: number;
+  duration_s?: number | null;
+  created_at: string;
   error?: string | null;
 }
 
@@ -47,6 +49,7 @@ export const api = {
   getMatch: (id: string) => fetch(`/matches/${id}`).then(json<Match>),
   getData: (id: string) => fetch(`/matches/${id}/data`).then(json<MatchData>),
   resultUrl: (id: string) => `/matches/${id}/result`,
+  thumbnailUrl: (id: string) => `/matches/${id}/thumbnail`,
   clipUrl: (id: string, frame: number) => `/matches/${id}/clip?frame=${frame}`,
   async upload(file: File): Promise<Match> {
     const body = new FormData();

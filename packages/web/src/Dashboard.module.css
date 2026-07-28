@@ -1,0 +1,168 @@
+.wrap {
+  min-height: 100vh;
+}
+
+/* Thin top bar — not a hero. Identity + upload, out of the way. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-8);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-weight: 700;
+  font-size: var(--step-md);
+  letter-spacing: -0.01em;
+}
+.brandDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.upload {
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--step-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.upload:hover {
+  filter: brightness(1.08);
+}
+
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-8);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+.title {
+  font-size: var(--step-xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.count {
+  font-size: var(--step-sm);
+  color: var(--fg-faint);
+}
+
+/* Processing strip. */
+.processing {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+.procRow {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: var(--step-sm);
+  color: var(--fg-muted);
+}
+.procStatus {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Card grid — the data fills the screen. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-6);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  color: var(--fg);
+}
+.card:hover {
+  border-color: var(--fg-faint);
+}
+
+.thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--surface-2);
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.duration {
+  position: absolute;
+  bottom: var(--space-2);
+  right: var(--space-2);
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: var(--step-xs);
+  padding: 2px var(--space-2);
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cardBody {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.cardName {
+  font-weight: 600;
+  font-size: var(--step-md);
+}
+.cardDate {
+  font-size: var(--step-sm);
+  color: var(--fg-faint);
+}
+
+/* Empty state. */
+.empty {
+  text-align: center;
+  padding: var(--space-16) var(--space-4);
+  color: var(--fg-muted);
+}
+.emptyBtn {
+  margin-top: var(--space-4);
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--step-md);
+  cursor: pointer;
+}
