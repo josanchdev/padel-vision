@@ -70,6 +70,7 @@ def train_ball(
     plots_dir: Path | None = None,
     augment: bool = False,
     neg_ratio: float | None = 2.0,
+    num_workers: int = 4,
 ) -> BallTrainResult:
     torch.manual_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -79,9 +80,10 @@ def train_ball(
         BallClips(train_dirs, augment=augment, neg_ratio=neg_ratio),
         batch_size=batch_size,
         shuffle=True,
+        num_workers=num_workers,
     )
     val_ds = BallClips(val_dirs)
-    val_loader = DataLoader(val_ds, batch_size=batch_size)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, num_workers=num_workers)
 
     model = _make_model(model_name).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
@@ -194,6 +196,7 @@ def compare_models(
     plots_dir: Path,
     out_dir: Path | None,
     augment: bool = False,
+    num_workers: int = 4,
 ) -> dict[str, BallEval]:
     """Train V2 and V3 under one protocol, then draw the headline plot.
 
@@ -212,6 +215,7 @@ def compare_models(
                 out_path=out,
                 plots_dir=plots_dir,
                 augment=augment,
+                num_workers=num_workers,
             )
             results[model_name] = res.best
     comp_path = plots_dir / "occlusion_comparison.png"
@@ -235,6 +239,7 @@ def main() -> None:
     parser.add_argument(
         "--augment", action="store_true", help="Colour jitter on train (generalise to courts)"
     )
+    parser.add_argument("--workers", type=int, default=4, help="DataLoader workers")
     parser.add_argument(
         "--mlflow-uri",
         default="sqlite:///mlruns.db",
@@ -245,7 +250,13 @@ def main() -> None:
     mlflow.set_experiment("ball-detection")
     if args.compare:
         compare_models(
-            args.train_dir, args.val_dir, args.epochs, args.plots, args.out, augment=args.augment
+            args.train_dir,
+            args.val_dir,
+            args.epochs,
+            args.plots,
+            args.out,
+            augment=args.augment,
+            num_workers=args.workers,
         )
     else:
         with mlflow.start_run(run_name=args.model):
@@ -257,6 +268,7 @@ def main() -> None:
                 out_path=args.out,
                 plots_dir=args.plots,
                 augment=args.augment,
+                num_workers=args.workers,
             )
 
 
