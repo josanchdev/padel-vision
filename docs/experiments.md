@@ -388,6 +388,25 @@ se etiqueta SIEMPRE de cero a mano** (sin pre-label) para que la métrica no est
 contaminada por el propio modelo. Etiquetar es el trabajo que hace mejorar todo;
 no se esquiva.
 
+**Comparativa de generalización (Fase 1d, herramienta lista).** Sin GT en pistas
+nuevas no hay F1, pero la **tasa de detección** (% frames con pelota) + la
+**confianza media** cuantifican cuánto cae el modelo fuera de WPT.
+`padel-ball-generalization` corre el detector sobre varias pistas y emite tabla +
+JSON + gráfico de barras (para slides) + vídeos de verificación. A lanzar al
+terminar el entreno:
+
+```bash
+uv run padel-ball-generalization --model runs/ball_full/tracknetv3.pt \
+  --court wpt=data/raw/2022_BCN_FinalM_1.mp4 \
+  --court highlights=data/raw/youtube/match_century.mp4 \
+  --court pista_negra=data/raw/youtube/citys_cup.mp4 \
+  --max-frames 3000 --videos -o runs/ball_gen
+```
+
+Cuantifica el hallazgo previo (WPT 100% vs pistas nuevas 5-20% con el detector de
+PISTA) ahora para el detector de PELOTA, y es la métrica base honesta para medir
+la mejora tras la Fase 2 (fine-tuning con datos nuevos).
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):

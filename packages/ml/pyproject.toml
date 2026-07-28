@@ -19,6 +19,7 @@ padel-cv = { workspace = true }
 padel-train = "padel_ml.train:main"
 padel-ball-train = "padel_ml.ball_train:main"
 padel-ball-infer = "padel_ml.ball_infer_cli:main"
+padel-ball-generalization = "padel_ml.ball_generalization_cli:main"
 
 [build-system]
 requires = ["hatchling"]
