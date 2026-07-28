@@ -343,20 +343,28 @@ propia pista). Se aborda una mejora seria con estas piezas:
   (era 1900), RSS 1,0 GB (iba a 44), época ~2 min**. Cross-match completo =
   99.883 ventanas.
 
+**Punto óptimo de rendimiento (RTX 3090, medido).** Con el memmap, el cuello ya
+no es la RAM sino alimentar la GPU. Benchmark de throughput (win/s, época de 54k):
+batch=8/workers=4 → 73 (12,3 min); **batch=32/workers=8 → 141 (6,4 min, ~2×)**;
+batch=64/workers=12 → 56 (16 min, contraproducente: batches enormes no ayudan a
+un modelo pequeño y saturan la lectura). Defaults subidos a batch=32, workers=8.
+
 **Comando del entrenamiento completo** (a lanzar vigilando el WSL):
 
 ```bash
 uv run padel-ball-train --compare \
   --train-dir data/datasets/ball_cache/finalM \
   --val-dir   data/datasets/ball_cache/finalF \
-  --epochs 40 --augment --workers 4 \
+  --epochs 40 --augment \
   --out runs/ball_full --plots runs/ball_plots_full \
   --mlflow-uri sqlite:///runs/mlruns.db
 ```
 
-Entrena V2 vs V3 (cross-match: train masculina, val femenina), con augmentation y
-negativos balanceados. Compara con la prueba corta (0,91). Falta al cerrar Fase 1:
-validar visualmente sobre los vídeos de YouTube de pistas nuevas.
+Usa los defaults óptimos (batch=32, workers=8). Entrena V2 vs V3 (cross-match:
+train masculina, val femenina), con augmentation y negativos balanceados. Compara
+con la prueba corta (0,91). ~40 epochs × 2 modelos × ~6,4 min ≈ 8,5 h (aceptable,
+como en la vida real). Falta al cerrar Fase 1: validar visualmente sobre los
+vídeos de YouTube de pistas nuevas.
 
 ## Entorno
 

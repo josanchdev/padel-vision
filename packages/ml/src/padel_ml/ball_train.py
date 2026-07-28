@@ -61,7 +61,7 @@ def train_ball(
     val_dirs: list[Path],
     model_name: str = "tracknetv2",
     epochs: int = 30,
-    batch_size: int = 8,
+    batch_size: int = 32,  # sweet spot on a 3090: ~2x throughput vs 8 (benchmarked)
     lr: float = 1e-3,
     pos_weight: float = 200.0,
     tol: float = 4.0,
@@ -70,7 +70,7 @@ def train_ball(
     plots_dir: Path | None = None,
     augment: bool = False,
     neg_ratio: float | None = 2.0,
-    num_workers: int = 4,
+    num_workers: int = 8,
 ) -> BallTrainResult:
     torch.manual_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -196,7 +196,8 @@ def compare_models(
     plots_dir: Path,
     out_dir: Path | None,
     augment: bool = False,
-    num_workers: int = 4,
+    num_workers: int = 8,
+    batch_size: int = 32,
 ) -> dict[str, BallEval]:
     """Train V2 and V3 under one protocol, then draw the headline plot.
 
@@ -212,6 +213,7 @@ def compare_models(
                 val_dirs,
                 model_name=model_name,
                 epochs=epochs,
+                batch_size=batch_size,
                 out_path=out,
                 plots_dir=plots_dir,
                 augment=augment,
@@ -239,7 +241,8 @@ def main() -> None:
     parser.add_argument(
         "--augment", action="store_true", help="Colour jitter on train (generalise to courts)"
     )
-    parser.add_argument("--workers", type=int, default=4, help="DataLoader workers")
+    parser.add_argument("--workers", type=int, default=8, help="DataLoader workers")
+    parser.add_argument("--batch-size", type=int, default=32, help="Batch size (3090 sweet spot)")
     parser.add_argument(
         "--mlflow-uri",
         default="sqlite:///mlruns.db",
@@ -257,6 +260,7 @@ def main() -> None:
             args.out,
             augment=args.augment,
             num_workers=args.workers,
+            batch_size=args.batch_size,
         )
     else:
         with mlflow.start_run(run_name=args.model):
@@ -265,6 +269,7 @@ def main() -> None:
                 args.val_dir,
                 model_name=args.model,
                 epochs=args.epochs,
+                batch_size=args.batch_size,
                 out_path=args.out,
                 plots_dir=args.plots,
                 augment=args.augment,
