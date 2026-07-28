@@ -15,6 +15,7 @@ refiner recovers balls that V2 misses.
 from __future__ import annotations
 
 import argparse
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -97,16 +98,30 @@ def train_ball(
     mlflow.log_params(
         {"model": model_name, "epochs": epochs, "lr": lr, "pos_weight": pos_weight, "tol": tol}
     )
+    n_batches = len(train_loader)
     for epoch in range(1, epochs + 1):
         model.train()
         total = 0.0
-        for x, y, _ in train_loader:
+        ep_start = time.perf_counter()
+        for b, (x, y, _) in enumerate(train_loader, 1):
             optimizer.zero_grad()
             pred = model(x.to(device)).squeeze(1)  # (N, H, W)
             loss = _weighted_bce(pred, y.to(device), pos_weight)
             loss.backward()  # type: ignore[no-untyped-call]
             optimizer.step()
             total += loss.item() * len(x)
+            # Intra-epoch heartbeat so long runs are never a black box.
+            if b % 100 == 0 or b == n_batches:
+                rate = b / (time.perf_counter() - ep_start)
+                eta = (n_batches - b) / rate if rate else 0
+                print(
+                    f"\r  {model_name} ep{epoch}/{epochs} "
+                    f"batch {b}/{n_batches} loss={loss.item():.4f} "
+                    f"{rate:.1f} it/s ETA {eta / 60:.1f}min",
+                    end="",
+                    flush=True,
+                )
+        print()  # newline after the epoch's progress line
         scheduler.step()
 
         ev = _evaluate(model, val_loader, device, tol)
