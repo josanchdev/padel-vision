@@ -111,9 +111,10 @@ def draw_minimap(frame: Frame, height_px: int = MINIMAP_HEIGHT_PX) -> ImageArray
     canvas = np.full((height_px, width_px, 3), COURT_FLOOR_COLOR, dtype=np.uint8)
 
     def to_px(x_m: float, y_m: float) -> tuple[int, int]:
-        # Flip Y so the near court (y=0, camera side) is at the BOTTOM of the
-        # minimap — matching what the viewer sees in the video (near players low).
-        return int(x_m * scale), int((COURT_LENGTH_M - y_m) * scale)
+        # Flip both axes so the minimap matches the viewer's frame: the court's
+        # near side (y=0) at the BOTTOM, and its left side (x=0 = corner_near_left)
+        # on the RIGHT — the broadcast camera mirrors the court left/right.
+        return int((COURT_WIDTH_M - x_m) * scale), int((COURT_LENGTH_M - y_m) * scale)
 
     cv2.rectangle(canvas, (0, 0), (width_px - 1, height_px - 1), COURT_LINE_COLOR, 2)
     net_y = to_px(0, NET_Y_M)[1]

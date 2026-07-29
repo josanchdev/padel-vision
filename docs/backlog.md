@@ -53,7 +53,14 @@ primero) a arriba (bonus final):
    primer eslabón y el más prioritario.
 2. **[Alta] ¿Hay un punto en juego?** Segmentación temporal del vídeo en
    "puntos" vs "no-puntos" (jugadores caminando, calentando, recogiendo). Define
-   la unidad de análisis.
+   la unidad de análisis. **Motivación UI extra (Jorge, 29 jul):** la cronología
+   por TIEMPO no escala a partidos largos (20 min = cientos de marcas ilegibles).
+   La solución es navegar por PUNTOS (como los replays de un juego: "Punto 1,
+   Punto 15" → saltas a ese punto, con sus stats). Eso requiere esta
+   segmentación. Así que la segmentación de puntos no es solo para stats de
+   resultado — también para que la cronología/navegación tenga sentido. La
+   cronología por tiempo actual sirve para clips cortos; la vista por puntos es
+   el objetivo para partidos completos.
 3. **[Media] Límites de cada punto:** saque → último golpe válido. La unidad
    sobre la que se calcula cualquier resultado.
 4. **[Media] Secuencia ordenada de golpes+botes por punto** (quién, cuándo, qué

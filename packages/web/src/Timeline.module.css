@@ -7,7 +7,7 @@
 
 .track {
   position: relative;
-  height: 72px;
+  height: 84px;
   margin-top: var(--space-2);
 }
 
@@ -17,7 +17,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 34px;
+  top: 40px;
   height: 2px;
   border-radius: 1px;
   background: linear-gradient(90deg, transparent, var(--line-strong) 12%, var(--line-strong) 88%, transparent);
@@ -25,16 +25,17 @@
 
 .mark {
   position: absolute;
-  top: 12px;
-  width: 3px;
-  height: 44px;
+  top: 6px;
+  width: 5px;
+  height: 56px;
   padding: 0;
   border: 0;
-  border-radius: 3px;
+  border-radius: 4px;
   background: var(--m);
   transform: translateX(-50%);
   transform-origin: center bottom;
   cursor: pointer;
+  box-shadow: 0 2px 6px -2px color-mix(in srgb, var(--m) 60%, transparent);
   transition: box-shadow var(--dur) var(--ease), filter var(--dur) var(--ease);
 }
 .mark:hover {
@@ -49,9 +50,9 @@
 
 /* Bounces read as a hollow diamond on the baseline, distinct from shot bars. */
 .bounce {
-  top: 27px;
-  width: 12px;
-  height: 12px;
+  top: 32px;
+  width: 14px;
+  height: 14px;
   border-radius: 3px;
   transform: translateX(-50%) rotate(45deg);
   background: var(--surface);

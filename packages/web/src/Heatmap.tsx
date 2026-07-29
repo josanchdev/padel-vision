@@ -42,18 +42,21 @@ export function Heatmap({ players }: Props) {
     const scale = Math.min((W - 2 * margin) / COURT_WIDTH_M, (H - 2 * margin) / COURT_LENGTH_M);
     const offX = (W - COURT_WIDTH_M * scale) / 2;
     const offY = (H - COURT_LENGTH_M * scale) / 2;
-    // Flip Y so the near court (y=0, camera side) sits at the bottom, matching
-    // the video (near players low) and the minimap.
+    // Flip both axes to match the viewer's frame: near court (y=0) at the
+    // bottom, and left side (x=0) on the right — the camera mirrors the court
+    // left/right. Consistent with the video minimap.
     const toPx = (xm: number, ym: number): [number, number] => [
-      offX + xm * scale,
+      offX + (COURT_WIDTH_M - xm) * scale,
       offY + (COURT_LENGTH_M - ym) * scale,
     ];
 
     ctx.clearRect(0, 0, W, H);
 
     // Court floor: a soft vertical gradient + rounded corners give the panel
-    // depth instead of a flat grey rectangle.
-    const [cx0, cy0] = toPx(0, 0);
+    // depth. The rect is a fixed frame (top-left from the offsets); only the
+    // plotted data points use the Y-flipped toPx.
+    const cx0 = offX;
+    const cy0 = offY;
     const cw = COURT_WIDTH_M * scale;
     const ch = COURT_LENGTH_M * scale;
     const floor = ctx.createLinearGradient(0, cy0, 0, cy0 + ch);
