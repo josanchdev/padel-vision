@@ -504,6 +504,25 @@ de arquitectura pendiente (futuro ADR): investigar más el diseño de la fusión
 Fuentes: BST arXiv 2502.21085 (CVPR 2026), TemPose CVPR 2023, comparativo de
 pádel (ML/DL shot classification).
 
+**Lectura del código oficial de BST (29 jul 2026) → arquitectura decidida
+(ADR-0013).** Al leer el repo de BST se vio algo que reorienta el frente: BST y
+TemPose NO detectan el golpe; parten de clips ya recortados en torno al contacto
+(ShuttleSet anota el frame de golpe). El SotA **separa localizar de clasificar**.
+Nosotros los mezclábamos en la heurística ADR-0012, que hace mal las dos cosas
+(recall 15-52%). Insight de Jorge: un humano detecta el golpe sin esqueleto ni
+reglas, viendo partidos; la arquitectura correcta es la de detección industrial
+de Ferrovial — un **detector** genérico alimenta a un **clasificador**
+especializado (camiones → tipo de camión). **Decisión (ADR-0013): dos modelos
+aprendidos.** Modelo 1 = detector de golpe (pose+pelota → ¿golpe en este frame?,
+objetivo recall ~85-95%, entrenado con los 906 bloques `has_shot` de
+PadelTracker100). Modelo 2 = clasificador de tipo (pose+pelota estilo BST/TemPose
+sobre el clip localizado). Entrada = pose+pelota (no vídeo crudo; vídeo crudo
+queda como extensión futura). La heurística ADR-0012 se conserva como baseline
+comparativo (heurística vs aprendido). Detalle de la arquitectura de BST leído:
+TCN(pose)+TCN(pelota) → transformer temporal por stream → cross-attention (Q=pose
+del golpeador, K,V=pelota) → transformer de interacción → cabeza; variantes de
+1v1 (Clean Gate, Aim Player) NO aplican a pádel 2v2, nos quedamos con el núcleo.
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):

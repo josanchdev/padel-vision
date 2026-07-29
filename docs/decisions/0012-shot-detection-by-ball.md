@@ -1,6 +1,13 @@
 # ADR-0012: Detección de golpes por la pelota (no por pico de muñeca)
 
-**Estado:** aceptada · 2026-07-29
+**Estado:** SUPERADA por [ADR-0013](0013-shot-two-stage-learned.md) · 2026-07-29
+
+> La validación métrica prevista en la Decisión D se hizo (`padel_ml.shot_eval`)
+> y dio recall 15-52% con pose+pelota GT: la heurística de cambio-de-dirección es
+> insuficiente. Se reemplaza por dos modelos aprendidos (detector → clasificador,
+> ADR-0013). Este ADR se conserva como baseline heurístico comparativo.
+
+**Estado original:** aceptada · 2026-07-29
 
 ## Contexto
 
