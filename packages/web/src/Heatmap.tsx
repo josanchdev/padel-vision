@@ -42,9 +42,11 @@ export function Heatmap({ players }: Props) {
     const scale = Math.min((W - 2 * margin) / COURT_WIDTH_M, (H - 2 * margin) / COURT_LENGTH_M);
     const offX = (W - COURT_WIDTH_M * scale) / 2;
     const offY = (H - COURT_LENGTH_M * scale) / 2;
+    // Flip Y so the near court (y=0, camera side) sits at the bottom, matching
+    // the video (near players low) and the minimap.
     const toPx = (xm: number, ym: number): [number, number] => [
       offX + xm * scale,
-      offY + ym * scale,
+      offY + (COURT_LENGTH_M - ym) * scale,
     ];
 
     ctx.clearRect(0, 0, W, H);
