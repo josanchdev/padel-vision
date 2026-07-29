@@ -438,6 +438,42 @@ J4:7). **Bajaron los falsos positivos** (bueno) pero se pierden golpes reales de
 J1/J3 (el umbral de proximidad muñeca-pelota es frágil, y depende de que la
 pelota esté detectada justo en el frame del impacto).
 
+**Validación métrica de la detección por pelota (29 jul 2026, `padel_ml.shot_eval`).**
+Antes de rediseñar nada, medimos el detector ADR-0012 contra el GT de
+PadelTracker100 (`*_shots.csv`), con GT de pose+pelota (aísla el ALGORITMO, no
+nuestros detectores). El GT marca `has_shot=1` en BLOQUES de frames (~11-17f);
+cada bloque = un golpe real, impacto ≈ centro. Un golpe emitido cuenta como
+acierto si cae a **±3 frames** del centro (criterio estricto de timing).
+Resultados (GT-based, techo teórico del método):
+
+| Partido | Golpes reales | Recall det. | Precisión det. | F1 |
+|---|---|---|---|---|
+| FinalM | 466 | **15,0 %** | 16,1 % | 15,6 % |
+| FinalF | 440 | **51,6 %** | 31,2 % | 38,9 % |
+
+**El método de detección por cambio-de-dirección (ADR-0012) es insuficiente**, y
+falla con GT PERFECTO de pelota → no es culpa de los detectores, es el método.
+Diagnóstico de las dos causas raíz:
+
+1. **Timing pobre.** Con tolerancia ±15f el recall de FinalM sube a 49 % (los
+   eventos existen, pero caen lejos del impacto). Es exactamente la queja del
+   partido real ("dice golpe antes de dar a la pelota"). Barrido de tolerancia
+   FinalM: ±1f→6,7 % · ±3f→15 % · ±5f→22,7 % · ±10f→39,9 % · ±15f→49,4 %.
+2. **Dependencia de trayectoria continua.** FinalM tiene 253 huecos en la pelota
+   GT (max 99f sin anotar), FinalF 1138. Cada hueco rompe el cálculo de
+   velocidad → giros inventados o perdidos. El método NECESITA ver la pelota
+   continuamente alrededor del impacto — justo cuando la pelota va más rápida y
+   se ocluye. Además el impacto físico no está en una posición fija dentro del
+   bloque GT (73 % en FinalM, 43 % en FinalF), así que ni el "centro" es
+   referencia estable.
+
+**Conclusión de detección:** el cambio-de-dirección de la pelota NO es una señal
+fiable para *localizar* el impacto. Sirve para reducir falsos positivos frente al
+pico de muñeca, pero su recall es demasiado bajo para el TFG. La detección del
+golpe hay que replantearla (ver estado del arte abajo: BST/TemPose no "detectan"
+el impacto por heurística — parten de clips ya recortados en torno al contacto;
+la localización del golpe es un problema separado que merece su propio enfoque).
+
 **Hallazgo clave (Jorge, revisión del estado del arte).** El problema de fondo NO
 es solo la detección: la CLASIFICACIÓN del tipo de golpe (PoseConv3D, solo pose)
 falla — confunde derecha/revés/remate. Jorge cuestiona si pose es el enfoque
