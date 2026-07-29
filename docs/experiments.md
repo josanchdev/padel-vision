@@ -428,6 +428,46 @@ Cuantifica el hallazgo previo (WPT 100% vs pistas nuevas 5-20% con el detector d
 PISTA) ahora para el detector de PELOTA, y es la métrica base honesta para medir
 la mejora tras la Fase 2 (fine-tuning con datos nuevos).
 
+## Detección de golpes por pelota + hallazgo del estado del arte (29 jul 2026)
+
+**Detección por pelota (ADR-0012).** El pico de velocidad de muñeca daba falsos
+positivos y mal timing (validado en partido real). Se sustituyó por: golpe =
+cambio de dirección de la pelota + muñeca cerca. Comparativa sobre 600 frames del
+partido real: muñeca 21 golpes (J1:3 J2:9 J3:1 J4:8) → pelota 15 golpes (J2:8
+J4:7). **Bajaron los falsos positivos** (bueno) pero se pierden golpes reales de
+J1/J3 (el umbral de proximidad muñeca-pelota es frágil, y depende de que la
+pelota esté detectada justo en el frame del impacto).
+
+**Hallazgo clave (Jorge, revisión del estado del arte).** El problema de fondo NO
+es solo la detección: la CLASIFICACIÓN del tipo de golpe (PoseConv3D, solo pose)
+falla — confunde derecha/revés/remate. Jorge cuestiona si pose es el enfoque
+correcto. La literatura de deportes de raqueta lo confirma:
+
+- **ST-GCN** (2018, solo pose): baseline, el nuestro de Nivel 2.
+- **TemPose** (CVPR 2023): pose + posición + **trayectoria de pelota**, fusión
+  temprana vía TCN + transformer factorizado. ~76,8%.
+- **BST** (CVPR **2026**, código oficial en GitHub): pose + trayectoria de pelota
+  con **cross-attention** pose↔pelota + segmentación centrada en el contacto.
+  ~77,1%, estado del arte.
+
+**Conclusión unánime de la línea (y diagnóstico de nuestro fallo):** solo pose se
+satura porque "el gesto de golpear se parece entre tipos" (cita BST). **La
+trayectoria de la pelota es la señal que desambigua el tipo de golpe** — todos
+los métodos SotA la incorporan; "aprovechar la trayectoria de pelota es LA
+tendencia en deportes de raqueta" (BST). Encaja con que PadelTracker100 anota
+pose Y pelota: ambas hacen falta.
+
+**Implicación para el TFG.** El instinto de Jorge era correcto: pose-solo no es el
+enfoque bueno para el TIPO de golpe. El rumbo es **evolucionar a pose + pelota**
+(replicando TemPose/BST). Ya tenemos la pelota funcionando (el trabajo de estas
+sesiones era el ingrediente que faltaba) y ya la usamos para DETECTAR el golpe;
+el siguiente paso es usarla también para CLASIFICAR el tipo. Contribución
+científica: comparativa pose-solo (nuestro PoseConv3D) vs pose+pelota. Decisión
+de arquitectura pendiente (futuro ADR): investigar más el diseño de la fusión
+(TemPose fusión temprana TCN vs BST cross-attention) antes de comprometer.
+Fuentes: BST arXiv 2502.21085 (CVPR 2026), TemPose CVPR 2023, comparativo de
+pádel (ML/DL shot classification).
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):
