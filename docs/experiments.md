@@ -175,6 +175,22 @@ Dificultad técnica resuelta: la generación de heatmaps al vuelo con bucles
 Python era demasiado lenta (timeout); se vectorizó con broadcasting numpy
 (172 ms/batch), reduciendo el entrenamiento a minutos.
 
+**Confirmación del techo de pose-solo + lección de honestidad (29 jul 2026).**
+Antes de comprometer el rediseño pose+pelota (ADR-0013) medimos de nuevo el
+clasificador solo-pose sobre golpes LOCALIZADOS por GT (localización perfecta,
+aísla la clasificación). Reentreno limpio desde cero en ambos sentidos del split
+cross-match: **val=partido 0 → macro-F1 0,62 / acc 0,67; val=partido 1 → 0,59 /
+0,65.** Simétrico y ~0,60 en ambos → el techo de pose-solo es real, no depende del
+split. **Lección:** al evaluar el checkpoint archivado (`poseconv3d_shots.pt`,
+entrenado con val=0) sobre el partido 1 salía 0,94 — un ESPEJISMO: ese partido
+estaba en su conjunto de entrenamiento, así que no era validación. Confirma por
+qué el split cross-match honesto es imprescindible (ADR-0008) y por qué no basta
+con accuracy. Matriz de confusión (split 0, su validación legítima): la confusión
+derecha↔revés existe pero es moderada (~15 casos cada dirección); el desastre es
+"Other" (F1 0,18, cajón de sastre — problema de etiquetado, no de modelo). **Este
+0,60 es el baseline que el clasificador pose+pelota (Modelo 2, ADR-0013) debe
+batir; la comparativa pose-solo vs pose+pelota es la contribución científica.**
+
 ### Integración en el pipeline (arquitectura en dos etapas)
 
 El clasificador sustituye al dummy vía la interfaz `ShotEvent`. Detección de
