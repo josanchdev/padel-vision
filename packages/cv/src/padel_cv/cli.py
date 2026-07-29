@@ -86,20 +86,25 @@ def process_video(
     if court_stage is not None:
         stages.append(court_stage)
         stages.append(PlayerIdentityStage())
-        if shot_model is not None:
-            # PoseConv3D classifier lives in packages/ml; imported lazily so
-            # packages/cv keeps no hard dependency on torch/ml.
+    # Ball detection runs before shot detection so shots can use the ball
+    # (ADR-0012). packages/ml imported lazily to keep cv free of torch.
+    if ball_model is not None:
+        from padel_ml.ball_stage import BallDetectionStage
+
+        stages.append(BallDetectionStage(Path(ball_model)))
+    if court_stage is not None:
+        if shot_model is not None and ball_model is not None:
+            # Best: detect shots from the ball's direction change + wrist (ADR-0012).
+            from padel_ml.ball_shot_stage import BallShotStage
+
+            stages.append(BallShotStage(Path(shot_model)))
+        elif shot_model is not None:
+            # No ball model: fall back to the wrist-speed proposal + classifier.
             from padel_ml.shot_stage import ClassifiedShotStage
 
             stages.append(ClassifiedShotStage(Path(shot_model)))
         else:
             stages.append(DummyShotStage())
-    if ball_model is not None:
-        # After the court stage so the ball can be projected to court metres;
-        # works without a court too (records only image coords). Lazy import.
-        from padel_ml.ball_stage import BallDetectionStage
-
-        stages.append(BallDetectionStage(Path(ball_model)))
     pipeline = Pipeline(stages)
     track_ids_seen: set[int] = set()
     active_shots: dict[int, tuple[int, str]] = {}
