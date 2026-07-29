@@ -1,0 +1,26 @@
+{
+  "val0": {
+    "macro_f1": 0.6223,
+    "accuracy": 0.6656,
+    "per_class_f1": {
+      "Forehand": 0.6,
+      "Backhand": 0.691,
+      "Smash": 0.734,
+      "Serve": 0.746,
+      "Other": 0.195,
+      "NoShot": 0.767
+    }
+  },
+  "val1": {
+    "macro_f1": 0.5922,
+    "accuracy": 0.6514,
+    "per_class_f1": {
+      "Forehand": 0.586,
+      "Backhand": 0.639,
+      "Smash": 0.712,
+      "Serve": 0.778,
+      "Other": 0.108,
+      "NoShot": 0.73
+    }
+  }
+}

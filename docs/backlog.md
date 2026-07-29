@@ -85,6 +85,24 @@ funcionalidades encima" ([[project-padel-vision-tfg]]).
 
 ## Modelos
 
+- **[EN CURSO — ADR-0013] Detector de golpe aprendido (Modelo 1).** Frente grande
+  del TFG. Sustituye la heurística ADR-0012 (recall 15-52%). Plan de arranque para
+  la próxima sesión de código (partes CPU-only, no bloquean el entreno de la
+  pelota):
+  1. **Dataset builder** (CPU): variante de `padel_cv/clip_builder.py`. Reusa
+     `assemble_clips_from_match` (ya recorta ventanas de 32f centradas en golpe +
+     muestrea NoShot), pero (a) etiqueta BINARIO golpe/no-golpe en vez de tipo, y
+     (b) AÑADE el canal de trayectoria de pelota a cada ventana (de `*_ball.json`
+     GT para entrenar; de nuestro TrackNet en inferencia). GT: los 906 bloques
+     `has_shot` de PadelTracker100 (ver `padel_ml/shot_eval.load_shot_blocks`).
+  2. **Red temporal** (CPU): arquitectura ligera pose+pelota (estilo TCN+transformer
+     de TemPose/BST leído en el código oficial; ver experiments.md). Empezar
+     simple: TCN(pose)+TCN(pelota) → temporal → cabeza binaria.
+  3. **Entrenar + medir** (GPU): recall/precision con `padel_ml.shot_eval` (mismo
+     harness), objetivo ~85-95%. Comparar heurística vs aprendido.
+- **[Baseline listo] Clasificador pose-solo honesto** en `runs/shot_baseline/`
+  (val0 + val1, ~0,60 macro-F1, sin el data leakage del checkpoint archivado).
+  Es la referencia a batir con pose+pelota (Modelo 2, ADR-0013).
 - **[Media] Ampliar la taxonomía de golpes a 6 clases.** El clasificador usa 5
   (la dejada se absorbe en "otro", solo 25 ejemplos, ADR-0008). Con datos
   propios etiquetados, la dejada puede ser clase propia.

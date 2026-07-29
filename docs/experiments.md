@@ -191,6 +191,15 @@ derecha↔revés existe pero es moderada (~15 casos cada dirección); el desastr
 0,60 es el baseline que el clasificador pose+pelota (Modelo 2, ADR-0013) debe
 batir; la comparativa pose-solo vs pose+pelota es la contribución científica.**
 
+Baseline honesto versionado en `runs/shot_baseline/` (val0 + val1, sin data
+leakage), métricas en `baseline_metrics.json`. **F1 por clase (val0 / val1):**
+Serve 0,75/0,78 · Smash 0,73/0,71 · Backhand 0,69/0,64 · **Forehand 0,60/0,59** ·
+Other 0,20/0,11 · NoShot 0,77/0,73. **Lectura que refuerza la tesis pose+pelota:**
+los golpes flojos son **Forehand y Backhand** — justo los que la trayectoria de
+la pelota debería desambiguar (altura y lado del contacto), mientras que Smash y
+Serve (gestos ya distintivos en pose) van bien. Es exactamente donde se espera
+que pose+pelota aporte. (Reentreno: poseconv3d, 40 epochs, augment, cross-match.)
+
 ### Integración en el pipeline (arquitectura en dos etapas)
 
 El clasificador sustituye al dummy vía la interfaz `ShotEvent`. Detección de
