@@ -442,6 +442,24 @@ igual que se eligió PoseConv3D sobre ST-GCN en golpes. V2 queda como baseline d
 la comparativa (evidencia científica). El criterio final es el F1 con el
 protocolo completo, no la asunción — se elige con el número delante.
 
+**RESULTADO entrenamiento largo (30 jul 2026, 40 epochs cada uno, cross-match):**
+
+| Modelo | val_F1 | Precisión | Recall |
+|---|---|---|---|
+| TrackNetV3 (moderno) | **0,942** | 0,925 | 0,958 |
+| TrackNetV2 (baseline) | 0,941 | 0,926 | 0,956 |
+
+**EMPATE TÉCNICO** (0,001 = ruido). V3 NO bate a V2 con el protocolo completo, al
+contrario de lo que sugería la prueba corta. **Interpretación (honesta, material
+de memoria):** la ventaja de V3 es su refinador de OCLUSIONES, y no se puede
+demostrar aquí porque el flag `occluded` de PadelTracker100 está vacío
+(0/19.386) — no hay etiquetas para medir esa capacidad. En pelotas VISIBLES (todo
+lo evaluable) ambos empatan. Un modelo más moderno no ayuda si el benchmark no
+tiene las etiquetas que necesita para lucir su ventaja. **Consecuencia para
+producción:** al empatar, se puede elegir V2 (más simple/ligero) o V3
+indistintamente; para desempatar de verdad hace falta anotar oclusión nosotros
+(ver backlog). Ambos F1 ~0,94 a 1080p — el detector de pelota está sólido.
+
 **Por qué super-entreno con WPT si el objetivo es generalizar (razonamiento
 estratégico, cuestión planteada por Jorge).** Los ~100k frames WPT NO generalizan
 por sí solos a pistas nuevas (más azul no enseña negro). El super-entreno vale
