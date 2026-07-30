@@ -200,6 +200,35 @@ la pelota debería desambiguar (altura y lado del contacto), mientras que Smash 
 Serve (gestos ya distintivos en pose) van bien. Es exactamente donde se espera
 que pose+pelota aporte. (Reentreno: poseconv3d, 40 epochs, augment, cross-match.)
 
+### Detector de golpe aprendido — Modelo 1 v1 (29 jul 2026, ADR-0013)
+
+Primer detector aprendido que sustituye la heurística ADR-0012. Construido en una
+sesión mientras la pelota V3 entrenaba (todo CPU: dataset builder + red + entreno
+en <1 min, 57k params). **Dataset** (`shot_detect_dataset.py`): 1810 ventanas de
+32f balanceadas (905 golpe / 905 no-golpe) con pose+pelota GT alineadas, la pelota
+en el marco normalizado del esqueleto del golpeador. Conserva 905/906 golpes (vs
+15% que "veía" la heurística). **Red** (`shot_detector.py`): TCN dilatada por
+stream (pose 51ch, pelota 3ch) → pooling temporal → fusión → cabeza binaria; estilo
+TemPose/BST pero ligero. **Entreno** cross-match (`shot_detector_train.py`).
+
+**Resultado — dos lecturas, la honesta importa:**
+
+| Medida | Recall | Precisión | F1 |
+|---|---|---|---|
+| Heurística ADR-0012 (referencia) | 15-52 % | 16-31 % | 0,15-0,39 |
+| Detector v1 — mejor epoch+thr sobre val (OPTIMISTA) | 0,79-0,90 | 0,66-0,90 | 0,72-0,90 |
+| **Detector v1 — thr=0,5 fijo, epoch fijo, 3 seeds (HONESTO)** | **0,46-0,73** | 0,55-0,90 | **~0,60** |
+
+**Lección de rigor:** elegir el mejor epoch Y el mejor threshold mirando el propio
+set de validación infla el número (data snooping) — de ahí el 0,90 aparente. El
+número defendible es **F1 ~0,60** (threshold fijo, epoch fijo, media de 3 seeds).
+Aun así, **el detector aprendido bate claramente a la heurística** (F1 0,60 vs
+0,15-0,39; recall 46-73% vs 15-52%). Hay sobreajuste (varianza alta, recall val1
+±0,22) esperable con 1810 ventanas y el número optimista cae al fijar protocolo.
+**Margen de mejora claro** (siguiente iteración): más datos (Fase B / YouTube),
+regularización, threshold calibrado en train no en val, y localización por-frame
+en vez de por-ventana. Baseline versionado en `runs/shot_detector/`.
+
 ### Integración en el pipeline (arquitectura en dos etapas)
 
 El clasificador sustituye al dummy vía la interfaz `ShotEvent`. Detección de
