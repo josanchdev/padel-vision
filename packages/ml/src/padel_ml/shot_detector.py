@@ -98,3 +98,50 @@ class ShotDetector(nn.Module):
         ball_feat = self.tcn_ball(ball_seq).mean(dim=-1)  # (N, d_model)
         fused = torch.cat([pose_feat, ball_feat], dim=1)
         return cast(torch.Tensor, self.head(fused).squeeze(-1))  # (N,)
+
+
+class ShotTypeClassifier(nn.Module):
+    """Pose(+ball) → stroke-type logits (Modelo 2, ADR-0013).
+
+    Shares the detector's architecture (TCN per stream + fusion) but outputs one
+    logit per stroke class. The `use_ball` flag is the whole point: with it off,
+    the model is pose-only; with it on, it fuses the ball trajectory. Training the
+    same network both ways ISOLATES what the ball contributes — the like-for-like
+    comparison that answers "does the ball disambiguate the shot type?" (the
+    scientific core, replacing the pose-only baseline's ~0.60 macro-F1).
+    """
+
+    def __init__(
+        self,
+        n_classes: int,
+        *,
+        use_ball: bool = True,
+        n_joints: int = 17,
+        joint_dim: int = 3,
+        ball_dim: int = 3,
+        d_model: int = 64,
+        drop_p: float = 0.3,
+    ) -> None:
+        super().__init__()
+        self.use_ball = use_ball
+        pose_in = n_joints * joint_dim
+        self.tcn_pose = TCN(pose_in, [d_model, d_model], drop_p=drop_p)
+        self.tcn_ball = TCN(ball_dim, [d_model // 2, d_model], drop_p=drop_p) if use_ball else None
+        head_in = 2 * d_model if use_ball else d_model
+        self.head = nn.Sequential(
+            nn.LayerNorm(head_in),
+            nn.Linear(head_in, d_model),
+            nn.GELU(),
+            nn.Dropout(drop_p),
+            nn.Linear(d_model, n_classes),
+        )
+
+    def forward(self, pose: torch.Tensor, ball: torch.Tensor) -> torch.Tensor:
+        n, t = pose.shape[0], pose.shape[1]
+        pose_feat = self.tcn_pose(pose.reshape(n, t, -1).transpose(1, 2)).mean(dim=-1)
+        if self.tcn_ball is not None:
+            ball_feat = self.tcn_ball(ball.transpose(1, 2)).mean(dim=-1)
+            feat = torch.cat([pose_feat, ball_feat], dim=1)
+        else:
+            feat = pose_feat
+        return cast(torch.Tensor, self.head(feat))  # (N, n_classes)

@@ -179,6 +179,44 @@ def build_detect_windows(
     return windows
 
 
+# Shot-type classes for the classifier (Modelo 2). Same taxonomy as the pose-only
+# baseline (ADR-0008), so the comparison is like-for-like. No NoShot here: the
+# classifier only sees windows the detector already accepted as shots.
+SHOT_TYPE_CLASSES = ["Forehand", "Backhand", "Smash", "Serve", "Other", "Dropshot"]
+_TYPE_INDEX = {name: i for i, name in enumerate(SHOT_TYPE_CLASSES)}
+
+
+@dataclass
+class TypeWindow:
+    """One pose+ball window centred on a shot, labelled with its stroke type."""
+
+    pose: FloatArray  # (WINDOW, 17, 3)
+    ball: FloatArray  # (WINDOW, 3)
+    type_index: int
+    source_frame: int
+
+
+def build_type_windows(
+    persons_by_frame: dict[int, list[FloatArray]],
+    ball_by_frame: dict[int, tuple[float, float]],
+    blocks: list[ShotBlock],
+) -> list[TypeWindow]:
+    """One pose+ball window per real shot, labelled with its stroke type.
+
+    Same windows the detector's positives use (pose+ball centred on impact), but
+    carrying the 6-class type instead of a binary flag — so the pose-only vs
+    pose+ball comparison for the CLASSIFIER (Modelo 2) is on identical inputs.
+    """
+    windows: list[TypeWindow] = []
+    for b in blocks:
+        if b.category not in _TYPE_INDEX:
+            continue
+        w = _window_around(b.centre, persons_by_frame, ball_by_frame)
+        if w is not None:
+            windows.append(TypeWindow(w[0], w[1], _TYPE_INDEX[b.category], b.centre))
+    return windows
+
+
 @dataclass
 class DetectDataset:
     """Persisted detector windows: pose (N,T,17,3), ball (N,T,3), y (N,), match (N,)."""
@@ -232,6 +270,31 @@ def to_dataset(windows_per_match: list[list[DetectWindow]]) -> DetectDataset:
             pose.append(w.pose)
             ball.append(w.ball)
             labels.append(w.label)
+            matches.append(match_id)
+    return DetectDataset(
+        pose=np.stack(pose).astype(np.float32),
+        ball=np.stack(ball).astype(np.float32),
+        labels=np.array(labels, dtype=np.int64),
+        matches=np.array(matches, dtype=np.int64),
+    )
+
+
+def assemble_type_from_match(pose_json: Path, ball_json: Path, shots_csv: Path) -> list[TypeWindow]:
+    """All shot-type windows for one match, from GT pose + GT ball."""
+    persons = _load_persons(pose_json)
+    ball = {s.frame_index: (s.x_px, s.y_px) for s in load_ball_track(ball_json)}
+    blocks = load_shot_blocks(shots_csv)
+    return build_type_windows(persons, ball, blocks)
+
+
+def to_type_dataset(windows_per_match: list[list[TypeWindow]]) -> DetectDataset:
+    """Stack type windows into a DetectDataset (labels = stroke-type index)."""
+    pose, ball, labels, matches = [], [], [], []
+    for match_id, windows in enumerate(windows_per_match):
+        for w in windows:
+            pose.append(w.pose)
+            ball.append(w.ball)
+            labels.append(w.type_index)
             matches.append(match_id)
     return DetectDataset(
         pose=np.stack(pose).astype(np.float32),
