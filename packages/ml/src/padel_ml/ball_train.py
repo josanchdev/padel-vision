@@ -72,6 +72,7 @@ def train_ball(
     augment: bool = False,
     neg_ratio: float | None = 2.0,
     num_workers: int = 8,
+    resume: bool = False,
 ) -> BallTrainResult:
     torch.manual_seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -95,11 +96,23 @@ def train_ball(
     best_f1 = -1.0
     best_state = model.state_dict()
 
+    # Resumable checkpoint next to the output, rewritten every epoch. A WSL crash
+    # mid-run (a known hazard) then costs at most the current epoch, not the whole
+    # ~10h job. --resume restores model/optim/scheduler/history and continues.
+    ckpt_path = out_path.with_suffix(out_path.suffix + ".ckpt") if out_path is not None else None
+    start_epoch = 1
+    if resume and ckpt_path is not None and ckpt_path.exists():
+        start_epoch, best_f1, best_state = _load_resume(
+            ckpt_path, model, optimizer, scheduler, history, device
+        )
+        best = BallTrainResult(model_name, best.best, history)
+        print(f"reanudando {model_name} desde epoch {start_epoch} (mejor F1={best_f1:.3f})")
+
     mlflow.log_params(
         {"model": model_name, "epochs": epochs, "lr": lr, "pos_weight": pos_weight, "tol": tol}
     )
     n_batches = len(train_loader)
-    for epoch in range(1, epochs + 1):
+    for epoch in range(start_epoch, epochs + 1):
         model.train()
         total = 0.0
         ep_start = time.perf_counter()
@@ -143,6 +156,10 @@ def train_ball(
             best_f1 = ev.overall.f1
             best = BallTrainResult(model_name, ev, history)
             best_state = {k: v.clone() for k, v in model.state_dict().items()}
+        if ckpt_path is not None:
+            _save_resume(
+                ckpt_path, epoch, model, optimizer, scheduler, history, best_f1, best_state
+            )
         if epoch % 5 == 0 or epoch == 1:
             print(
                 f"ep{epoch:>3} loss={total / max(len(train_loader.dataset), 1):.4f} "  # type: ignore[arg-type]
@@ -155,6 +172,8 @@ def train_ball(
         out_path.parent.mkdir(parents=True, exist_ok=True)
         torch.save({"state_dict": best_state, "model_name": model_name}, out_path)
         print(f"\nmodelo guardado en {out_path}")
+        if ckpt_path is not None and ckpt_path.exists():
+            ckpt_path.unlink()  # run finished cleanly; drop the resume checkpoint
     if plots_dir is not None:
         curve_path = plots_dir / f"{model_name}_curves.png"
         plot_training_curves(history, curve_path, f"{model_name}: F1/P/R por epoch")
@@ -166,6 +185,53 @@ def _empty_eval() -> BallEval:
     from padel_ml.ball_metrics import Counts
 
     return BallEval(Counts(), Counts(), Counts())
+
+
+def _save_resume(
+    path: Path,
+    epoch: int,
+    model: nn.Module,
+    optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler.LRScheduler,
+    history: dict[str, list[float]],
+    best_f1: float,
+    best_state: dict[str, torch.Tensor],
+) -> None:
+    """Rewrite the resume checkpoint after an epoch (atomic via a temp file)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    torch.save(
+        {
+            "epoch": epoch,  # last COMPLETED epoch; resume starts at epoch+1
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "scheduler": scheduler.state_dict(),
+            "history": history,
+            "best_f1": best_f1,
+            "best_state": best_state,
+        },
+        tmp,
+    )
+    tmp.replace(path)  # atomic: a crash mid-write can't corrupt the good checkpoint
+
+
+def _load_resume(
+    path: Path,
+    model: nn.Module,
+    optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler.LRScheduler,
+    history: dict[str, list[float]],
+    device: str,
+) -> tuple[int, float, dict[str, torch.Tensor]]:
+    """Restore model/optim/scheduler/history in place; return (start_epoch, best_f1,
+    best_state) so training continues exactly where it stopped."""
+    ck = torch.load(path, map_location=device, weights_only=False)
+    model.load_state_dict(ck["model"])
+    optimizer.load_state_dict(ck["optimizer"])
+    scheduler.load_state_dict(ck["scheduler"])
+    history.clear()
+    history.update(ck["history"])
+    return int(ck["epoch"]) + 1, float(ck["best_f1"]), ck["best_state"]
 
 
 BallBatch = tuple[torch.Tensor, torch.Tensor, torch.Tensor]
@@ -259,6 +325,11 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=8, help="DataLoader workers")
     parser.add_argument("--batch-size", type=int, default=32, help="Batch size (3090 sweet spot)")
     parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume from <out>.ckpt if it exists (survives a WSL crash mid-run)",
+    )
+    parser.add_argument(
         "--mlflow-uri",
         default="sqlite:///mlruns.db",
         help="MLflow tracking backend (file store is deprecated in MLflow 3)",
@@ -289,6 +360,7 @@ def main() -> None:
                 plots_dir=args.plots,
                 augment=args.augment,
                 num_workers=args.workers,
+                resume=args.resume,
             )
 
 

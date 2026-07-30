@@ -402,7 +402,8 @@ uv run padel-ball-train --model tracknetv3 \
   --epochs 40 --augment \
   --out runs/ball_full/tracknetv3.pt \
   --plots runs/ball_plots_full \
-  --mlflow-uri sqlite:///runs/mlruns.db
+  --mlflow-uri sqlite:///runs/mlruns.db \
+  --resume   # reanuda desde <out>.ckpt si WSL crashea (guarda cada epoch)
 ```
 
 Con V3 entrenado: comparativa V2 vs V3 + Fase 1d (`padel-ball-generalization`).
