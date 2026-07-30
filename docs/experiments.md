@@ -627,6 +627,32 @@ TCN(pose)+TCN(pelota) → transformer temporal por stream → cross-attention (Q
 del golpeador, K,V=pelota) → transformer de interacción → cabeza; variantes de
 1v1 (Clean Gate, Aim Player) NO aplican a pádel 2v2, nos quedamos con el núcleo.
 
+## Validación end-to-end en pista NUEVA a 1080p (31 jul 2026)
+
+Prueba de generalización (ADR-0005) del sistema COMPLETO sobre un vídeo arbitrario
+de YouTube (`best_points_2025_1080.mp4`, Premier Padel Santiago — pista que el
+sistema NUNCA vio, no es PadelTracker100). Pipeline completo: pose YOLO26 +
+tracking + detector de pista (v6) + pelota (TrackNetV3) + clasificador de golpe
+(PoseConv3D) + minimapa. 300 frames (~10s) desde el frame 5000.
+
+**Resultado (evidencia en `docs/media/generalization_santiago_1080p_*.jpg`):**
+- **4 jugadores** detectados con pose limpia, incluso en posturas de golpe.
+- **Tracking estable**: IDs [1,2,3,4,5] (4 correctos + 1 espurio) vs los 9-18 IDs
+  caóticos que daba a 360p. La resolución era decisiva también para el tracking.
+- **Pelota** detectada, incluida en el frame de impacto (junto a la pala del
+  golpeador) — TrackNetV3 generaliza a la pista nueva.
+- **Homografía/minimapa** funciona: posiciones proyectadas a vista cenital
+  coherentes, sin calibración manual (detector de pista aprendido).
+- 2 golpes + 8 botes en 10s. Fallos finos: 5º esqueleto tenue (recogepelotas/
+  reflejo), el jugador del fondo se pierde a ratos.
+
+**Lectura:** el CV de Nivel 1-3 (pose, pista, pelota, minimapa) GENERALIZA a
+vídeo real arbitrario a 1080p — el diferencial frente a asumir PadelTracker100.
+Contraste directo con el hallazgo de 360p (backlog): a baja resolución el mismo
+pipeline se rompía (jugadores perdidos, IDs caóticos, pelota 42%); a 1080p va
+sólido. Confirma que el frente de datos para mejorar golpes es RESOLUCIÓN, no
+método. Material visual para la defensa.
+
 ## Entorno
 
 - WSL2 + RTX 3090. Crashes esporádicos de WSL ("catastrophic failure"):

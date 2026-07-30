@@ -102,6 +102,21 @@ funcionalidad prometida. Honesto ante el tribunal: reconoce el reto abierto en
 vez de comprometer algo frágil. Coherente con "modelos/datos perfectos primero,
 funcionalidades encima" ([[project-padel-vision-tfg]]).
 
+## Calidad de detección / suavizado temporal
+
+- **[Alta] Flickering de poses y bboxes de jugadores** (observado por Jorge, 31
+  jul 2026, validación end-to-end 1080p). Los esqueletos/cajas PARPADEAN: hay
+  frames sueltos donde un jugador presente no se detecta y desaparece/reaparece.
+  Causa: la pose YOLO26 se ejecuta frame-a-frame independiente; una caída puntual
+  de confianza borra al jugador ese frame. El jugador del fondo (más pequeño/lejano)
+  es el que más se pierde. *Plan:* suavizado temporal — rellenar huecos de 1-2
+  frames desde el track vecino (el tracker ByteTrack ya da continuidad de ID; falta
+  interpolar/mantener la pose en los huecos). Encaja con ADR-0004 (2D + suavizado
+  temporal, ya previsto). También subir `--conf` con histéresis o interpolar
+  keypoints. *Ganancia:* vídeo mucho más estable visualmente y datos de pose más
+  fiables para el detector/clasificador de golpe (menos ventanas con huecos).
+  *Barato y con impacto visible inmediato.*
+
 ## Modelos
 
 - **[EN CURSO — ADR-0013] Detector de golpe aprendido (Modelo 1).** Frente grande
