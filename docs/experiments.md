@@ -229,6 +229,37 @@ Aun así, **el detector aprendido bate claramente a la heurística** (F1 0,60 vs
 regularización, threshold calibrado en train no en val, y localización por-frame
 en vez de por-ventana. Baseline versionado en `runs/shot_detector/`.
 
+### Clasificador pose+pelota — Modelo 2, intento 1 FALLIDO (30 jul 2026, ADR-0013)
+
+Primer intento de evolucionar el clasificador a pose+pelota reutilizando la red
+del detector (`ShotTypeClassifier`: TCN por stream + fusión, flag `use_ball` para
+la ablación). **No funcionó, y el porqué es la lección.** Con la MISMA red,
+ablación pose-sola vs pose+pelota (cross-match, 3-4 seeds):
+
+| Variante | macro-F1 (media val0/val1) |
+|---|---|
+| pose-sola (mi TCN) | 0,139 |
+| pose+pelota (mi TCN) | 0,142 |
+| **PoseConv3D pose-sola (baseline, referencia)** | **0,60** |
+
+**Diagnóstico:** mi red da **train macro-F1 0,99 / val 0,14** → sobreajuste
+extremo que la regularización (d_model bajo, dropout 0,5, weight-decay alto) NO
+arregla (baja aún a ~0,10). La causa raíz NO es la pelota ni los datos: es que
+**aplanar el esqueleto a un vector (51,) y pasarlo por un TCN tira la estructura
+ESPACIAL** que distingue derecha/revés/remate. PoseConv3D funciona (0,60) porque
+convierte el esqueleto en HEATMAPS espaciales + CNN 3D. Para el DETECTOR binario
+(golpe sí/no) el vector plano basta (F1 0,60), pero la clasificación de 6 tipos es
+más fina y necesita la representación rica.
+
+**Señal débil pero consistente:** pose+pelota > pose-sola en las dos pruebas
+(0,142 vs 0,139; 0,112 vs 0,099) → la pelota ayuda algo, pero sobre una base rota,
+no es concluyente. **Conclusión / rumbo corregido:** el Modelo 2 debe partir de
+**PoseConv3D (heatmaps, ya a 0,60) + añadir el canal de pelota AHÍ**, no de una red
+TCN nueva. Es investigación honesta: probamos una hipótesis (el TCN del detector
+sirve para clasificar) y los datos la refutaron. Código conservado
+(`ShotTypeClassifier`, `build_type_windows`) — reutilizable con la representación
+correcta. Siguiente: fusionar pelota en PoseConv3D (o replicar BST fielmente).
+
 ### Integración en el pipeline (arquitectura en dos etapas)
 
 El clasificador sustituye al dummy vía la interfaz `ShotEvent`. Detección de
