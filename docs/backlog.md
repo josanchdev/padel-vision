@@ -26,18 +26,25 @@ ganar**. Prioridad orientativa (no es un compromiso de orden).
   kickstarter para tener modelos funcionando; ampliar datos es mejora, no
   requisito. *Ganancia esperada:* generalización real (ADR-0005) y dataset
   propio que diferencia el TFG ([[feedback-no-dataset-dependency]]).
-  **HALLAZGO (30 jul 2026): los 3 vídeos YouTube descargados son 640×360 y NO
-  sirven para el detector de golpe (pose+pelota fina).** Verificado corriendo
-  nuestros modelos sobre `best_points_2025.mp4`: la pista se detecta bien, pero
-  (a) los jugadores DELANTEROS (cerca de cámara) no se detectan a 360p, (b) los
-  IDs de tracking se rompen (9-18 IDs para 4 jugadores en 300 frames), (c) la
-  pelota se detecta solo el **42%** de frames (vs ~96% en PadelTracker100 1080p),
-  aunque con confianza alta cuando la ve (0,89). La pose YOLO26 y TrackNet están
-  entrenados a 1080p y a 360p degradan. **Consecuencia:** para subir el detector de golpe (Modelo 1, hoy
-  ~0,60 por pocos datos) hacen falta vídeos en RESOLUCIÓN ALTA (≥720p, idealmente
-  1080p), no estos. Buscar partidos YouTube en 1080p, o priorizar la cámara URJC
-  (que grabará en alta). Estos 360p pueden servir para tareas gruesas (pista,
-  segmentación de puntos), no para pose+pelota. Evita etiquetar en balde.
+  **HALLAZGO (30 jul 2026): era la RESOLUCIÓN, no el método.** Los 3 vídeos se
+  habían descargado en 640×360 por un flag de yt-dlp; YouTube los tiene en 1080p
+  (citys_cup incluso 1080p60). Verificación de detección de pelota (TrackNetV2,
+  mismos 300 frames de `best_points_2025`):
+
+  | Resolución | Pelota detectada | Confianza |
+  |---|---|---|
+  | 360p | **42 %** | 0,89 |
+  | **1080p** | **93 %** | 0,91 |
+
+  A 1080p la pelota se detecta casi como en PadelTracker100 (96%), la pose y el
+  tracking recuperan a los jugadores delanteros. **Acción:** re-descargar en 1080p
+  con `yt-dlp -f 137+bestaudio` (137=1080p mp4; ojo: sin ffmpeg no mergea audio,
+  pero el `.f137.mp4` es vídeo puro y basta para visión). Enlaces en `SOURCES.md`.
+  **Matiz de uso (Jorge, 30 jul):** `best_points_2025` cambia de pista/jugadores/
+  entorno en cada clip → excelente para el TEST de generalización (ADR-0005), pero
+  clips cortos con cortes rompen rallies/tracking → para ENTRENAR golpes es mejor
+  un partido CONTINUO (`citys_cup`, 1h05 en una pista). Ya descargado en 1080p:
+  `best_points_2025_1080.mp4`.
 - **[Media] Qué hacer al tener esos datos nuevos.** Flujo previsto: (1) anotar
   en CVAT (pista + pelota + tipo de golpe + oclusión), (2) reentrenar detector
   de pelota, clasificador de golpes y, si aporta, el detector de pista, (3)
