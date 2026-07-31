@@ -306,6 +306,14 @@ def main() -> int:
     sample.add_argument("--seed", type=int, default=42, help="Random seed (reproducible batches)")
     process.add_argument("--max-frames", type=int, default=None, help="Stop after N frames")
 
+    annot = subparsers.add_parser(
+        "annotate-shots", help="Quick-mark shot annotator (ADR-0014): tap a key per shot"
+    )
+    annot.add_argument("video", type=Path, help="Video to annotate")
+    annot.add_argument("-o", "--out", type=Path, required=True, help="Output shots CSV")
+    annot.add_argument("--ball", type=Path, default=None, help="Ball detections JSON to overlay")
+    annot.add_argument("--start", type=int, default=0, help="Start at this frame")
+
     args = parser.parse_args()
     if args.command == "process":
         tracker = None if args.tracker == "none" else args.tracker
@@ -353,6 +361,12 @@ def main() -> int:
         evaluate_court_model(args.model, args.homography, args.images, args.imgsz)
     elif args.command == "sample-frames":
         sample_frames(args.input_dir, args.output, args.per_video, args.seed)
+    elif args.command == "annotate-shots":
+        from padel_cv.shot_annotator import _marks_summary, annotate
+
+        marks = annotate(args.video, args.out, ball_json=args.ball, start_frame=args.start)
+        print(f"\n{len(marks)} golpes anotados -> {args.out}")
+        print("por tipo:", _marks_summary(marks))
     return 0
 
 
