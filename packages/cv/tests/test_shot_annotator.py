@@ -60,3 +60,32 @@ def test_load_ball_coco(tmp_path) -> None:
 
 def test_load_ball_none_is_empty() -> None:
     assert _load_ball(None) == {}
+
+
+def test_resume_frame_prefers_saved_position(tmp_path) -> None:
+    from padel_cv.shot_annotator import _load_resume_frame, _save_pos
+
+    csv_path = tmp_path / "shots.csv"
+    marks = [ShotMark(100, "Forehand", False, -1)]
+    # No sidecar yet -> resume just after the last mark.
+    assert _load_resume_frame(csv_path, marks) == 100
+    # Saved position wins.
+    _save_pos(csv_path, 1500)
+    assert _load_resume_frame(csv_path, marks) == 1500
+
+
+def test_resume_frame_empty_is_zero(tmp_path) -> None:
+    from padel_cv.shot_annotator import _load_resume_frame
+
+    assert _load_resume_frame(tmp_path / "shots.csv", []) == 0
+
+
+def test_ball_corrections_roundtrip(tmp_path) -> None:
+    from padel_cv.shot_annotator import load_ball_corrections, save_ball_corrections
+
+    csv_path = tmp_path / "shots.csv"
+    corr = {100: (640.0, 360.0), 250: (12.5, 88.0)}
+    save_ball_corrections(csv_path, corr)
+    loaded = load_ball_corrections(csv_path)
+    assert loaded == corr
+    assert load_ball_corrections(tmp_path / "nope.csv") == {}

@@ -18,8 +18,12 @@ Keys:
   , / .   step 1 frame (fine tune)  b / n   jump to prev / next marked shot
   1..5    mark shot at current frame (Serve/Forehand/Backhand/Lob/Smash)
   w       toggle 'from wall' on last mark      z   undo last mark
+  LEFT-CLICK (while paused)  move/set the ball on this frame (fix the detector)
   s       save now
   q       quit AND save             ESC     quit WITHOUT saving (asks)
+
+Resumes where you left off (position saved next to the CSV). Ball corrections are
+saved to <csv>.ball.json; the models use them at shot frames (ADR-0014).
 """
 
 from __future__ import annotations
@@ -47,7 +51,7 @@ _BALL_COLOR = (0, 255, 255)
 _HELP_LINES = [
     "SPACE play/pause  +/- speed   <-/-> 1s   Up/Dn 5s   ,/. 1 frame",
     "1 Serve 2 Forehand 3 Backhand 4 Lob 5 Smash   w wall   z undo",
-    "b/n prev/next shot   s save   q save+quit   ESC quit no-save",
+    "b/n prev/next shot   CLICK=move ball   s save   q save+quit   ESC no-save",
 ]
 
 
@@ -82,12 +86,35 @@ def _coco_frame(file_name: str) -> int:
     return int(Path(file_name).stem.split("_")[-1])
 
 
-def _draw_ball(canvas: ImageArray, xy: tuple[float, float] | None) -> None:
+def _draw_ball(canvas: ImageArray, xy: tuple[float, float] | None, corrected: bool) -> None:
     if xy is None:
         return
     x, y = int(xy[0]), int(xy[1])
-    cv2.circle(canvas, (x, y), 8, _BALL_COLOR, 2)
-    cv2.circle(canvas, (x, y), 1, _BALL_COLOR, -1)
+    color = (0, 0, 255) if corrected else _BALL_COLOR  # red when hand-corrected
+    cv2.circle(canvas, (x, y), 8, color, 2)
+    cv2.circle(canvas, (x, y), 1, color, -1)
+
+
+def ball_corrections_path(csv_path: Path) -> Path:
+    """Sidecar JSON for hand-corrected ball positions at shot frames."""
+    return csv_path.with_suffix(csv_path.suffix + ".ball.json")
+
+
+def load_ball_corrections(csv_path: Path) -> dict[int, tuple[float, float]]:
+    import json
+
+    p = ball_corrections_path(csv_path)
+    if not p.exists():
+        return {}
+    return {int(k): (float(v[0]), float(v[1])) for k, v in json.loads(p.read_text()).items()}
+
+
+def save_ball_corrections(csv_path: Path, corr: dict[int, tuple[float, float]]) -> None:
+    import json
+
+    ball_corrections_path(csv_path).write_text(
+        json.dumps({str(k): [v[0], v[1]] for k, v in corr.items()})
+    )
 
 
 def _fmt_time(frame: int, fps: float) -> str:
@@ -153,6 +180,26 @@ def load_marks(csv_path: Path) -> list[ShotMark]:
     ]
 
 
+def _pos_path(csv_path: Path) -> Path:
+    """Sidecar file storing where the annotator was last, to resume there."""
+    return csv_path.with_suffix(csv_path.suffix + ".pos")
+
+
+def _load_resume_frame(csv_path: Path, marks: list[ShotMark]) -> int:
+    """Where to open at: the saved position, else just after the last marked shot."""
+    pos = _pos_path(csv_path)
+    if pos.exists():
+        try:
+            return max(0, int(pos.read_text().strip()))
+        except ValueError:
+            pass
+    return max((m.frame for m in marks), default=0)
+
+
+def _save_pos(csv_path: Path, frame: int) -> None:
+    _pos_path(csv_path).write_text(str(frame))
+
+
 def _next_shot(frame: int, marks: list[ShotMark], forward: bool) -> int | None:
     """Frame of the nearest marked shot after/before `frame`, or None."""
     frames = sorted(m.frame for m in marks)
@@ -181,11 +228,25 @@ def annotate(
     sec = round(fps)  # frames per second, for 1-second jumps
     ball = _load_ball(ball_json)
     marks = load_marks(csv_out)  # resume if the CSV already exists
+    ball_fix = load_ball_corrections(csv_out)  # hand-corrected ball positions
 
-    idx = max(0, min(start_frame, total - 1))
+    # Resume where we left off: the saved position, else after the last shot, else
+    # the caller's start_frame.
+    resumed = _load_resume_frame(csv_out, marks)
+    idx = max(0, min(resumed or start_frame, total - 1))
     paused = True
     speed_i = 1  # index into _PLAY_SPEEDS (1.0x)
     cv2.namedWindow(_WINDOW, cv2.WINDOW_NORMAL)
+
+    # Left-click while paused moves the ball for the CURRENT frame (correcting the
+    # detector at a shot). The callback writes into `click`, the loop applies it.
+    click: dict[str, tuple[int, int] | None] = {"xy": None}
+
+    def _on_mouse(event: int, mx: int, my: int, flags: int, _param: object) -> None:
+        if event == cv2.EVENT_LBUTTONDOWN:
+            click["xy"] = (mx, my)
+
+    cv2.setMouseCallback(_WINDOW, _on_mouse)
 
     # Seek is expensive at 1080p, so only seek when idx JUMPS; during play we read
     # sequentially (fast). `pos` tracks where the decoder actually is.
@@ -200,9 +261,17 @@ def annotate(
             paused = True
             continue
         pos = idx + 1  # read() advanced the decoder to the next frame
+
+        # Apply a pending ball correction to THIS frame (paused only).
+        if paused and click["xy"] is not None:
+            ball_fix[idx] = (float(click["xy"][0]), float(click["xy"][1]))
+            save_ball_corrections(csv_out, ball_fix)
+        click["xy"] = None
+
+        ball_xy = ball_fix.get(idx, ball.get(idx))
         canvas: ImageArray = image.copy().astype(np.uint8)
-        _draw_ball(canvas, ball.get(idx))
-        _overlay(canvas, idx, total, fps, marks, paused, _PLAY_SPEEDS[speed_i], idx in ball)
+        _draw_ball(canvas, ball_xy, corrected=idx in ball_fix)
+        _overlay(canvas, idx, total, fps, marks, paused, _PLAY_SPEEDS[speed_i], ball_xy is not None)
         cv2.imshow(_WINDOW, canvas)
 
         delay = 1 if paused else max(1, int(1000 / (fps * _PLAY_SPEEDS[speed_i])))
@@ -262,6 +331,7 @@ def annotate(
             save_marks(marks, csv_out)
         elif key == ord("s"):
             save_marks(marks, csv_out)
+            _save_pos(csv_out, idx)
         elif not paused:
             idx = min(total - 1, idx + 1)
             if idx == total - 1:
@@ -270,6 +340,7 @@ def annotate(
     capture.release()
     cv2.destroyAllWindows()
     save_marks(marks, csv_out)
+    _save_pos(csv_out, idx)  # remember where we stopped, to resume next time
     return marks
 
 
