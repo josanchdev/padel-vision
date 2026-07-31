@@ -50,7 +50,21 @@ class ShotBlock:
 
 
 def load_shot_blocks(csv_path: Path) -> list[ShotBlock]:
-    """Collapse the per-frame has_shot flags into one block per real shot."""
+    """Load shot blocks from either CSV format.
+
+    - PadelTracker100: `file_name;has_shot;category`, has_shot=1 over a block.
+    - Quick-mark annotator (ADR-0014): `frame;type;from_wall;player`, one row per
+      shot at the impact frame — turned into a small block around that frame so it
+      plugs into the same builder as the block-based GT.
+    """
+    header = csv_path.open().readline()
+    if "has_shot" in header:
+        return _load_block_csv(csv_path)
+    return _load_marked_csv(csv_path)
+
+
+def _load_block_csv(csv_path: Path) -> list[ShotBlock]:
+    """PadelTracker100 format: collapse per-frame has_shot flags into blocks."""
     rows = list(csv.DictReader(csv_path.open(), delimiter=";"))
     blocks: list[ShotBlock] = []
     run_start: int | None = None
@@ -67,6 +81,20 @@ def load_shot_blocks(csv_path: Path) -> list[ShotBlock]:
     if run_start is not None:
         cat = Counter(run_cats).most_common(1)[0][0]
         blocks.append(ShotBlock(run_start, len(rows) - 1, cat))
+    return blocks
+
+
+def _load_marked_csv(csv_path: Path, half_block: int = 5) -> list[ShotBlock]:
+    """Quick-mark format: one row per shot -> a small block centred on the frame.
+
+    Each mark is a single impact frame; we widen it to +-half_block so the block
+    centre (used everywhere as the impact) is exactly the marked frame.
+    """
+    rows = list(csv.DictReader(csv_path.open(), delimiter=";"))
+    blocks: list[ShotBlock] = []
+    for row in rows:
+        f = int(row["frame"])
+        blocks.append(ShotBlock(f - half_block, f + half_block, row["type"]))
     return blocks
 
 

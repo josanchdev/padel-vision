@@ -69,3 +69,15 @@ def test_detection_misses_when_no_reversal() -> None:
     r = evaluate_detection(ball, wrists, blocks, tol=3)
     assert r.covered == 0
     assert r.recall == 0.0
+
+
+def test_load_marked_csv_format(tmp_path) -> None:
+    """The quick-mark annotator CSV (one row per shot) loads as centred blocks."""
+    from padel_ml.shot_eval import load_shot_blocks
+
+    p = tmp_path / "marks.csv"
+    p.write_text("frame;type;from_wall;player\n100;Forehand;0;-1\n250;Backhand;1;2\n")
+    blocks = load_shot_blocks(p)
+    assert len(blocks) == 2
+    assert blocks[0].centre == 100 and blocks[0].category == "Forehand"
+    assert blocks[1].centre == 250 and blocks[1].category == "Backhand"
