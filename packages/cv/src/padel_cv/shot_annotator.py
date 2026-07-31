@@ -187,13 +187,19 @@ def annotate(
     speed_i = 1  # index into _PLAY_SPEEDS (1.0x)
     cv2.namedWindow(_WINDOW, cv2.WINDOW_NORMAL)
 
+    # Seek is expensive at 1080p, so only seek when idx JUMPS; during play we read
+    # sequentially (fast). `pos` tracks where the decoder actually is.
+    pos = -1
+
     while True:
-        capture.set(cv2.CAP_PROP_POS_FRAMES, idx)
+        if idx != pos:  # a jump (arrows, shot navigation) -> seek once
+            capture.set(cv2.CAP_PROP_POS_FRAMES, idx)
         ok, image = capture.read()
         if not ok:
-            idx = max(0, idx - 1)
+            idx = pos = max(0, idx - 1)
             paused = True
             continue
+        pos = idx + 1  # read() advanced the decoder to the next frame
         canvas: ImageArray = image.copy().astype(np.uint8)
         _draw_ball(canvas, ball.get(idx))
         _overlay(canvas, idx, total, fps, marks, paused, _PLAY_SPEEDS[speed_i], idx in ball)
