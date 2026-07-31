@@ -166,6 +166,10 @@ funcionalidades encima" ([[project-padel-vision-tfg]]).
   progreso en el instante del golpe; (b) resaltar solo al jugador que golpea en
   ese frame; (c) reducir el margen (p. ej. ±1,5 s); (d) auto-pausar en el frame
   del golpe. Datos ya disponibles (`frame_index`/`timestamp_s` del golpe).
+- **[Baja] Botón "descargar datos CSV" en el front** (Jorge, 31 jul 2026). Cuando
+  se pula el producto, un botón para exportar los datos del partido (golpes, botes,
+  posiciones) en CSV/similar desde la web. Coherente con ADR-0010 (el valor son los
+  DATOS). Fase de pulido de producto, no ahora.
 - **[Baja] Latencia del clasificador de golpes.** Emite ~0,5 s tras el impacto
   (ventana centrada necesita frames posteriores). Aceptable en batch; revisar si
   se quiere modo live (Nivel 3 del roadmap).
