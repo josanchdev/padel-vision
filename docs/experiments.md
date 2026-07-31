@@ -229,6 +229,26 @@ Aun así, **el detector aprendido bate claramente a la heurística** (F1 0,60 vs
 regularización, threshold calibrado en train no en val, y localización por-frame
 en vez de por-ventana. Baseline versionado en `runs/shot_detector/`.
 
+**PRUEBA DESLIZANTE — el 0,60 no sobrevive al vídeo real (31 jul 2026).** Antes
+de cablear el detector v1 al pipeline, se deslizó sobre un tramo real (FinalM,
+6000 frames, pose+pelota GT, el partido que NO entrenó). Contra los 134 golpes GT:
+
+| Umbral | Recall | Precisión | Falsos positivos |
+|---|---|---|---|
+| 0,5 | 29 % | 24 % | 124 |
+| 0,7 | 22 % | 24 % | 93 |
+| 0,9 | 1 % | 40 % | 3 |
+
+**El 0,60 de F1 era un espejismo del test balanceado 50/50.** Deslizado sobre una
+línea temporal (donde los golpes son <5% de los frames), el detector se
+desmorona: prob media 0,55 en TODOS los frames → no discrimina. **Conclusión
+definitiva (medida 3 veces: heurística 15-52%, detector balanceado 0,60, detector
+deslizado 29%): el cuello de botella son los DATOS (905 golpes de 2 partidos), no
+la arquitectura.** No hay atajo de ingeniería. La decisión (Jorge, confirmando su
+instinto) es ir al ETIQUETADO en serio: vídeos HD → pre-anotar con nuestros
+modelos → corregir en CVAT → reentrenar con miles de golpes. Ver `docs/backlog.md`
+(Fase B) para el pipeline de datos.
+
 ### Clasificador pose+pelota — Modelo 2, intento 1 FALLIDO (30 jul 2026, ADR-0013)
 
 Primer intento de evolucionar el clasificador a pose+pelota reutilizando la red
