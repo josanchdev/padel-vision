@@ -6,25 +6,26 @@ per shot is far too slow to reach thousands. Instead: watch the video, pause on
 each shot, press one key for the stroke type. One mark per shot trains BOTH the
 detector (the frame = where a shot is) and the classifier (the type).
 
-This is a purpose-built OpenCV player, not CVAT: CVAT moves boxes/keypoints
-(slow); this is mark-and-classify (~5-10s per shot). Pose and ball, if a
-detections file is given, are drawn on top so obvious errors are visible — but the
-job is marking shots, not fixing keypoints.
+Navigation is by TIME, not frames, because match videos run at 60fps and 66 min:
+stepping one frame is hopeless. The ball is drawn on top (if a detections file is
+given) so obvious errors are visible; poses are not drawn — the job is marking
+shots, not fixing keypoints.
 
 Output CSV columns (ADR-0014): frame, type, from_wall, player.
 Keys:
-  SPACE  play / pause            , / .   jump back / forward 10 frames
-  <- / ->  step 1 frame          [ / ]   jump 100 frames
-  1..5   mark shot of this type at the current frame (Serve/Forehand/Backhand/Lob/Smash)
-  w      toggle 'from wall' on the last mark
-  z      undo last mark          s   save CSV        q   quit (autosaves)
+  SPACE   play / pause              + / -   play faster / slower
+  <- / -> back / forward 1 second   Up/Down back / forward 5 seconds
+  , / .   step 1 frame (fine tune)  b / n   jump to prev / next marked shot
+  1..5    mark shot at current frame (Serve/Forehand/Backhand/Lob/Smash)
+  w       toggle 'from wall' on last mark      z   undo last mark
+  s       save now
+  q       quit AND save             ESC     quit WITHOUT saving (asks)
 """
 
 from __future__ import annotations
 
 import csv
-import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 
 import cv2
@@ -41,12 +42,12 @@ SHOT_TYPES = {
     ord("4"): "Lob",
     ord("5"): "Smash",
 }
-
+_PLAY_SPEEDS = [0.5, 1.0, 2.0, 4.0, 8.0]  # cycled by + / -
 _BALL_COLOR = (0, 255, 255)
 _HELP_LINES = [
-    "SPACE play/pause  <-/-> step  ,/. +-10  [/] +-100",
-    "1 Serve  2 Forehand  3 Backhand  4 Lob  5 Smash",
-    "w from-wall(last)  z undo  s save  q quit",
+    "SPACE play/pause  +/- speed   <-/-> 1s   Up/Dn 5s   ,/. 1 frame",
+    "1 Serve 2 Forehand 3 Backhand 4 Lob 5 Smash   w wall   z undo",
+    "b/n prev/next shot   s save   q save+quit   ESC quit no-save",
 ]
 
 
@@ -59,7 +60,9 @@ class ShotMark:
 
 
 def _load_ball(path: Path | None) -> dict[int, tuple[float, float]]:
-    """frame -> (x, y) from a detections JSON (list of {frame,x,y} or COCO)."""
+    """frame -> (x, y) from a detections JSON (COCO ball boxes or [{frame,x,y}])."""
+    import json
+
     if path is None or not path.exists():
         return {}
     data = json.loads(path.read_text())
@@ -69,7 +72,7 @@ def _load_ball(path: Path | None) -> dict[int, tuple[float, float]]:
         for ann in data["annotations"]:
             x, y, w, h = ann["bbox"]
             out.setdefault(frame_of[ann["image_id"]], (x + w / 2, y + h / 2))
-    elif isinstance(data, list):  # simple [{frame,x,y}, ...]
+    elif isinstance(data, list):
         for d in data:
             out[int(d["frame"])] = (float(d["x"]), float(d["y"]))
     return out
@@ -83,36 +86,50 @@ def _draw_ball(canvas: ImageArray, xy: tuple[float, float] | None) -> None:
     if xy is None:
         return
     x, y = int(xy[0]), int(xy[1])
-    cv2.circle(canvas, (x, y), 7, _BALL_COLOR, 2)
+    cv2.circle(canvas, (x, y), 8, _BALL_COLOR, 2)
     cv2.circle(canvas, (x, y), 1, _BALL_COLOR, -1)
+
+
+def _fmt_time(frame: int, fps: float) -> str:
+    s = frame / fps if fps else 0
+    return f"{int(s // 60):02d}:{s % 60:05.2f}"
 
 
 def _overlay(
     canvas: ImageArray,
     frame_idx: int,
     total: int,
+    fps: float,
     marks: list[ShotMark],
     paused: bool,
+    speed: float,
+    ball_here: bool,
 ) -> None:
-    """Draw HUD: frame counter, shot count, last mark, and the key help."""
+    """Draw HUD: time/frame, shot count, speed, last mark, key help."""
     h = canvas.shape[0]
-    status = f"frame {frame_idx}/{total - 1}  shots {len(marks)}  {'PAUSED' if paused else 'PLAY'}"
-    cv2.putText(canvas, status, (12, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 4)
-    cv2.putText(canvas, status, (12, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 1)
+    play = "PAUSED" if paused else f"PLAY {speed:g}x"
+    status = f"{_fmt_time(frame_idx, fps)}  f{frame_idx}/{total - 1}  shots:{len(marks)}  {play}"
+    _text(canvas, status, (12, 30), 0.8, (255, 255, 255))
+    if not ball_here:
+        _text(canvas, "no ball this frame", (12, 58), 0.6, (0, 165, 255))
     if marks:
         last = marks[-1]
         wall = " [WALL]" if last.from_wall else ""
-        txt = f"last: {last.type}{wall} @ {last.frame}"
-        cv2.putText(canvas, txt, (12, 56), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 220, 220), 2)
+        _text(canvas, f"last: {last.type}{wall} @ f{last.frame}", (12, 84), 0.7, (0, 220, 220))
     for i, line in enumerate(_HELP_LINES):
         y = h - 14 - (len(_HELP_LINES) - 1 - i) * 24
-        cv2.putText(canvas, line, (12, y), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 3)
-        cv2.putText(canvas, line, (12, y), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (240, 240, 240), 1)
-    # A marker line near shot frames so you can see what's already annotated.
-    for m in marks:
-        if abs(m.frame - frame_idx) <= 45:
-            cv2.circle(canvas, (canvas.shape[1] - 30, 30), 10, (0, 220, 0), -1)
-            break
+        _text(canvas, line, (12, y), 0.55, (240, 240, 240))
+    # Green dot top-right when a marked shot is within ~1s of the current frame.
+    if any(abs(m.frame - frame_idx) <= fps for m in marks):
+        cv2.circle(canvas, (canvas.shape[1] - 30, 30), 11, (0, 220, 0), -1)
+
+
+def _text(
+    canvas: ImageArray, s: str, org: tuple[int, int], scale: float, color: tuple[int, int, int]
+) -> None:
+    """White/coloured text with a black outline so it reads over any frame."""
+    cv2.putText(canvas, s, org, cv2.FONT_HERSHEY_SIMPLEX, scale, (0, 0, 0), 4)
+    cv2.putText(canvas, s, org, cv2.FONT_HERSHEY_SIMPLEX, scale, color, 1)
 
 
 def save_marks(marks: list[ShotMark], csv_path: Path) -> None:
@@ -136,26 +153,39 @@ def load_marks(csv_path: Path) -> list[ShotMark]:
     ]
 
 
+def _next_shot(frame: int, marks: list[ShotMark], forward: bool) -> int | None:
+    """Frame of the nearest marked shot after/before `frame`, or None."""
+    frames = sorted(m.frame for m in marks)
+    if forward:
+        later = [f for f in frames if f > frame]
+        return later[0] if later else None
+    earlier = [f for f in frames if f < frame]
+    return earlier[-1] if earlier else None
+
+
+_WINDOW = "padel shot annotator"
+
+
 def annotate(
     video_path: Path,
     csv_out: Path,
     ball_json: Path | None = None,
     start_frame: int = 0,
-    fps_play: float = 30.0,
 ) -> list[ShotMark]:
-    """Run the interactive annotator; returns the marks (also saved to csv_out)."""
+    """Run the interactive annotator; returns marks (saved to csv_out on q/s)."""
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         raise FileNotFoundError(f"Could not open video: {video_path}")
     total = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
+    sec = round(fps)  # frames per second, for 1-second jumps
     ball = _load_ball(ball_json)
     marks = load_marks(csv_out)  # resume if the CSV already exists
 
     idx = max(0, min(start_frame, total - 1))
     paused = True
-    play_delay = max(1, int(1000 / fps_play))
-    window = "padel shot annotator"
-    cv2.namedWindow(window, cv2.WINDOW_NORMAL)
+    speed_i = 1  # index into _PLAY_SPEEDS (1.0x)
+    cv2.namedWindow(_WINDOW, cv2.WINDOW_NORMAL)
 
     while True:
         capture.set(cv2.CAP_PROP_POS_FRAMES, idx)
@@ -166,26 +196,55 @@ def annotate(
             continue
         canvas: ImageArray = image.copy().astype(np.uint8)
         _draw_ball(canvas, ball.get(idx))
-        _overlay(canvas, idx, total, marks, paused)
-        cv2.imshow(window, canvas)
+        _overlay(canvas, idx, total, fps, marks, paused, _PLAY_SPEEDS[speed_i], idx in ball)
+        cv2.imshow(_WINDOW, canvas)
 
-        key = cv2.waitKey(0 if paused else play_delay) & 0xFF
-        if key == ord("q"):
+        delay = 1 if paused else max(1, int(1000 / (fps * _PLAY_SPEEDS[speed_i])))
+        key = cv2.waitKey(delay) & 0xFF
+
+        # Window closed with the X button -> save and exit.
+        if cv2.getWindowProperty(_WINDOW, cv2.WND_PROP_VISIBLE) < 1:
             break
+
+        if key == ord("q"):
+            break  # save + quit
+        elif key == 27:  # ESC: quit WITHOUT saving (confirm on the frame)
+            if _confirm_discard(canvas):
+                capture.release()
+                cv2.destroyAllWindows()
+                return marks
         elif key == ord(" "):
             paused = not paused
-        elif key in (81, ord(",")):  # left arrow (81) / comma
-            idx = max(0, idx - (10 if key == ord(",") else 1))
+        elif key in (ord("+"), ord("=")):
+            speed_i = min(len(_PLAY_SPEEDS) - 1, speed_i + 1)
+        elif key == ord("-"):
+            speed_i = max(0, speed_i - 1)
+        elif key == 81:  # left arrow: -1 second
+            idx = max(0, idx - sec)
             paused = True
-        elif key in (83, ord(".")):  # right arrow (83) / period
-            idx = min(total - 1, idx + (10 if key == ord(".") else 1))
+        elif key == 83:  # right arrow: +1 second
+            idx = min(total - 1, idx + sec)
             paused = True
-        elif key == ord("["):
-            idx = max(0, idx - 100)
+        elif key == 82:  # up arrow: +5 seconds
+            idx = min(total - 1, idx + 5 * sec)
             paused = True
-        elif key == ord("]"):
-            idx = min(total - 1, idx + 100)
+        elif key == 84:  # down arrow: -5 seconds
+            idx = max(0, idx - 5 * sec)
             paused = True
+        elif key == ord(","):  # fine tune -1 frame
+            idx = max(0, idx - 1)
+            paused = True
+        elif key == ord("."):  # fine tune +1 frame
+            idx = min(total - 1, idx + 1)
+            paused = True
+        elif key == ord("n"):  # jump to next marked shot
+            nxt = _next_shot(idx, marks, forward=True)
+            if nxt is not None:
+                idx, paused = nxt, True
+        elif key == ord("b"):  # jump to previous marked shot
+            prv = _next_shot(idx, marks, forward=False)
+            if prv is not None:
+                idx, paused = prv, True
         elif key in SHOT_TYPES:
             marks.append(ShotMark(idx, SHOT_TYPES[key], from_wall=False, player=-1))
             save_marks(marks, csv_out)  # autosave on every mark
@@ -208,6 +267,14 @@ def annotate(
     return marks
 
 
+def _confirm_discard(base: ImageArray) -> bool:
+    """Ask on-screen whether to quit without saving; returns True to discard."""
+    canvas = base.copy()
+    _text(canvas, "Quit WITHOUT saving? y = yes, any other = cancel", (12, 120), 0.8, (0, 0, 255))
+    cv2.imshow(_WINDOW, canvas)
+    return (cv2.waitKey(0) & 0xFF) == ord("y")
+
+
 def _marks_summary(marks: list[ShotMark]) -> dict[str, int]:
     """Count per type (for a quick post-session print)."""
     out: dict[str, int] = {}
@@ -217,7 +284,3 @@ def _marks_summary(marks: list[ShotMark]) -> dict[str, int]:
 
 
 __all__ = ["SHOT_TYPES", "ShotMark", "_marks_summary", "annotate", "load_marks", "save_marks"]
-
-
-def _asdict_list(marks: list[ShotMark]) -> list[dict[str, object]]:
-    return [asdict(m) for m in marks]
