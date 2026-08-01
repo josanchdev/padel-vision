@@ -15,7 +15,7 @@ Output CSV columns (ADR-0014): frame, type, from_wall, player.
 Keys:
   SPACE   play / pause              + / -   play faster / slower
   <- / -> back / forward 1 second   Up/Down back / forward 5 seconds
-  , / .   step 1 frame (fine tune)  b / n   jump to prev / next marked shot
+  a / d   step 1 frame (fine-tune the contact)   b / n   prev / next marked shot
   1..5    mark shot at current frame (Serve/Forehand/Backhand/Lob/Smash)
   w       toggle 'from wall' on last mark      z   undo last mark
   LEFT-CLICK (while paused)  move/set the ball on this frame (fix the detector)
@@ -49,7 +49,7 @@ SHOT_TYPES = {
 _PLAY_SPEEDS = [0.5, 1.0, 2.0, 4.0, 8.0]  # cycled by + / -
 _BALL_COLOR = (0, 255, 255)
 _HELP_LINES = [
-    "SPACE play/pause  +/- speed   <-/-> 1s   Up/Dn 5s   ,/. 1 frame",
+    "SPACE play/pause  +/- speed   <-/-> 1s   Up/Dn 5s   a/d 1 frame",
     "1 Serve 2 Forehand 3 Backhand 4 Lob 5 Smash   w wall   z undo",
     "b/n prev/next shot   CLICK=move ball   s save   q save+quit   ESC no-save",
 ]
@@ -90,9 +90,13 @@ def _draw_ball(canvas: ImageArray, xy: tuple[float, float] | None, corrected: bo
     if xy is None:
         return
     x, y = int(xy[0]), int(xy[1])
-    color = (0, 0, 255) if corrected else _BALL_COLOR  # red when hand-corrected
+    # Red = you moved it by hand; yellow = the detector's guess. (Red does NOT
+    # mean "contact detected" — the models don't know contacts yet; you teach them.)
+    color = (0, 0, 255) if corrected else _BALL_COLOR
     cv2.circle(canvas, (x, y), 8, color, 2)
     cv2.circle(canvas, (x, y), 1, color, -1)
+    if corrected:
+        cv2.putText(canvas, "fixed", (x + 12, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
 
 
 def ball_corrections_path(csv_path: Path) -> Path:
@@ -306,10 +310,10 @@ def annotate(
         elif key == 84:  # down arrow: -5 seconds
             idx = max(0, idx - 5 * sec)
             paused = True
-        elif key == ord(","):  # fine tune -1 frame
+        elif key in (ord("a"), ord(",")):  # fine tune -1 frame
             idx = max(0, idx - 1)
             paused = True
-        elif key == ord("."):  # fine tune +1 frame
+        elif key in (ord("d"), ord(".")):  # fine tune +1 frame
             idx = min(total - 1, idx + 1)
             paused = True
         elif key == ord("n"):  # jump to next marked shot
