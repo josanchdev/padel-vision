@@ -137,22 +137,40 @@ def _overlay(
     ball_here: bool,
 ) -> None:
     """Draw HUD: time/frame, shot count, speed, last mark, key help."""
-    h = canvas.shape[0]
+    h, w = canvas.shape[:2]
     play = "PAUSED" if paused else f"PLAY {speed:g}x"
     status = f"{_fmt_time(frame_idx, fps)}  f{frame_idx}/{total - 1}  shots:{len(marks)}  {play}"
+
+    # Solid dark band behind the top HUD so text reads over any frame.
+    top_h = 96 if (not ball_here or marks) else 44
+    _band(canvas, 0, top_h)
     _text(canvas, status, (12, 30), 0.8, (255, 255, 255))
     if not ball_here:
-        _text(canvas, "no ball this frame", (12, 58), 0.6, (0, 165, 255))
+        _text(canvas, "no ball this frame", (12, 58), 0.6, (0, 200, 255))
     if marks:
         last = marks[-1]
         wall = " [WALL]" if last.from_wall else ""
         _text(canvas, f"last: {last.type}{wall} @ f{last.frame}", (12, 84), 0.7, (0, 220, 220))
+
+    # Solid dark band behind the help lines at the bottom.
+    band_top = h - 14 - (len(_HELP_LINES) - 1) * 24 - 22
+    _band(canvas, band_top, h)
     for i, line in enumerate(_HELP_LINES):
         y = h - 14 - (len(_HELP_LINES) - 1 - i) * 24
-        _text(canvas, line, (12, y), 0.55, (240, 240, 240))
+        _text(canvas, line, (12, y), 0.55, (235, 235, 235))
+
     # Green dot top-right when a marked shot is within ~1s of the current frame.
     if any(abs(m.frame - frame_idx) <= fps for m in marks):
-        cv2.circle(canvas, (canvas.shape[1] - 30, 30), 11, (0, 220, 0), -1)
+        cv2.circle(canvas, (w - 30, 30), 11, (0, 220, 0), -1)
+
+
+def _band(canvas: ImageArray, y0: int, y1: int) -> None:
+    """A semi-transparent dark band across the width, for text legibility."""
+    y0, y1 = max(0, y0), min(canvas.shape[0], y1)
+    if y1 <= y0:
+        return
+    strip = canvas[y0:y1]
+    cv2.addWeighted(strip, 0.35, np.zeros_like(strip), 0.65, 0.0, dst=strip)
 
 
 def _text(
