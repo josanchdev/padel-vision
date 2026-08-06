@@ -16,7 +16,7 @@ Keys:
   SPACE   play / pause              + / -   play faster / slower
   <- / -> back / forward 1 second   Up/Down back / forward 5 seconds
   a / d   step 1 frame (fine-tune the contact)   b / n   prev / next marked shot
-  1..5    mark shot at current frame (Serve/Forehand/Backhand/Lob/Smash)
+  1..4    mark shot at current frame (Serve/Forehand/Backhand/Smash)
   w       toggle 'from wall' on last mark      z   undo last mark
   LEFT-CLICK (while paused)  move/set the ball on this frame (fix the detector)
   s       save now
@@ -38,19 +38,20 @@ import numpy.typing as npt
 
 ImageArray = npt.NDArray[np.uint8]
 
-# Stroke types by key (ADR-0014): gesture only; wall is a separate flag.
+# Stroke types by key (ADR-0014): GESTURE only. Wall and lob are NOT types — they
+# describe what the ball did, not the swing, and are indistinguishable at the
+# contact frame (the window the model sees). A high ball is a Forehand/Backhand.
 SHOT_TYPES = {
     ord("1"): "Serve",
     ord("2"): "Forehand",
     ord("3"): "Backhand",
-    ord("4"): "Lob",
-    ord("5"): "Smash",
+    ord("4"): "Smash",
 }
 _PLAY_SPEEDS = [0.5, 1.0, 2.0, 4.0, 8.0]  # cycled by + / -
 _BALL_COLOR = (0, 255, 255)
 _HELP_LINES = [
     "SPACE play/pause  +/- speed   <-/-> 1s   Up/Dn 5s   a/d 1 frame",
-    "1 Serve 2 Forehand 3 Backhand 4 Lob 5 Smash   w wall   z undo",
+    "1 Serve 2 Forehand 3 Backhand 4 Smash   w wall   z undo",
     "b/n prev/next shot   CLICK=move ball   s save   q save+quit   ESC no-save",
 ]
 

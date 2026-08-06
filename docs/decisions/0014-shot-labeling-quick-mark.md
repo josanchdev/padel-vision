@@ -27,10 +27,16 @@ recorta la ventana ±N frames con la pose+pelota que YA detectamos.
   de la muñeca del golpeador. Marca aproximada del humano → frame exacto por
   geometría. En ese frame, si la pelota está mal detectada, se corrige a mano
   (solo ese frame, no el vídeo entero).
-- **C — Taxonomía = gesto (5 clases):** Saque, Derecha, Revés, Globo, Remate.
+- **C — Taxonomía = gesto (4 clases):** Saque, Derecha, Revés, Remate.
   **Descartados:** volea (→ derecha/revés según gesto), bandeja (ambigua/rara),
   dejada/chiquita (se confunde con volea suave, pocos ejemplos, rompería métricas
-  como "Other" a 0,18). El eje del gesto queda limpio.
+  como "Other" a 0,18). **Globo/lob descartado (31 jul, Jorge):** no es un gesto
+  distinto — es una derecha/revés con trayectoria alta, INDISTINGUIBLE en el frame
+  de contacto (la ventana que ve el modelo); solo se sabe viendo la pelota subir
+  DESPUÉS. Jorge lo detectó al anotar (tenía que rectificar constantemente). Un
+  globo se etiqueta por su gesto (derecha/revés). Si el dato "es globo" resulta
+  valioso, se añade como FLAG (como la pared), no como tipo. El eje del gesto
+  queda limpio y todo distinguible en el contacto.
 - **D — Golpe de PARED = flag aparte, no un tipo.** Una salida de pared se
   ejecuta con derecha o revés; "pared" es de dónde vino la pelota (contexto), no
   el gesto. Se anota como columna `de_pared` (sí/no), metadato analítico que no

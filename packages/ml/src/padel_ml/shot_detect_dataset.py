@@ -182,7 +182,9 @@ def build_detect_windows(
 # Shot-type classes for the classifier (Modelo 2). Same taxonomy as the pose-only
 # baseline (ADR-0008), so the comparison is like-for-like. No NoShot here: the
 # classifier only sees windows the detector already accepted as shots.
-SHOT_TYPE_CLASSES = ["Forehand", "Backhand", "Smash", "Serve", "Other", "Dropshot"]
+# Gesture classes (ADR-0014, lob removed 31 jul): distinguishable at the contact
+# frame. Lob/wall describe the ball's path, not the swing -> not types.
+SHOT_TYPE_CLASSES = ["Serve", "Forehand", "Backhand", "Smash"]
 _TYPE_INDEX = {name: i for i, name in enumerate(SHOT_TYPE_CLASSES)}
 
 
