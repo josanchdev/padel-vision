@@ -680,3 +680,41 @@ método. Material visual para la defensa.
   con hábito de commits frecuentes + entrenamientos reanudables.
 - Inferencia pose+tracking a 1920: ~35 fps (más rápido que tiempo real).
   Entrenamiento court detector (60 ep, 1280): ~16 min; a 1920: ~40 min.
+
+## Detector de golpe entrenado con datos propios — hallazgo por-ventana vs por-frame (ago 2026)
+
+Primer entrenamiento del DETECTOR (Modelo 1) con datos etiquetados por Jorge
+(herramienta ADR-0014): 413 golpes de citys_cup (pose YOLO propia + pelota
+TrackNet, submuestreado 60→30fps) + 906 de PadelTracker100.
+
+**Hallazgo 1 — el etiquetado propio es DECISIVO.** Validación honesta (entrenar
+con viejos + mitad de citys_cup, validar en la otra mitad):
+
+| Entreno | prob golpes | prob no-golpes | Recall | Precisión | F1 |
+|---|---|---|---|---|---|
+| Solo 906 viejos | 1,00 | 0,92 | 100 % | 52 % | 0,68 |
+| Viejos + datos de Jorge | 0,92 | 0,10 | 96 % | 93 % | **0,94** |
+
+Sin los datos de Jorge el detector dice "golpe" a TODO en su partido (no
+generaliza: los viejos son pose GT limpia, el suyo es pose YOLO real). Con sus
+datos discrimina. Confirma que el cuello de botella eran los datos DEL DOMINIO
+propio, no la arquitectura.
+
+**Hallazgo 2 — por-ventana satura en rallies (meseta), hace falta por-FRAME.**
+Al deslizar el detector por-ventana sobre un rally real, la señal no son picos por
+golpe sino una MESETA plana en 1,00 sobre toda la ráfaga de golpes (evidencia:
+`docs/media/senal_por_ventana_meseta.png`, 3 golpes seguidos = 1 bloque de 123
+frames). Causa: la ventana de ~1s es más ancha que el hueco entre golpes, así que
+toda ventana de la zona contiene algún golpe → todas dicen "sí". Jorge lo detectó
+visualmente ("detecta el mismo golpe 2-3 veces"). El NMS no lo arregla (fusiona
+golpes reales). **Solución: `ShotLocalizer`** — emite un logit POR FRAME (1x1 conv
+temporal, sin pooling), entrenado con etiqueta densa por frame. Prueba de concepto
+(`docs/media/senal_por_frame_picos.png`): la señal pasa de meseta a oscilar con
+valles entre golpes → el concepto por-frame funciona, aunque aún ruidoso (falta
+suavizado/más datos). Es el enfoque de localización temporal del SotA. Siguiente:
+builder denso por-frame + inferencia deslizante + pulido.
+
+**Nota de pipeline (Jorge):** el detector debe iluminar AL GOLPEADOR (no un flash
+global), porque su pose es justo lo que se pasa al clasificador (Modelo 2). El
+golpeador se elige por "muñeca más cercana a la pelota"; a veces falla si la
+pelota está mal detectada (ilumina al jugador equivocado) → a pulir.

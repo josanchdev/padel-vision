@@ -100,6 +100,49 @@ class ShotDetector(nn.Module):
         return cast(torch.Tensor, self.head(fused).squeeze(-1))  # (N,)
 
 
+class ShotLocalizer(nn.Module):
+    """Pose+ball → a per-FRAME shot logit (dense localization).
+
+    The window-level ShotDetector answers "is there a shot in this window?", which
+    saturates during rallies: every window over a burst of shots says yes, giving a
+    flat plateau instead of one peak per shot. This model instead emits one logit
+    PER FRAME, so a rally of 3 quick shots becomes 3 sharp peaks — the impact frame
+    lights up, its neighbours don't. This is the localization approach the
+    racket-sports SotA uses; it's what lets us count and time individual shots.
+
+    Output: (N, T) logits. Training target is a per-frame 0/1 (1 at impact frames,
+    optionally a small +-1 tolerance), so the loss is applied densely over time.
+    """
+
+    def __init__(
+        self,
+        n_joints: int = 17,
+        joint_dim: int = 3,
+        ball_dim: int = 3,
+        d_model: int = 64,
+        drop_p: float = 0.3,
+    ) -> None:
+        super().__init__()
+        pose_in = n_joints * joint_dim
+        self.tcn_pose = TCN(pose_in, [d_model, d_model], drop_p=drop_p)
+        self.tcn_ball = TCN(ball_dim, [d_model // 2, d_model], drop_p=drop_p)
+        # A per-frame head: 1x1 conv over time keeps the temporal axis (no pooling),
+        # so each frame gets its own logit from its own fused features.
+        self.head = nn.Sequential(
+            nn.Conv1d(2 * d_model, d_model, kernel_size=1),
+            nn.GELU(),
+            nn.Dropout(drop_p),
+            nn.Conv1d(d_model, 1, kernel_size=1),
+        )
+
+    def forward(self, pose: torch.Tensor, ball: torch.Tensor) -> torch.Tensor:
+        n, t = pose.shape[0], pose.shape[1]
+        pose_seq = self.tcn_pose(pose.reshape(n, t, -1).transpose(1, 2))  # (N, d, T)
+        ball_seq = self.tcn_ball(ball.transpose(1, 2))  # (N, d, T)
+        fused = torch.cat([pose_seq, ball_seq], dim=1)  # (N, 2d, T) — NO time pooling
+        return cast(torch.Tensor, self.head(fused).squeeze(1))  # (N, T)
+
+
 class ShotTypeClassifier(nn.Module):
     """Pose(+ball) → stroke-type logits (Modelo 2, ADR-0013).
 

@@ -73,3 +73,18 @@ def test_ball_changes_the_prediction() -> None:
     a = m(pose, torch.zeros(1, 32, 3))
     b = m(pose, torch.ones(1, 32, 3))
     assert not torch.allclose(a, b)
+
+
+def test_localizer_emits_per_frame_logits() -> None:
+    from padel_ml.shot_detector import ShotLocalizer
+
+    model = ShotLocalizer()
+    out = model(torch.randn(4, 32, 17, 3), torch.randn(4, 32, 3))
+    assert out.shape == (4, 32)  # one logit PER FRAME, not per window
+
+
+def test_localizer_variable_length() -> None:
+    from padel_ml.shot_detector import ShotLocalizer
+
+    out = ShotLocalizer()(torch.randn(2, 20, 17, 3), torch.randn(2, 20, 3))
+    assert out.shape == (2, 20)
