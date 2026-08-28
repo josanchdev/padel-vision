@@ -98,6 +98,41 @@ def sliding_probs(
     return out
 
 
+def sliding_probs_averaged(
+    model: ShotLocalizer,
+    persons_by_frame: dict[int, list[FloatArray]],
+    ball_by_frame: dict[int, tuple[float, float]],
+    lo: int,
+    hi: int,
+    step: int = 4,
+    device: str | None = None,
+) -> dict[int, float]:
+    """Per-frame probability AVERAGED over every overlapping window that predicts
+    it. The localizer predicts all T frames of a window, so a frame gets several
+    votes from windows centred nearby; averaging them cancels per-window noise and
+    sharpens the peaks (a real impact is predicted consistently, noise isn't).
+    `step` strides the window centres (4 = 8x fewer forward passes than every-frame).
+    """
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = model.to(device).eval()
+    from collections import defaultdict
+
+    acc: dict[int, list[float]] = defaultdict(list)
+    for c in range(lo, hi, step):
+        w = _window_around(c, persons_by_frame, ball_by_frame)
+        if w is None:
+            continue
+        with torch.no_grad():
+            pose = torch.from_numpy(w[0])[None].to(device)
+            ball = torch.from_numpy(w[1])[None].to(device)
+            probs = torch.sigmoid(model(pose, ball)[0]).cpu().numpy()  # (T,)
+        for i, f in enumerate(range(c - _HALF, c - _HALF + len(probs))):
+            if lo <= f < hi:
+                acc[f].append(float(probs[i]))
+    return {f: float(np.mean(v)) for f, v in acc.items()}
+
+
 def peaks_from_probs(
     probs: dict[int, float], threshold: float = 0.5, min_gap: int = 8
 ) -> list[ShotEventLoc]:

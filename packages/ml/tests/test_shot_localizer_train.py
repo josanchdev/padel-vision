@@ -25,3 +25,32 @@ def test_peaks_merge_close_maxima() -> None:
 def test_peaks_none_below_threshold() -> None:
     probs = {f: 0.3 for f in range(30)}
     assert peaks_from_probs(probs, threshold=0.5) == []
+
+
+def test_averaged_probs_smooths_via_overlap(monkeypatch) -> None:
+    """sliding_probs_averaged should average the overlapping window votes per
+    frame. With a model that always predicts 0.5, every frame ends up 0.5."""
+    import numpy as np
+    from padel_ml import shot_localizer_train as slt
+
+    class _ConstModel:
+        def to(self, _d):
+            return self
+
+        def eval(self):
+            return self
+
+        def __call__(self, pose, ball):
+            import torch
+
+            t = pose.shape[1]
+            return torch.zeros(1, t)  # sigmoid(0)=0.5
+
+    # a window is always available
+    def _fake_window(c, p, b):
+        return np.zeros((32, 17, 3), np.float32), np.zeros((32, 3), np.float32)
+
+    monkeypatch.setattr(slt, "_window_around", _fake_window)
+    out = slt.sliding_probs_averaged(_ConstModel(), {}, {}, 0, 40, step=4, device="cpu")
+    assert out
+    assert all(abs(v - 0.5) < 1e-5 for v in out.values())
