@@ -41,11 +41,16 @@ class BallHit:
 class BallDetector:
     """Stateful per-frame ball detector (buffers INPUT_FRAMES, no homography)."""
 
-    def __init__(self, checkpoint: Path, min_confidence: float = 0.5) -> None:
-        ckpt = torch.load(checkpoint, map_location="cpu", weights_only=False)
+    def __init__(
+        self, checkpoint: Path, min_confidence: float = 0.5, device: str | None = None
+    ) -> None:
+        if device is None:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        self._device = device
+        ckpt = torch.load(checkpoint, map_location=device, weights_only=False)
         self._model = _build_model(ckpt.get("model_name", "tracknetv2"))
         self._model.load_state_dict(ckpt["state_dict"])
-        self._model.eval()
+        self._model.to(device).eval()
         self._min_confidence = min_confidence
         self._buffer: deque[np.ndarray] = deque(maxlen=INPUT_FRAMES)
 
@@ -57,7 +62,8 @@ class BallDetector:
             return None
         stacked = np.concatenate(list(self._buffer), axis=0)  # (9, H, W)
         with torch.no_grad():
-            heatmap = self._model(torch.from_numpy(stacked)[None])[0, 0]
+            batch = torch.from_numpy(stacked)[None].to(self._device)
+            heatmap = self._model(batch)[0, 0].cpu()
         confidence = float(heatmap.max())
         if confidence < self._min_confidence:
             return None
