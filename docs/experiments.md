@@ -785,3 +785,21 @@ los golpes del fondo se saltan). Confirma el instinto de Jorge de que "6 vs 6" n
 vale — pero al revés de lo temido: el modelo pilla golpes reales que faltan en el
 GT. **Conclusión de rumbo:** la palanca nº1 es completar el etiquetado con cuidado
 (no saltar golpes de rally); el ruido real (17 %) lo cubre el min_run + suavizado.
+
+**Medición JUSTA — solo dentro de rallies (ago 2026).** Jorge reveló que NO
+etiqueta todo: se salta las REPETICIONES (replays con golpes en cámara lenta) y el
+último golpe si se falla. Evaluar sobre todo el partido cuenta como "falsos" los
+golpes de replay que el modelo detecta correctamente pero que Jorge no marca.
+Re-medición excluyendo los huecos grandes (>3 s = replay/tiempo muerto), solo
+dentro de los 63 rallies (374 golpes):
+
+**Recall 61 % · Precisión 70 %** (thr 0,6, min_run 3) — vs 88 %/24 % sobre todo el
+partido. Al excluir replays, la precisión sube de 24 % a 70 %: la mayor parte del
+"ruido" eran replays, no falsos reales. Este 61/70 es el v1 honesto.
+
+**Conclusión estratégica del día:** el detector dispara en las REPETICIONES (hay
+golpes reales en cámara lenta). El sistema completo NECESITA el eslabón nº1 de la
+pila de robustez (`docs/backlog.md`): distinguir juego real de replay/tiempo
+muerto. Sin él, los golpes de repetición inflan cualquier stat. Es ahora un
+requisito medido, no teórico. Palancas del localizer: completar etiquetado
+(413→~900), segmentar juego-vs-replay, suavizado.
