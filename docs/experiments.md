@@ -773,3 +773,15 @@ afina. (3) Parte de los "falsos" pueden ser golpes reales no etiquetados
 **Palancas pendientes (todas identificadas):** más golpes etiquetados (413→~900),
 suavizado temporal más fuerte, mejor pose/pelota en el fondo y en el impacto. El
 localizer por-frame es la dirección correcta; falta afinarlo con datos.
+
+**Hallazgo clave sobre la "precisión baja" (ago 2026):** al clasificar los 86
+falsos positivos (thr 0,6, min_run 3) por su distancia al golpe real más cercano:
+**83 % (71/86) caen a menos de 2 s de un golpe real** (en pleno rally) → son casi
+seguro golpes NO etiquetados o duplicados de rally, NO ruido. Solo el **17 %
+(15/86) están en tiempo muerto** (ruido real). Es decir: la precisión efectiva del
+modelo es MUCHO mejor que el número crudo; el limitante principal es la
+COMPLETITUD del etiquetado (413 golpes de 66 min es parcial; los rallies rápidos y
+los golpes del fondo se saltan). Confirma el instinto de Jorge de que "6 vs 6" no
+vale — pero al revés de lo temido: el modelo pilla golpes reales que faltan en el
+GT. **Conclusión de rumbo:** la palanca nº1 es completar el etiquetado con cuidado
+(no saltar golpes de rally); el ruido real (17 %) lo cubre el min_run + suavizado.
