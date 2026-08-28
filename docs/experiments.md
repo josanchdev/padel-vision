@@ -745,3 +745,31 @@ en train.
 **Veredicto:** el por-frame es la dirección correcta (resuelve la meseta) pero es
 un v1 que necesita: más golpes etiquetados (413→~900), suavizado temporal de la
 señal, y mejor pelota en el frame de impacto (donde más falla). Pendiente de pulir.
+
+## Localizer — evaluación rigurosa por frame exacto + criterio min_run (ago 2026)
+
+Jorge señaló (correctamente) que "6 detectados = 6 reales" no vale como métrica
+sin emparejar cada pico con el FRAME exacto de un golpe. Eval riguroso: cada pico
+se empareja con el golpe real más cercano (±4 frames), sobre 149 golpes reales de
+citys_cup (tramo grande, muestra fiable). También se implementó su idea de exigir
+una respuesta SOSTENIDA (min_run: N de 5 frames sobre umbral) para descartar los
+picos aislados ("pum golpe" falsos).
+
+| Umbral | min_run | Picos | Aciertos | Recall | Precisión |
+|---|---|---|---|---|---|
+| 0,5 | 1 | 557 | 131 | **88 %** | 24 % |
+| 0,5 | 3 | 320 | 114 | 77 % | 36 % |
+| 0,5 | 4 | 240 | 105 | 70 % | 44 % |
+| 0,7 | 1 | 256 | 111 | 74 % | 43 % |
+| 0,7 | 4 | 45 | 33 | 22 % | 73 % |
+
+**Lecturas:** (1) El min_run de Jorge SÍ sube la precisión (24→44 %) quitando picos
+aislados, a costa de recall — trade-off claro. (2) El recall real es bueno (88 %
+pillando 131/149) pero la PRECISIÓN es el problema: ~3 falsos por golpe a recall
+alto. La señal base es demasiado alta (media 0,35-0,53); el v1 con 413 golpes no
+afina. (3) Parte de los "falsos" pueden ser golpes reales no etiquetados
+(especialmente en el fondo, donde pose/pelota fallan y Jorge nota que se pierden).
+
+**Palancas pendientes (todas identificadas):** más golpes etiquetados (413→~900),
+suavizado temporal más fuerte, mejor pose/pelota en el fondo y en el impacto. El
+localizer por-frame es la dirección correcta; falta afinarlo con datos.
