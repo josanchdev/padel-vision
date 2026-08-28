@@ -179,6 +179,113 @@ def build_detect_windows(
     return windows
 
 
+@dataclass
+class DenseWindow:
+    """A window for per-FRAME shot localization (ShotLocalizer).
+
+    Unlike DetectWindow (one 0/1 label per window), this carries a label PER FRAME:
+    1 at impact frames (+-tol), 0 elsewhere. Training on these dense labels makes
+    the model emit a sharp peak at each impact instead of a plateau over a rally.
+    """
+
+    pose: FloatArray  # (WINDOW, 17, 3)
+    ball: FloatArray  # (WINDOW, 3)
+    labels: FloatArray  # (WINDOW,): per-frame 0/1
+    source_frame: int  # centre frame of the window
+
+
+def build_dense_windows(
+    persons_by_frame: dict[int, list[FloatArray]],
+    ball_by_frame: dict[int, tuple[float, float]],
+    blocks: list[ShotBlock],
+    *,
+    tol: int = 1,
+    stride: int = WINDOW // 2,
+    seed: int = 0,
+) -> list[DenseWindow]:
+    """Windows sweeping the timeline, each with a per-frame impact label.
+
+    Centres are the shot impacts (so every shot is covered) plus a regular stride
+    over the rally region (so the model sees plenty of no-shot frames in context,
+    including the tricky between-shots gaps). `tol` widens each impact to +-tol
+    frames so a slightly-off human mark still lands on a positive.
+    """
+    shot_frames = sorted(b.centre for b in blocks)
+    if not shot_frames:
+        return []
+    lo, hi = min(persons_by_frame), max(persons_by_frame)
+    centres = set(shot_frames)
+    centres.update(range(lo + _HALF, hi - _HALF, stride))  # regular sweep
+
+    out: list[DenseWindow] = []
+    for c in sorted(centres):
+        w = _window_around(c, persons_by_frame, ball_by_frame)
+        if w is None:
+            continue
+        labels = np.zeros(WINDOW, dtype=np.float32)
+        for i, f in enumerate(range(c - _HALF, c - _HALF + WINDOW)):
+            if any(abs(f - s) <= tol for s in shot_frames):
+                labels[i] = 1.0
+        out.append(DenseWindow(w[0], w[1], labels, c))
+    return out
+
+
+@dataclass
+class DenseDataset:
+    """Persisted dense windows: pose (N,T,17,3), ball (N,T,3), labels (N,T), match."""
+
+    pose: FloatArray
+    ball: FloatArray
+    labels: FloatArray  # (N, T) per-frame
+    matches: npt.NDArray[np.int64]
+
+    def save(self, path: Path | str) -> None:
+        np.savez_compressed(
+            path, pose=self.pose, ball=self.ball, labels=self.labels, matches=self.matches
+        )
+
+
+def to_dense_dataset(windows_per_match: list[list[DenseWindow]]) -> DenseDataset:
+    """Stack dense windows from several matches with a per-source match id."""
+    pose, ball, labels, matches = [], [], [], []
+    for match_id, windows in enumerate(windows_per_match):
+        for w in windows:
+            pose.append(w.pose)
+            ball.append(w.ball)
+            labels.append(w.labels)
+            matches.append(match_id)
+    return DenseDataset(
+        pose=np.stack(pose).astype(np.float32),
+        ball=np.stack(ball).astype(np.float32),
+        labels=np.stack(labels).astype(np.float32),
+        matches=np.array(matches, dtype=np.int64),
+    )
+
+
+def dense_from_match(
+    pose_json: Path, ball_json: Path, shots_csv: Path, *, tol: int = 1
+) -> list[DenseWindow]:
+    """Dense windows from PadelTracker100 GT (pose+ball JSON, 30fps)."""
+    persons = _load_persons(pose_json)
+    ball = {s.frame_index: (s.x_px, s.y_px) for s in load_ball_track(ball_json)}
+    blocks = load_shot_blocks(shots_csv)
+    return build_dense_windows(persons, ball, blocks, tol=tol)
+
+
+def dense_from_our_data(
+    pose_cache_dir: Path, ball_json: Path, shots_csv: Path, *, fps_step: int = 1, tol: int = 1
+) -> list[DenseWindow]:
+    """Dense windows from our pipeline (YOLO pose cache + ball + quick-mark CSV)."""
+    from padel_cv.pose_cache import PoseCache
+
+    cache = PoseCache(pose_cache_dir)
+    persons = {f: list(kp) for f, kp in cache.keypoints_by_frame().items()}
+    ball = _load_ball_any(ball_json)
+    blocks = load_shot_blocks(shots_csv)
+    persons, ball, blocks = _subsample(persons, ball, blocks, fps_step)
+    return build_dense_windows(persons, ball, blocks, tol=tol)
+
+
 # Shot-type classes for the classifier (Modelo 2). Same taxonomy as the pose-only
 # baseline (ADR-0008), so the comparison is like-for-like. No NoShot here: the
 # classifier only sees windows the detector already accepted as shots.
@@ -277,10 +384,29 @@ def _subsample(
     """
     if step <= 1:
         return persons, ball, blocks
-    persons = {f // step: v for f, v in persons.items() if f % step == 0}
-    ball = {f // step: v for f, v in ball.items() if f % step == 0}
+    # Reindex every frame to f // step (do NOT drop by parity — that would lose the
+    # shots and ball marked on odd frames). On collision the later pose wins; ball
+    # keeps the first value seen for that index.
+    new_persons: dict[int, list[FloatArray]] = {}
+    for f in sorted(persons):
+        new_persons[f // step] = persons[f]
+    new_ball: dict[int, tuple[float, float]] = {}
+    for f in sorted(ball):
+        new_ball.setdefault(f // step, ball[f])
     new_blocks = [ShotBlock(b.start // step, b.end // step, b.category) for b in blocks]
-    return persons, ball, new_blocks
+    return new_persons, new_ball, new_blocks
+
+
+def _load_ball_any(ball_json: Path) -> dict[int, tuple[float, float]]:
+    """Ball per frame from either a COCO detections file or the annotator's
+    hand-corrected `{frame: [x, y]}` sidecar (the ball marked AT each shot)."""
+    import json
+
+    data = json.loads(ball_json.read_text())
+    if isinstance(data, dict) and "images" in data:  # COCO detections
+        return {s.frame_index: (s.x_px, s.y_px) for s in load_ball_track(ball_json)}
+    # Hand-corrected sidecar: {"1234": [x, y], ...}
+    return {int(k): (float(v[0]), float(v[1])) for k, v in data.items()}
 
 
 def assemble_from_our_data(
@@ -293,12 +419,13 @@ def assemble_from_our_data(
     seed: int = 0,
 ) -> list[DetectWindow]:
     """Detector windows from OUR pipeline: YOLO pose cache + our ball + a
-    quick-mark CSV. `fps_step` subsamples the timeline (2 turns 60fps -> 30fps)."""
+    quick-mark CSV. `fps_step` subsamples the timeline (2 turns 60fps -> 30fps).
+    `ball_json` may be COCO detections or the annotator's hand-corrected sidecar."""
     from padel_cv.pose_cache import PoseCache
 
     cache = PoseCache(pose_cache_dir)
     persons = {f: list(kp) for f, kp in cache.keypoints_by_frame().items()}
-    ball = {s.frame_index: (s.x_px, s.y_px) for s in load_ball_track(ball_json)}
+    ball = _load_ball_any(ball_json)
     blocks = load_shot_blocks(shots_csv)
     persons, ball, blocks = _subsample(persons, ball, blocks, fps_step)
     return build_detect_windows(persons, ball, blocks, negatives_ratio=negatives_ratio, seed=seed)

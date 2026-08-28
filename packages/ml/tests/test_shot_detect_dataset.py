@@ -89,11 +89,13 @@ def test_subsample_renumbers_frames_and_blocks() -> None:
 
     persons = {f: [np.zeros((17, 3), np.float32)] for f in range(0, 10)}
     ball = {f: (float(f), 0.0) for f in range(0, 10)}
-    blocks = [ShotBlock(4, 6, "Forehand")]  # centre 5 at 60fps -> 2/3 -> centre 2 at 30fps
+    blocks = [ShotBlock(4, 6, "Forehand")]  # centre 5 at 60fps -> centre 2 at 30fps
     p, b, bl = _subsample(persons, ball, blocks, step=2)
-    assert set(p.keys()) == {0, 1, 2, 3, 4}  # even frames renumbered
+    # Every frame reindexed to f//2 (odd frames NOT dropped): 0..9 -> 0..4.
+    assert set(p.keys()) == {0, 1, 2, 3, 4}
     assert bl[0].start == 2 and bl[0].end == 3
-    assert b[4] == (8.0, 0.0)  # frame 8 -> index 4, value preserved
+    # A ball marked on an ODD frame survives: frame 5 -> index 2, kept.
+    assert b[2] == (4.0, 0.0)  # first frame mapping to index 2 (frame 4) wins
 
 
 def test_subsample_step1_is_noop() -> None:
@@ -104,3 +106,53 @@ def test_subsample_step1_is_noop() -> None:
     blocks = [ShotBlock(0, 2, "Smash")]
     p, _b, bl = _subsample(persons, {}, blocks, step=1)
     assert p == persons and bl == blocks
+
+
+def test_dense_windows_label_per_frame() -> None:
+    from padel_ml.shot_detect_dataset import WINDOW, build_dense_windows
+    from padel_ml.shot_eval import ShotBlock
+
+    # one player present across 200 frames, a shot at frame 100
+    persons = {f: [np.zeros((17, 3), np.float32)] for f in range(200)}
+    for kp in [persons[f][0] for f in range(200)]:
+        kp[5] = [480, 300, 0.9]
+        kp[6] = [520, 300, 0.9]
+        kp[11] = [485, 400, 0.9]
+        kp[12] = [515, 400, 0.9]
+    ball = {f: (500.0, 350.0) for f in range(200)}
+    blocks = [ShotBlock(100, 100, "Forehand")]
+    wins = build_dense_windows(persons, ball, blocks, tol=1, stride=WINDOW)
+    # the window centred on 100 must have 1s only around frame 100 (+-1)
+    centred = next(w for w in wins if w.source_frame == 100)
+    assert centred.labels.shape == (WINDOW,)
+    assert centred.labels.sum() == 3  # frames 99,100,101
+    # a window far from the shot is all zeros
+    far = [w for w in wins if abs(w.source_frame - 100) > WINDOW]
+    assert far and far[0].labels.sum() == 0
+
+
+def test_dense_dataset_stacks_labels() -> None:
+    from padel_ml.shot_detect_dataset import (
+        WINDOW,
+        build_dense_windows,
+        to_dense_dataset,
+    )
+    from padel_ml.shot_eval import ShotBlock
+
+    persons = {f: [_full_person()] for f in range(120)}
+    ball = {f: (500.0, 400.0) for f in range(120)}
+    b = [ShotBlock(60, 60, "Smash")]
+    m0 = build_dense_windows(persons, ball, b, stride=WINDOW)
+    ds = to_dense_dataset([m0])
+    assert ds.pose.shape[1:] == (WINDOW, 17, 3)
+    assert ds.labels.shape[1] == WINDOW
+    assert set(ds.matches.tolist()) == {0}
+
+
+def _full_person() -> np.ndarray:
+    kp = np.zeros((17, 3), np.float32)
+    kp[5] = [480, 300, 0.9]
+    kp[6] = [520, 300, 0.9]
+    kp[11] = [485, 400, 0.9]
+    kp[12] = [515, 400, 0.9]
+    return kp
