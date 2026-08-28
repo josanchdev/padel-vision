@@ -200,22 +200,29 @@ def build_dense_windows(
     blocks: list[ShotBlock],
     *,
     tol: int = 1,
-    stride: int = WINDOW // 2,
+    negatives_ratio: float = 1.0,
+    min_gap: int = WINDOW,
     seed: int = 0,
 ) -> list[DenseWindow]:
-    """Windows sweeping the timeline, each with a per-frame impact label.
+    """Windows centred on shots + sampled no-shot windows, each with a per-frame
+    label (1 at impacts +-tol, 0 elsewhere).
 
-    Centres are the shot impacts (so every shot is covered) plus a regular stride
-    over the rally region (so the model sees plenty of no-shot frames in context,
-    including the tricky between-shots gaps). `tol` widens each impact to +-tol
-    frames so a slightly-off human mark still lands on a positive.
+    Centres are the shot impacts (every shot covered) PLUS `negatives_ratio` times
+    as many windows sampled from rally frames far (>min_gap) from any shot. Each
+    positive window already carries no-shot frames at its edges — including the
+    between-shots gaps — so the model learns to drop between peaks WITHOUT the
+    labels collapsing to all-zero (sweeping the whole timeline drowns the rare
+    impact frames and the model predicts 0 everywhere).
     """
+    rng = np.random.default_rng(seed)
     shot_frames = sorted(b.centre for b in blocks)
     if not shot_frames:
         return []
-    lo, hi = min(persons_by_frame), max(persons_by_frame)
-    centres = set(shot_frames)
-    centres.update(range(lo + _HALF, hi - _HALF, stride))  # regular sweep
+    centres = list(shot_frames)
+    all_frames = sorted(persons_by_frame)
+    neg_pool = [f for f in all_frames if all(abs(f - s) > min_gap for s in shot_frames)]
+    rng.shuffle(neg_pool)
+    centres.extend(neg_pool[: int(len(shot_frames) * negatives_ratio)])
 
     out: list[DenseWindow] = []
     for c in sorted(centres):

@@ -121,7 +121,7 @@ def test_dense_windows_label_per_frame() -> None:
         kp[12] = [515, 400, 0.9]
     ball = {f: (500.0, 350.0) for f in range(200)}
     blocks = [ShotBlock(100, 100, "Forehand")]
-    wins = build_dense_windows(persons, ball, blocks, tol=1, stride=WINDOW)
+    wins = build_dense_windows(persons, ball, blocks, tol=1, negatives_ratio=1.0)
     # the window centred on 100 must have 1s only around frame 100 (+-1)
     centred = next(w for w in wins if w.source_frame == 100)
     assert centred.labels.shape == (WINDOW,)
@@ -142,7 +142,7 @@ def test_dense_dataset_stacks_labels() -> None:
     persons = {f: [_full_person()] for f in range(120)}
     ball = {f: (500.0, 400.0) for f in range(120)}
     b = [ShotBlock(60, 60, "Smash")]
-    m0 = build_dense_windows(persons, ball, b, stride=WINDOW)
+    m0 = build_dense_windows(persons, ball, b, negatives_ratio=1.0)
     ds = to_dense_dataset([m0])
     assert ds.pose.shape[1:] == (WINDOW, 17, 3)
     assert ds.labels.shape[1] == WINDOW
