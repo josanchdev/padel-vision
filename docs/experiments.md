@@ -718,3 +718,30 @@ builder denso por-frame + inferencia deslizante + pulido.
 global), porque su pose es justo lo que se pasa al clasificador (Modelo 2). El
 golpeador se elige por "muñeca más cercana a la pelota"; a veces falla si la
 pelota está mal detectada (ilumina al jugador equivocado) → a pulir.
+
+## Localizer por-frame v1 — funciona el concepto, recall ~50% (ago 2026)
+
+Rediseño del detector a localización por-FRAME (ShotLocalizer + builder denso
+`build_dense_windows` + `shot_localizer_train`), tras ver que el por-ventana
+saturaba en rallies. Evaluación honesta (entrenar con viejos + mitad de citys_cup,
+deslizar sobre el rally de validación):
+
+- **La meseta desaparece**: la señal por-frame oscila (media 0,53, picos 0,98) en
+  vez de ser plana en 1,00. El concepto por-frame funciona.
+- **Recall tope ~50%**: de 4 golpes del clip detecta 2 como pico; los otros 2 NO
+  generan pico a ningún umbral → no es cuestión de umbral, esos golpes no dan
+  señal (probable: pelota/pose falla en ese impacto).
+- **Precisión depende del umbral**: thr 0,5 → 10 %; thr 0,95 → 67 % (3 picos). La
+  señal base es ruidosa; subir el umbral limpia falsos pero no recupera los golpes
+  perdidos.
+
+**Bugs resueltos por el camino (lecciones):** (1) barrer TODA la línea temporal
+para los negativos ahogaba los frames de impacto (~3 %) y el modelo colapsaba a
+predecir 0 en todo (señal 0,000) → el builder muestrea negativos, no barre. (2)
+Entrenar SIN citys_cup no generaliza a citys_cup (señal 0,000 al deslizar) — el
+mismo domain-gap del detector de ventana: hay que incluir datos del dominio propio
+en train.
+
+**Veredicto:** el por-frame es la dirección correcta (resuelve la meseta) pero es
+un v1 que necesita: más golpes etiquetados (413→~900), suavizado temporal de la
+señal, y mejor pelota en el frame de impacto (donde más falla). Pendiente de pulir.
