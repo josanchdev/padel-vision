@@ -81,3 +81,26 @@ def test_to_dataset_stacks_with_match_ids() -> None:
     assert ds.ball.shape[1:] == (WINDOW, 3)
     assert set(ds.matches.tolist()) == {0, 1}
     assert len(ds.labels) == len(m0) + len(m1)
+
+
+def test_subsample_renumbers_frames_and_blocks() -> None:
+    from padel_ml.shot_detect_dataset import _subsample
+    from padel_ml.shot_eval import ShotBlock
+
+    persons = {f: [np.zeros((17, 3), np.float32)] for f in range(0, 10)}
+    ball = {f: (float(f), 0.0) for f in range(0, 10)}
+    blocks = [ShotBlock(4, 6, "Forehand")]  # centre 5 at 60fps -> 2/3 -> centre 2 at 30fps
+    p, b, bl = _subsample(persons, ball, blocks, step=2)
+    assert set(p.keys()) == {0, 1, 2, 3, 4}  # even frames renumbered
+    assert bl[0].start == 2 and bl[0].end == 3
+    assert b[4] == (8.0, 0.0)  # frame 8 -> index 4, value preserved
+
+
+def test_subsample_step1_is_noop() -> None:
+    from padel_ml.shot_detect_dataset import _subsample
+    from padel_ml.shot_eval import ShotBlock
+
+    persons = {0: [np.zeros((17, 3), np.float32)]}
+    blocks = [ShotBlock(0, 2, "Smash")]
+    p, _b, bl = _subsample(persons, {}, blocks, step=1)
+    assert p == persons and bl == blocks

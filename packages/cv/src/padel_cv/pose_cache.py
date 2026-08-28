@@ -66,15 +66,24 @@ def extract_poses_to_cache(
     image_size: int = 1920,
     shard_size: int = 5000,
     max_frames: int | None = None,
+    device: str | None = None,
 ) -> int:
     """Detect and track poses across a video, writing resumable shards.
 
     Returns the number of frames processed in this run (0 if already complete).
+    `device` forces the inference device; defaults to CUDA when a GPU is present
+    (Ultralytics can otherwise fall back to CPU, which is far slower on 1080p).
     """
     cache_dir.mkdir(parents=True, exist_ok=True)
     resume_from = _covered_frames(cache_dir, shard_size)
 
-    pipeline = Pipeline([PlayerPoseStage(confidence=confidence, image_size=image_size)])
+    if device is None:
+        import torch
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    pipeline = Pipeline(
+        [PlayerPoseStage(confidence=confidence, image_size=image_size, device=device)]
+    )
     shard_frames: list[int] = []
     shard_kpts: list[FloatArray] = []
     shard_tracks: list[IntArray] = []

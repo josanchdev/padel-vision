@@ -264,6 +264,46 @@ def _load_persons(pose_json: Path) -> dict[int, list[FloatArray]]:
     return out
 
 
+def _subsample(
+    persons: dict[int, list[FloatArray]],
+    ball: dict[int, tuple[float, float]],
+    blocks: list[ShotBlock],
+    step: int,
+) -> tuple[dict[int, list[FloatArray]], dict[int, tuple[float, float]], list[ShotBlock]]:
+    """Keep every `step`-th frame and renumber to a dense 0..N timeline.
+
+    A 60fps video subsampled by 2 becomes 30fps, so a WINDOW-frame clip spans the
+    same real time as the 30fps PadelTracker100 clips — the two sources can mix.
+    """
+    if step <= 1:
+        return persons, ball, blocks
+    persons = {f // step: v for f, v in persons.items() if f % step == 0}
+    ball = {f // step: v for f, v in ball.items() if f % step == 0}
+    new_blocks = [ShotBlock(b.start // step, b.end // step, b.category) for b in blocks]
+    return persons, ball, new_blocks
+
+
+def assemble_from_our_data(
+    pose_cache_dir: Path,
+    ball_json: Path,
+    shots_csv: Path,
+    *,
+    fps_step: int = 1,
+    negatives_ratio: float = 1.0,
+    seed: int = 0,
+) -> list[DetectWindow]:
+    """Detector windows from OUR pipeline: YOLO pose cache + our ball + a
+    quick-mark CSV. `fps_step` subsamples the timeline (2 turns 60fps -> 30fps)."""
+    from padel_cv.pose_cache import PoseCache
+
+    cache = PoseCache(pose_cache_dir)
+    persons = {f: list(kp) for f, kp in cache.keypoints_by_frame().items()}
+    ball = {s.frame_index: (s.x_px, s.y_px) for s in load_ball_track(ball_json)}
+    blocks = load_shot_blocks(shots_csv)
+    persons, ball, blocks = _subsample(persons, ball, blocks, fps_step)
+    return build_detect_windows(persons, ball, blocks, negatives_ratio=negatives_ratio, seed=seed)
+
+
 def to_dataset(windows_per_match: list[list[DetectWindow]]) -> DetectDataset:
     """Stack windows from several matches into arrays with a match id (cross-match)."""
     pose, ball, labels, matches = [], [], [], []
