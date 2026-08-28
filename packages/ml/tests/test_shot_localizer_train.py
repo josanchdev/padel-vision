@@ -54,3 +54,16 @@ def test_averaged_probs_smooths_via_overlap(monkeypatch) -> None:
     out = slt.sliding_probs_averaged(_ConstModel(), {}, {}, 0, 40, step=4, device="cpu")
     assert out
     assert all(abs(v - 0.5) < 1e-5 for v in out.values())
+
+
+def test_min_run_drops_isolated_spikes() -> None:
+    # An isolated 1-frame spike vs a sustained run. min_run=4 keeps only the run.
+    probs = {f: 0.1 for f in range(100)}
+    probs[20] = 0.9  # lone spike
+    for f in range(50, 56):  # sustained run around 52
+        probs[f] = 0.9
+    lenient = peaks_from_probs(probs, threshold=0.5, min_gap=8, min_run=1)
+    strict = peaks_from_probs(probs, threshold=0.5, min_gap=8, min_run=4, run_window=5)
+    assert 20 in [e.frame for e in lenient]  # spike survives min_run=1
+    assert 20 not in [e.frame for e in strict]  # spike dropped by min_run=4
+    assert any(50 <= e.frame <= 55 for e in strict)  # the run survives

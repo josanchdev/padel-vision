@@ -134,21 +134,38 @@ def sliding_probs_averaged(
 
 
 def peaks_from_probs(
-    probs: dict[int, float], threshold: float = 0.5, min_gap: int = 8
+    probs: dict[int, float],
+    threshold: float = 0.5,
+    min_gap: int = 8,
+    min_run: int = 1,
+    run_window: int = 5,
 ) -> list[ShotEventLoc]:
     """Local maxima of the per-frame signal above `threshold`, at least `min_gap`
-    frames apart — one event per shot (replaces the failed window-level NMS)."""
+    frames apart — one event per shot (replaces the failed window-level NMS).
+
+    `min_run`/`run_window`: a real shot gives a SUSTAINED response, a noise spike
+    doesn't. A peak only counts if at least `min_run` of the `run_window` frames
+    centred on it are above `threshold` (e.g. 4 of 5). This drops the isolated
+    "pum, shot" false peaks Jorge saw while keeping true shots.
+    """
     events: list[ShotEventLoc] = []
+    half = run_window // 2
     for f in sorted(probs):
         p = probs[f]
         if p < threshold:
             continue
         lo = probs.get(f - 1, 0.0)
         hi = probs.get(f + 1, 0.0)
-        if p >= lo and p >= hi:  # local max
-            if events and f - events[-1].frame < min_gap:
-                if p > events[-1].prob:  # keep the stronger of two close peaks
-                    events[-1] = ShotEventLoc(f, p)
-            else:
-                events.append(ShotEventLoc(f, p))
+        if not (p >= lo and p >= hi):  # local max only
+            continue
+        if min_run > 1:  # require a sustained run around the peak
+            window = range(f - half, f - half + run_window)
+            run = sum(1 for k in window if probs.get(k, 0.0) >= threshold)
+            if run < min_run:
+                continue
+        if events and f - events[-1].frame < min_gap:
+            if p > events[-1].prob:  # keep the stronger of two close peaks
+                events[-1] = ShotEventLoc(f, p)
+        else:
+            events.append(ShotEventLoc(f, p))
     return events
