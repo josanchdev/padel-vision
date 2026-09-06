@@ -24,12 +24,12 @@ falsos del audio). Cada señal en lo que es mejor.
 
 ## Decisiones
 
-- **A — Detector = AUDIO (CRNN SED), binario.** Se replica el método del paper de
-  pádel (log-Mel 40 bins → 3×conv2D + 2×GRU bidireccional → per-frame sigmoid,
-  binary focal cross-entropy). El audio se extrae del PROPIO vídeo (móvil/YouTube)
-  con ffmpeg — no un fichero aparte. Reemplaza todo lo de pose+pelota para
-  DETECTAR. Se replica primero (baseline con F1 conocido), mejoras después si hay
-  margen.
+- **A — Detector = AUDIO (CRNN SED), binario. ✅ HECHO (F1 0,93).** Replicado el
+  método del paper (log-Mel 40 bins → 3×conv2D pool-frecuencia + 2×GRU bi →
+  per-frame sigmoid, binary focal cross-entropy). Entrenado en CVSPORTS_Padel,
+  split cross-rally, eval event-based (collar 250 ms): **F1 0,928 · prec 0,99 ·
+  recall 0,87** — reproduce el paper (0,92). El audio se extrae del PROPIO vídeo
+  (móvil/YouTube) con ffmpeg. Módulos: audio_dataset/audio_detector/audio_train.
 - **B — Clasificador de TIPO = RGB (contribución propia).** El paper para en la
   detección binaria; clasificar el tipo (derecha/revés/remate/saque/…) es NUESTRA
   aportación. Se hace sobre RGB (píxeles) porque conserva la información que
@@ -41,15 +41,52 @@ falsos del audio). Cada señal en lo que es mejor.
   impacto. NO se decide inventando: se leerá el/los papers de RGB/PES a fondo
   (como se hizo con el audio) cuando el audio esté validado. Hipótesis de partida:
   golpe entero (el gesto está en el movimiento) y probablemente contexto + detalle.
-- **D — La PELOTA se mantiene** como señal de apoyo (trayectoria, "quién golpea"
-  por proximidad), NO como detector de golpe (eso falla). TrackNet ya funciona
-  (F1 0,94). El paper también usa TrackNet.
-- **E — Orden:** (1) construir y validar el audio sobre su dataset (F1 + velocidad);
-  (2) con el audio funcionando, investigar RGB a fondo y cerrar su diseño; (3) ADR
-  de ampliación con el diseño RGB definitivo.
+- **D — El "QUIÉN golpea" se REPLICA del paper (no versión ingenua).** Decisión de
+  Jorge: esto es el BACKBONE, y hacerlo ingenuo (1 frame muñeca-pelota) es
+  inaceptable — cada eslabón multiplica al siguiente (detectar 30% × clasificar 25%
+  = nefasto; detectar 93% × jugador 84% = base sólida). Se replica el método del
+  paper (accuracy 83,7% jugador / 86,8% equipo):
+  - **Asignación por voto ponderado multi-frame** (ventana 500 ms/12 frames, peso
+    por distancia euclídea estandarizada, ec. 1), con fallbacks en cascada
+    pose→muñecas→bbox→bbox promedio ±2 s, + barrido secundario que usa la
+    alternancia de equipos.
+  - **Re-identificación de tracks por aparición/desaparición** (no visual — los
+    jugadores del mismo equipo visten igual): número de jugadores conocido (4),
+    lógica de "si un track termina para J1 y los demás siguen, el nuevo es J1".
+    Más elegante que nuestro ByteTrack+anclaje geométrico → se adopta el suyo.
+  - La PELOTA (TrackNet, F1 0,94) es la señal de "quién" por proximidad, como en el
+    paper. Se mantiene; NO como detector de golpe (eso falla).
+- **D2 — Homografía/pista: manual + fallback automático.** El paper usa puntos
+  manuales por torneo (cámara fija) para máxima precisión. Decisión de Jorge: dar
+  al usuario la OPCIÓN de marcar los puntos de su pista (mejor resultado); si no lo
+  hace, fallback a nuestro detector automático (court v6, 0,196 m, ADR-0006).
+- **E — Orden:** (1) detector de audio ✅ HECHO (F1 0,93); (2) replicar el backbone
+  de asignación (quién golpea) + re-id + homografía manual del paper; (3) validar el
+  audio en vídeo propio (generalización); (4) investigar RGB a fondo y diseñar el
+  clasificador de TIPO (contribución); (5) ADR de ampliación con el diseño RGB.
 - **F — Datos: usar lo que sirva, citar todo, descartar lo que no aporte.**
   CVSPORTS_Padel (audio+hits) para el detector; PadelTracker100 + etiquetado propio
   (tipo) para el clasificador; datasets que dejen de aportar se descartan sin drama.
+- **G — Reuso del paper: reimplementar + citar (legítimo).** Los métodos descritos
+  (asignación, re-id, homografía) se REIMPLEMENTAN a partir de su descripción
+  citando el paper — es lo estándar y correcto en investigación (las ideas no se
+  "copian", se implementan). El dataset es abierto → usar y citar. Nuestra
+  contribución ORIGINAL es el clasificador de TIPO, que el paper no hace.
+
+## El backbone (mapa completo)
+
+```
+Vídeo (con audio)
+  ├─ AUDIO → CRNN SED → "hit en t"          ✅ F1 0,93 (replicado)
+  ├─ POSE (YOLO) + re-id aparición/desap.   → 4 jugadores estables (replicar paper)
+  ├─ PELOTA (TrackNet) + homografía         → posición en pista
+  └─ hit + pelota + pose → voto multi-frame → QUIÉN golpeó (replicar paper, ~84%)
+        ↓  (hit localizado + jugador conocido)
+  RGB del golpeador → CLASIFICADOR DE TIPO  ← NUESTRA CONTRIBUCIÓN (a diseñar)
+        → derecha/revés/remate/saque  (+ "no-golpe" = verificador del audio)
+```
+Calidad del backbone = techo del sistema. Por eso se replica el SotA (no versiones
+ingenuas) antes de añadir el clasificador.
 
 ## Consecuencias
 
@@ -61,8 +98,8 @@ falsos del audio). Cada señal en lo que es mejor.
 - (+) Se replica un método publicado (defendible, citable) en vez de inventar.
 - (−) Dos modalidades nuevas (audio, RGB) que montar; RGB es pesado y quizá exige
   muchos datos de tipo (a evaluar).
-- (−) El "quién golpea" sigue siendo un punto a resolver (pelota/pose, o que el RGB
-  del frame entero lo aprenda) — parte del diseño fino pendiente (Decisión C).
+- (+) El "quién golpea" tiene receta probada del paper (voto multi-frame + re-id +
+  alternancia, ~84%) → se replica, no se inventa (Decisión D).
 - (−) Se retira pose+pelota como DETECTOR; el código del localizer/detector se
   conserva como baseline comparativo para la memoria (heurística vs pose+pelota vs
   audio).
