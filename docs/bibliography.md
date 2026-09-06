@@ -92,3 +92,17 @@ autores/venue, enlace, y para qué se usó aquí. Verificar el formato de cita f
 usada o consultada está aquí con su fuente. Las decisiones de por qué se adoptó o
 descartó cada una están en `docs/experiments.md` (bitácora) y `docs/decisions/`
 (ADRs).
+
+## Dataset de AUDIO de golpes (nuevo rumbo, feb 2026)
+
+- **Padel Hit Detection Dataset (CVSPORTS_Padel)** — Decorte, Paré, Vanhaeverbeke,
+  Taelman, Slembrouck, Verstockt (Ghent/IDLab). Publicado con el paper CVPRW 2024.
+  - Dataset: https://cloud.ilabt.imec.be/index.php/s/TFimLDWno6W9ED3
+  - Repo/descripción: https://github.com/robbedec/datasets/tree/master/CVsports/Padel
+  - Cita: Proceedings of the IEEE/CVF CVPR Workshops 2024, pp. 3306-3314.
+  *Contenido:* 99 rallies (5h28min, 11 torneos), vídeo 25fps H.264 CON AUDIO (aac
+  48kHz), **2377 golpes anotados** (`hits.csv`: filename,start,end en segundos),
+  asignación de jugador (`hit_assignments.xlsx`), scoreboard oculto.
+  *Uso:* GT de audio+golpes alineado para entrenar el detector por audio (CRNN SED
+  log-Mel). Resuelve el obstáculo de no tener audio+GT. Descargado en
+  `data/raw/padel_audio_dataset/`. Cita obligatoria.
