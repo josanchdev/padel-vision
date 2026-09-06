@@ -124,3 +124,43 @@ audio de YouTube no alinea con las etiquetas de citys_cup (el vídeo 1080p origi
 del etiquetado se perdió, YouTube re-sirvió otra versión). Para probar audio+GT hay
 que re-etiquetar unos golpes sobre el vídeo actual (con audio sincronizado) o
 grabar/conseguir vídeo de pádel con audio Y etiquetas alineadas.
+
+## Pipeline de audio EXACTO del SotA de pádel (Decorte et al., leído del PDF)
+
+Del PDF completo del paper (Decorte et al., CVPRW 2024). NO usan detección de
+picos (lo que probamos y falló) — usan un modelo **SED (Sound Event Detection)**
+aprendido:
+
+**Features:** 40 bins **log-Mel** (rango 0-42 kHz), FFT window 2048, 50% overlap,
+en secuencias de 256 frames. (El espectrograma mel = "imagen" tiempo×frecuencia.)
+
+**Arquitectura (SED-net adaptada, CRNN, 109k params):**
+```
+conv2D 1→64 (3x3) ReLU + maxpool(1x5)
+conv2D 64→64 (3x3) ReLU + maxpool(1x2)
+conv2D 64→64 (3x3) ReLU + maxpool(1x2)
+reshape (12x64)→(256x3)
+bidirectional GRU (256x3)→(256x32) tanh
+bidirectional GRU (256x32)→(256x16) tanh
+time distributed dense →(256x16)
+time distributed dense →(256x1) sigmoid   # per-frame prob de golpe
+```
+**Loss: binary focal cross-entropy** (para el desbalance). Adam lr 0.001, batch 128.
+
+**Ellos mismos reconocen el ruido:** el espectrograma "indica golpes pero también
+tiene ruido de pasos, jugadores hablando, aplausos" → por eso el modelo APRENDE a
+distinguir, no un umbral (confirma por qué nuestro detector de picos falló).
+Ellos también usan **TrackNet** para la pelota (igual que nosotros) para saber qué
+jugador golpea.
+
+**DATASET ABIERTO (el GT de audio que nos faltaba):**
+`https://cloud.ilabt.imec.be/index.php/s/TFimLDWno6W9ED3`
+- 5 h 28 min de pádel (11 torneos), VÍDEO + AUDIO
+- **2377 golpes anotados** con ventanas de inicio/fin
+- 319 con "qué jugador golpeó"
+Cita obligatoria: Decorte et al., "Multi-Modal Hit Detection and Positional
+Analysis in Padel Competitions", CVPRW 2024 (ver docs/bibliography.md).
+
+**Plan a decidir:** replicar el CRNN SED sobre log-Mel entrenado con ESTE dataset
+(audio+GT alineado, resuelve nuestro obstáculo de datos). Es la vía con F1 92 %
+demostrado en nuestro deporte exacto.
