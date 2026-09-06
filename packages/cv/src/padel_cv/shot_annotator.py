@@ -16,6 +16,7 @@ Keys:
   SPACE   play / pause              + / -   play faster / slower
   <- / -> back / forward 1 second   Up/Down back / forward 5 seconds
   a / d   step 1 frame (fine-tune the contact)   b / n   prev / next marked shot
+  c / v   prev / next AUDIO hit-candidate (jumps to a moment that sounded like a hit)
   1..4    mark shot at current frame (Serve/Forehand/Backhand/Smash)
   w       toggle 'from wall' on last mark      z   undo last mark
   LEFT-CLICK (while paused)  move/set the ball on this frame (fix the detector)
@@ -52,7 +53,7 @@ _BALL_COLOR = (0, 255, 255)
 _HELP_LINES = [
     "SPACE play/pause  +/- speed   <-/-> 1s   Up/Dn 5s   a/d 1 frame",
     "1 Serve 2 Forehand 3 Backhand 4 Smash   w wall   z undo",
-    "b/n prev/next shot   CLICK=move ball   s save   q save+quit   ESC no-save",
+    "c/v prev/next AUDIO hit   b/n prev/next shot   CLICK ball   s save   q quit",
 ]
 
 
@@ -241,8 +242,15 @@ def annotate(
     csv_out: Path,
     ball_json: Path | None = None,
     start_frame: int = 0,
+    audio_candidates: list[int] | None = None,
 ) -> list[ShotMark]:
-    """Run the interactive annotator; returns marks (saved to csv_out on q/s)."""
+    """Run the interactive annotator; returns marks (saved to csv_out on q/s).
+
+    `audio_candidates`: frame indices of audio hit-candidates (peaks). With them,
+    'v'/'c' jump to the next/previous candidate and pause there, so you review only
+    the moments that sounded like a hit — much faster, and each stop doubles as a
+    check (confirm a hit, or skip a bounce/clap = an audio false positive).
+    """
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         raise FileNotFoundError(f"Could not open video: {video_path}")
@@ -250,6 +258,7 @@ def annotate(
     fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
     sec = round(fps)  # frames per second, for 1-second jumps
     ball = _load_ball(ball_json)
+    cand = sorted(audio_candidates or [])  # audio hit-candidate frames
     marks = load_marks(csv_out)  # resume if the CSV already exists
     ball_fix = load_ball_corrections(csv_out)  # hand-corrected ball positions
 
@@ -295,6 +304,10 @@ def annotate(
         canvas: ImageArray = image.copy().astype(np.uint8)
         _draw_ball(canvas, ball_xy, corrected=idx in ball_fix)
         _overlay(canvas, idx, total, fps, marks, paused, _PLAY_SPEEDS[speed_i], ball_xy is not None)
+        # Flag when we're on an audio hit-candidate (within a couple frames): this
+        # is a moment that sounded like a hit — confirm it or skip it.
+        if cand and any(abs(c - idx) <= 2 for c in cand):
+            _text(canvas, "AUDIO HIT candidate", (12, 112), 0.8, (0, 255, 0))
         cv2.imshow(_WINDOW, canvas)
 
         delay = 1 if paused else max(1, int(1000 / (fps * _PLAY_SPEEDS[speed_i])))
@@ -341,6 +354,14 @@ def annotate(
                 idx, paused = nxt, True
         elif key == ord("b"):  # jump to previous marked shot
             prv = _next_shot(idx, marks, forward=False)
+            if prv is not None:
+                idx, paused = prv, True
+        elif key == ord("v"):  # jump to NEXT audio hit-candidate
+            nxt = next((f for f in cand if f > idx), None)
+            if nxt is not None:
+                idx, paused = nxt, True
+        elif key == ord("c"):  # jump to PREVIOUS audio hit-candidate
+            prv = next((f for f in reversed(cand) if f < idx), None)
             if prv is not None:
                 idx, paused = prv, True
         elif key in SHOT_TYPES:

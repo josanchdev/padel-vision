@@ -314,6 +314,12 @@ def main() -> int:
     annot.add_argument("-o", "--out", type=Path, required=True, help="Output shots CSV")
     annot.add_argument("--ball", type=Path, default=None, help="Ball detections JSON to overlay")
     annot.add_argument("--start", type=int, default=0, help="Start at this frame")
+    annot.add_argument(
+        "--audio",
+        type=Path,
+        default=None,
+        help="Audio/video file: auto-jump to hit-candidates (c/v) — much faster",
+    )
 
     args = parser.parse_args()
     if args.command == "process":
@@ -368,9 +374,27 @@ def main() -> int:
     elif args.command == "sample-frames":
         sample_frames(args.input_dir, args.output, args.per_video, args.seed)
     elif args.command == "annotate-shots":
+        import cv2
+
         from padel_cv.shot_annotator import _marks_summary, annotate
 
-        marks = annotate(args.video, args.out, ball_json=args.ball, start_frame=args.start)
+        candidates: list[int] | None = None
+        if args.audio is not None:
+            from padel_ml.audio_hits import hit_candidates
+
+            cap = cv2.VideoCapture(str(args.video))
+            fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+            cap.release()
+            hits = hit_candidates(args.audio)
+            candidates = [round(h.time_s * fps) for h in hits]
+            print(f"{len(candidates)} candidatos de golpe por audio (tecla v = siguiente)")
+        marks = annotate(
+            args.video,
+            args.out,
+            ball_json=args.ball,
+            start_frame=args.start,
+            audio_candidates=candidates,
+        )
         print(f"\n{len(marks)} golpes anotados -> {args.out}")
         print("por tipo:", _marks_summary(marks))
     return 0

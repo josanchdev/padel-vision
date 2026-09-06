@@ -95,12 +95,59 @@ def onset_envelope(
     return (env / m).astype(np.float32), hop_s
 
 
+def highfreq_energy(
+    samples: FloatArray,
+    sr: int,
+    cutoff_hz: float = 3000.0,
+    hop_s: float = 0.005,
+    win_s: float = 0.01,
+) -> tuple[FloatArray, float]:
+    """RMS energy of the HIGH-frequency band (a racket pop is sharp/high-pitched;
+    voices and crowd rumble are low). High-passing before measuring energy makes
+    the hit stand out over commentary far better than raw energy. Returns
+    (energy_per_hop, hop_s). Normalized by a robust high percentile, not the global
+    max, so one loud clap doesn't flatten every real hit."""
+    from scipy import signal
+
+    sos = signal.butter(4, cutoff_hz, "hp", fs=sr, output="sos")
+    hp = signal.sosfilt(sos, samples).astype(np.float32)
+    hop = max(1, int(sr * hop_s))
+    win = max(hop, int(sr * win_s))
+    n = 1 + (len(hp) - win) // hop if len(hp) >= win else 0
+    e = np.empty(max(n, 0), dtype=np.float32)
+    for i in range(n):
+        frame = hp[i * hop : i * hop + win]
+        e[i] = float(np.sqrt(np.mean(frame * frame)))
+    norm = float(np.percentile(e, 99.5)) or 1.0
+    return np.clip(e / norm, 0.0, 1.0).astype(np.float32), hop_s
+
+
 @dataclass
 class AudioHit:
     """A detected hit from audio: time in seconds and its peak strength."""
 
     time_s: float
     strength: float
+
+
+def hit_candidates(
+    audio_path: Path,
+    cutoff_hz: float = 3000.0,
+    threshold: float = 0.25,
+    min_gap_s: float = 0.20,
+    sample_rate: int = 22050,
+    tmp_wav: Path | None = None,
+) -> list[AudioHit]:
+    """High-freq onset peaks = candidate hit times, for audio-assisted annotation.
+
+    These are PROPOSALS: the annotator jumps to each and the human confirms (a hit)
+    or rejects (a bounce/clap). Uses the high-pass band so it favours the pop.
+    """
+    wav = tmp_wav or audio_path.with_suffix(".hpwav.wav")
+    decode_to_wav(audio_path, wav, sample_rate)
+    _sr, samples = load_wav(wav)
+    e, hop_s = highfreq_energy(samples, _sr, cutoff_hz=cutoff_hz)
+    return detect_peaks(e, hop_s, threshold=threshold, min_gap_s=min_gap_s)
 
 
 def detect_peaks(
