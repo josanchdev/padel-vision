@@ -81,3 +81,22 @@ Fuentes:
 - Pádel audio+pose F1 92 %: Decorte et al., CVPRW 2024 (Multi-Modal Hit Detection
   in Padel), IEEE 10677985
 - T-DEED: Xarles et al., CVPR 2024
+
+## Nota técnica — descarga de audio/vídeo de YouTube (feb 2026)
+
+YouTube endureció su anti-bot: descargar audio/vídeo con yt-dlp da HTTP 403 y
+"SABR-only streaming". **Fix que funcionó** (documentado para no repetir la pelea):
+1. Instalar **deno** (JS runtime) — sin unzip: bajar el .zip del release y
+   descomprimir con `python -c "import zipfile..."`.
+2. Instalar el provider de PO token: `uv tool install yt-dlp --with
+   bgutil-ytdlp-pot-provider`, y clonar su server (`Brainicism/bgutil-ytdlp-pot-provider`),
+   `cd server && deno install` para las deps del `generate_once.ts`.
+3. **Actualizar yt-dlp** a >= 2026.08.19 (mejor soporte SABR); versiones viejas
+   fallan aunque el PO token esté.
+4. Descargar con `yt-dlp --js-runtimes deno -f "..."` (el provider genera el
+   PO token con deno automáticamente).
+
+Aprendizaje de datos: el vídeo 1080p60 original se perdió (crash WSL / limpieza);
+el audio del vídeo completo no alineaba con las etiquetas hechas sobre el 1080p.
+Solución: re-descargar el 1080p CON audio fusionado (mismo archivo) para que
+vídeo+audio+etiquetas estén sincronizados.
