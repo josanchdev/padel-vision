@@ -315,10 +315,19 @@ def main() -> int:
     annot.add_argument("--ball", type=Path, default=None, help="Ball detections JSON to overlay")
     annot.add_argument("--start", type=int, default=0, help="Start at this frame")
     annot.add_argument(
+        "--end", type=int, default=None, help="Only keep audio candidates before this frame"
+    )
+    annot.add_argument(
         "--audio",
         type=Path,
         default=None,
         help="Audio/video file: auto-jump to hit-candidates (c/v) — much faster",
+    )
+    annot.add_argument(
+        "--audio-threshold",
+        type=float,
+        default=0.5,
+        help="Audio candidate sensitivity (higher = fewer, only clear pops)",
     )
 
     args = parser.parse_args()
@@ -385,9 +394,11 @@ def main() -> int:
             cap = cv2.VideoCapture(str(args.video))
             fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
             cap.release()
-            hits = hit_candidates(args.audio)
-            candidates = [round(h.time_s * fps) for h in hits]
-            print(f"{len(candidates)} candidatos de golpe por audio (tecla v = siguiente)")
+            hits = hit_candidates(args.audio, threshold=args.audio_threshold)
+            frames = [round(h.time_s * fps) for h in hits]
+            end = args.end if args.end is not None else 10**12
+            candidates = [f for f in frames if args.start <= f < end]
+            print(f"{len(candidates)} candidatos de golpe por audio en el tramo (v = siguiente)")
         marks = annotate(
             args.video,
             args.out,
