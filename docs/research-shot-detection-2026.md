@@ -100,3 +100,27 @@ Aprendizaje de datos: el vídeo 1080p60 original se perdió (crash WSL / limpiez
 el audio del vídeo completo no alineaba con las etiquetas hechas sobre el 1080p.
 Solución: re-descargar el 1080p CON audio fusionado (mismo archivo) para que
 vídeo+audio+etiquetas estén sincronizados.
+
+## Prueba de concepto del AUDIO (feb 2026) — señal útil pero no trivial
+
+Con el fix de descarga se obtuvo el audio de citys_cup y se analizó el onset:
+- **El pop del golpe SÍ es detectable en juego limpio**: en rallies sin jaleo los
+  golpes aparecen como picos agudos, aislados y separados (evidencia
+  `docs/media/audio_highpass_3khz.png`, golpes en s303-305). Un filtro paso-alto
+  3 kHz (el pop es agudo, la voz grave) los realza.
+- **PERO con aplausos/público el audio se satura** (muro de energía HF en s308-312
+  del mismo gráfico) y el golpe no se distingue de un aplauso con detección de
+  picos simple.
+- **Normalización global engañosa**: normalizar el onset por el máximo de 65 min
+  (un aplauso fuerte) aplasta los golpes normales a ~0,02-0,05.
+
+**Lección:** el audio-solo con picos de energía NO basta (recall bajo con jaleo).
+Coincide con el paper de pádel: ellos usan un MODELO APRENDIDO sobre el audio
+(aprende la forma del pop) COMBINADO con pose (audio+pose → F1 92 %), no picos
+crudos. El audio es una señal fuerte a FUSIONAR, no un detector por umbral.
+
+**Obstáculo de datos:** los vídeos con GT (PadelTracker100) NO tienen audio; el
+audio de YouTube no alinea con las etiquetas de citys_cup (el vídeo 1080p original
+del etiquetado se perdió, YouTube re-sirvió otra versión). Para probar audio+GT hay
+que re-etiquetar unos golpes sobre el vídeo actual (con audio sincronizado) o
+grabar/conseguir vídeo de pádel con audio Y etiquetas alineadas.
