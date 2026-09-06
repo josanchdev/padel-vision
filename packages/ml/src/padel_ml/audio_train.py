@@ -119,6 +119,84 @@ def event_eval(
     return tp, fp, fn
 
 
+def fit_and_save(
+    dataset_dir: Path,
+    out_path: Path,
+    cache: Path | None = None,
+    exclude: set[str] | None = None,
+    epochs: int = 30,
+    seed: int = 0,
+    device: str | None = None,
+) -> Path:
+    """Train on every rally (minus `exclude`) and save weights + norm stats.
+
+    Unlike `train_audio_detector` (which holds a val split back to report F1),
+    this trains on all available data so the saved detector is as strong as
+    possible, and persists the standardization stats needed at inference.
+    """
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    rallies = build_all_rallies(dataset_dir, cache)
+    exclude = exclude or set()
+    train_r = [r for r in rallies if r.filename not in exclude]
+    xtr, ytr = _sequences(train_r)
+    mean = xtr.mean(axis=(0, 1), keepdims=True)
+    std = xtr.std(axis=(0, 1), keepdims=True) + 1e-6
+    xtr = ((xtr - mean) / std).astype(np.float32)
+
+    model = AudioHitCRNN().to(device)
+    opt = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    loader = DataLoader(
+        TensorDataset(torch.from_numpy(xtr), torch.from_numpy(ytr)),
+        batch_size=32,
+        shuffle=True,
+    )
+    for _ in range(epochs):
+        model.train()
+        for xb, yb in loader:
+            opt.zero_grad()
+            loss = focal_bce_loss(model(xb.to(device)), yb.to(device))
+            loss.backward()  # type: ignore[no-untyped-call]
+            opt.step()
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(
+        {
+            "state_dict": model.state_dict(),
+            "mean": mean.astype(np.float32),
+            "std": std.astype(np.float32),
+        },
+        out_path,
+    )
+    return out_path
+
+
+def detect_hits_in_audio(
+    audio_source: Path,
+    checkpoint: Path,
+    threshold: float = 0.5,
+    min_gap_frames: int = 8,
+    device: str | None = None,
+) -> list[float]:
+    """Run the saved detector over a video/audio file → list of hit times (s)."""
+    from padel_ml.audio_dataset import build_rally
+
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    ckpt = torch.load(checkpoint, map_location=device, weights_only=False)
+    model = AudioHitCRNN().to(device)
+    model.load_state_dict(ckpt["state_dict"])
+    model.eval()
+    mean, std = ckpt["mean"], ckpt["std"]
+
+    feats = build_rally(audio_source, []).features
+    feats = ((feats - mean[0]) / std[0]).astype(np.float32)
+    with torch.no_grad():
+        probs = torch.sigmoid(model(torch.from_numpy(feats)[None].to(device)))[0].cpu().numpy()
+    peaks = peaks_from_frames(probs, threshold=threshold, min_gap_frames=min_gap_frames)
+    return [frame_time(p) for p in peaks]
+
+
 def train_audio_detector(
     dataset_dir: Path,
     cache: Path | None = None,
