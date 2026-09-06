@@ -164,3 +164,29 @@ Analysis in Padel Competitions", CVPRW 2024 (ver docs/bibliography.md).
 **Plan a decidir:** replicar el CRNN SED sobre log-Mel entrenado con ESTE dataset
 (audio+GT alineado, resuelve nuestro obstáculo de datos). Es la vía con F1 92 %
 demostrado en nuestro deporte exacto.
+
+## Lectura COMPLETA del paper de audio — detalles clave (feb 2026)
+
+Tras leer el PDF entero (no solo el resumen), detalles que enriquecen el plan:
+
+**Asignación de jugador ("quién golpea") — receta robusta, replicable:**
+NO es "muñeca más cercana en 1 frame". Es un **voto ponderado sobre ventana de
+500ms (12 frames @25fps)** alrededor del golpe, con peso por distancia
+euclídea estandarizada (ec. 1), y fallbacks en cascada: pose→muñecas (mín. de las
+dos), sin pose→centro del bbox, sin bbox→bbox promedio en ±2s. Barrido secundario
+que usa que los equipos golpean ALTERNÁNDOSE para rellenar huecos. **Resultado:
+83,7% acierto jugador, 86,8% equipo.** → La pelota+pose SÍ sirve para el "quién"
+con esta lógica (nuestro intento previo era ingenuo, 1 frame). Confirma el instinto
+de Jorge de mantener la pelota.
+
+**Validación (sed_eval, collar 250ms, 4 splits cross-rally 70/30):** F1 92%
+(σ 1,6%), error rate 0,16 = casi todo DELETIONS (golpes perdidos), no falsos. Los
+perdidos: sobre todo slices/dejadas (suenan poco, poco representadas) — confirma la
+preocupación de Jorge sobre golpes suaves. Falsos positivos: pala contra marco
+metálico, jugador contra cristal, pala al suelo → candidatos a filtrar con el RGB
+verificador.
+
+**Implicaciones para nuestro plan:** (1) el "quién" se replica con voto multi-frame
++ alternancia de equipos (resuelve la duda #1 de ADR-0015). (2) El audio pierde
+dejadas/slices → el RGB (que las ve aunque no suenen) las recupera: refuerza el
+valor del RGB como verificador/segunda señal.
