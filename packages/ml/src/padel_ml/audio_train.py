@@ -69,13 +69,6 @@ def _sequences(rallies: list[RallyAudio], seq_len: int = SEQ_LEN) -> tuple[Float
     return np.array(xs, dtype=np.float32), np.array(ys, dtype=np.float32)
 
 
-def _normalize(train_x: FloatArray, *others: FloatArray) -> list[FloatArray]:
-    """Standardize log-Mel by train mean/std (per feature)."""
-    mean = train_x.mean(axis=(0, 1), keepdims=True)
-    std = train_x.std(axis=(0, 1), keepdims=True) + 1e-6
-    return [((a - mean) / std).astype(np.float32) for a in (train_x, *others)]
-
-
 def peaks_from_frames(
     probs: FloatArray, threshold: float = 0.5, min_gap_frames: int = 4
 ) -> list[int]:
@@ -147,8 +140,12 @@ def train_audio_detector(
     val_r = [rallies[i] for i in val_ids]
 
     xtr, ytr = _sequences(train_r)
-    xva, _yva = _sequences(val_r)
-    xtr, xva = _normalize(xtr, xva)
+    # Standardization stats from RAW train features — keep them to apply to the
+    # eval rallies too (computing them after normalizing would give ~0/~1 and
+    # mis-scale the eval, tanking precision).
+    mean = xtr.mean(axis=(0, 1), keepdims=True)
+    std = xtr.std(axis=(0, 1), keepdims=True) + 1e-6
+    xtr = ((xtr - mean) / std).astype(np.float32)
 
     model = AudioHitCRNN().to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
@@ -165,17 +162,15 @@ def train_audio_detector(
             loss.backward()  # type: ignore[no-untyped-call]
             opt.step()
 
-    # evaluate event-based per rally on the held-out set
+    # evaluate event-based per rally on the held-out set (normalize with train stats)
     model.eval()
     hits = load_hits_csv(dataset_dir / "metadata" / "hits.csv")
-    mean = xtr.mean(axis=(0, 1), keepdims=True)
-    std = xtr.std(axis=(0, 1), keepdims=True) + 1e-6
     tp = fp = fn = 0
     for r in val_r:
         feats = ((r.features - mean[0]) / std[0]).astype(np.float32)
         with torch.no_grad():
             probs = torch.sigmoid(model(torch.from_numpy(feats)[None].to(device)))[0].cpu().numpy()
-        peaks = peaks_from_frames(probs)
+        peaks = peaks_from_frames(probs, threshold=0.5, min_gap_frames=8)
         t, f, n = event_eval(peaks, hits.get(r.filename, []))
         tp, fp, fn = tp + t, fp + f, fn + n
     precision = tp / (tp + fp) if (tp + fp) else 0.0

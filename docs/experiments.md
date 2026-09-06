@@ -803,3 +803,28 @@ pila de robustez (`docs/backlog.md`): distinguir juego real de replay/tiempo
 muerto. Sin él, los golpes de repetición inflan cualquier stat. Es ahora un
 requisito medido, no teórico. Palancas del localizer: completar etiquetado
 (413→~900), segmentar juego-vs-replay, suavizado.
+
+## HITO: detector de golpes por AUDIO reproduce el SotA — F1 0.93 (feb 2026)
+
+Tras pivotar a audio (ADR-0015) y replicar el CRNN del paper de pádel (log-Mel 40
+bins → 3×conv2D pool-frecuencia + 2×GRU bi → per-frame, focal loss), entrenado
+sobre el dataset CVSPORTS_Padel (99 rallies, 2377 golpes) con split cross-rally y
+evaluación event-based (collar 250ms, como el paper):
+
+**F1 0.925 · precisión 0.99 · recall 0.87** (thr 0.5, min_gap 8 frames).
+
+**Reproducimos el paper (su F1 0.92).** Por primera vez tenemos un detector de
+golpes que FUNCIONA de verdad — frente a todo lo anterior (heurística 15-52%,
+localizer pose+pelota 61%). El enfoque de audio era el correcto.
+
+- **Precisión 99%**: casi cero falsos. (Un primer run dio 0.53 por un bug: calcular
+  las stats de normalización DESPUÉS de normalizar el train → eval mal escalado.
+  Corregido: stats de features crudas, guardadas para el eval.)
+- **Recall 87%**: lo que se pierde son dejadas/slices (suenan poco), exactamente lo
+  que reporta el paper. Ahí es donde el RGB verificador puede recuperar (las ve
+  aunque no suenen).
+- Umbrales altos (≥0.85) colapsan → el modelo da probabilidades moderadas; 0.5 es
+  el punto óptimo.
+
+Módulos: `audio_dataset` (features), `audio_detector` (CRNN + focal), `audio_train`
+(entreno + event-eval). Siguiente: validar en vídeo propio + el clasificador RGB.
