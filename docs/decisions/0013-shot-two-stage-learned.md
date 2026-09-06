@@ -1,6 +1,14 @@
 # ADR-0013: Golpes como dos modelos aprendidos (detector → clasificador)
 
-**Estado:** aceptada · 2026-07-29 · **supera a ADR-0012**
+**Estado:** SUPERADA por [ADR-0015](0015-shot-audio-detect-rgb-classify.md) · 2026-07-29
+
+> El detector aprendido sobre pose+pelota no llegó (localizer por-frame 61% recall).
+> La investigación del SotA mostró que pose+pelota tira información y que el audio
+> detecta golpes de pádel a F1 92%. Se pivota a AUDIO (detecta) + RGB (clasifica) en
+> ADR-0015. La estructura two-stage (detectar → clasificar) se mantiene; cambian las
+> señales. Este ADR se conserva como baseline comparativo.
+
+**Estado original:** aceptada · 2026-07-29 · supera a ADR-0012
 
 ## Contexto
 
