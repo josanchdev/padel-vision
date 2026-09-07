@@ -167,6 +167,24 @@ def process_video(
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv"}
 
 
+def _next_unlabelled_rally(rally_dir: Path, hits_csv: Path, out_dir: Path) -> Path | None:
+    """First rally under `rally_dir` that still has hits without a type.
+
+    Labelling 99 rallies one command at a time is friction; this lets the same
+    command be run over and over to work through the dataset in order.
+    """
+    from padel_cv.shot_type_annotator import load_hit_frames, load_marks
+
+    for video in sorted(p for p in rally_dir.glob("*.mp4")):
+        frames = load_hit_frames(hits_csv, video.name, fps=25.0)
+        if not frames:
+            continue
+        marks = load_marks(out_dir / f"{video.stem}.csv") if out_dir.is_dir() else {}
+        if any(f not in marks or marks[f].shot_type is None for f in frames):
+            return video
+    return None
+
+
 def sample_frames(input_dir: Path, output_dir: Path, per_video: int, seed: int) -> int:
     """Extract random frames from every video under input_dir for annotation.
 
@@ -330,6 +348,24 @@ def main() -> int:
         help="Audio candidate sensitivity (higher = fewer, only clear pops)",
     )
 
+    types = subparsers.add_parser(
+        "annotate-types",
+        help="Label the TYPE of already-located hits (ADR-0016): jump, look, tap a key",
+    )
+    types.add_argument("video", type=Path, help="Rally video")
+    types.add_argument("-o", "--out", type=Path, required=True, help="Output types CSV")
+    types.add_argument(
+        "--hits",
+        type=Path,
+        default=None,
+        help="hits.csv with the hit instants (CVSPORTS GT). Defaults to the dataset's.",
+    )
+    types.add_argument(
+        "--next",
+        action="store_true",
+        help="Treat `video` as a directory: open the next rally with unlabelled hits",
+    )
+
     args = parser.parse_args()
     if args.command == "process":
         tracker = None if args.tracker == "none" else args.tracker
@@ -408,6 +444,36 @@ def main() -> int:
         )
         print(f"\n{len(marks)} golpes anotados -> {args.out}")
         print("por tipo:", _marks_summary(marks))
+    elif args.command == "annotate-types":
+        import collections
+
+        import cv2
+
+        from padel_cv.shot_type_annotator import annotate_types, load_hit_frames, load_marks
+
+        hits_csv = args.hits or (
+            Path("data/raw/padel_audio_dataset/CVSPORTS_Padel/metadata/hits.csv")
+        )
+        video = args.video
+        if args.next:  # pick up where the last session stopped
+            video = _next_unlabelled_rally(args.video, hits_csv, args.out)
+            if video is None:
+                print("Todos los rallies estan etiquetados.")
+                return 0
+            print(f"Siguiente rally: {video.name}")
+        capture = cv2.VideoCapture(str(video))
+        fps = capture.get(cv2.CAP_PROP_FPS) or 25.0
+        capture.release()
+        frames = load_hit_frames(hits_csv, video.name, fps)
+        if not frames:
+            parser.error(f"No hits for {video.name} in {hits_csv}")
+        out_csv = args.out / f"{video.stem}.csv" if args.out.is_dir() else args.out
+        print(f"{len(frames)} golpes localizados en {video.name} — solo falta el tipo")
+        annotate_types(video, frames, out_csv)
+        done = load_marks(out_csv)
+        counts = collections.Counter(m.shot_type for m in done.values() if m.shot_type)
+        print(f"\n{sum(counts.values())}/{len(frames)} etiquetados -> {out_csv}")
+        print("por tipo:", dict(counts))
     return 0
 
 
