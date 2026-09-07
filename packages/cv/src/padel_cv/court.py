@@ -24,6 +24,7 @@ NET_Y_M = 10.0
 SERVICE_LINE_FROM_NET_M = 6.95
 
 LEFT_ANKLE, RIGHT_ANKLE = 15, 16
+LEFT_HIP, RIGHT_HIP = 11, 12
 MIN_ANKLE_CONFIDENCE = 0.3
 
 SERVICE_NEAR_Y = NET_Y_M - SERVICE_LINE_FROM_NET_M  # 3.05
@@ -88,6 +89,25 @@ def ankle_midpoint(pose: PoseDetection) -> tuple[float, float]:
         return float(visible[:, 0].mean()), float(visible[:, 1].mean())
     x1, _, x2, y2 = pose.bbox_xyxy
     return (x1 + x2) / 2, y2
+
+
+def court_contact_point(pose: PoseDetection) -> tuple[float, float]:
+    """Ground-contact point as the padel paper reduces a pose (Decorte 2024, 5.3).
+
+    x comes from the mid-hip and y from the average of both ankles. Splitting the
+    axes is more stable than the ankle midpoint alone: ankles swing wide apart
+    while running (dragging x sideways), but the hips stay centred over the
+    player. Falls back to the bbox bottom-centre when keypoints are missing.
+    """
+    kp = pose.keypoints
+    hips = kp[[LEFT_HIP, RIGHT_HIP]]
+    ankles = kp[[LEFT_ANKLE, RIGHT_ANKLE]]
+    visible_hips = hips[hips[:, 2] >= MIN_ANKLE_CONFIDENCE]
+    visible_ankles = ankles[ankles[:, 2] >= MIN_ANKLE_CONFIDENCE]
+    x1, _, x2, y2 = pose.bbox_xyxy
+    x = float(visible_hips[:, 0].mean()) if len(visible_hips) else (x1 + x2) / 2
+    y = float(visible_ankles[:, 1].mean()) if len(visible_ankles) else y2
+    return x, y
 
 
 def is_on_court(x_m: float, y_m: float, margin_m: float = 0.5) -> bool:

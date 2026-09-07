@@ -25,6 +25,7 @@ from padel_cv.pipeline import BallDetection, PoseDetection
 _L_WRIST, _R_WRIST = 9, 10
 _MIN_CONF = 0.3
 WINDOW_HALF = 6  # ±6 frames ≈ 500 ms at 25 fps (paper: 12-frame window)
+MIN_WINDOW_FRAMES = 12  # paper pads short predicted windows up to 500 ms
 
 
 @dataclass
@@ -97,8 +98,93 @@ def assign_hit(
     return min(winners, key=lambda pid: best_overall.get(pid, float("inf")))
 
 
+def _team_of(slot: int | None) -> int | None:
+    """Players 1-2 are team 1, players 3-4 team 2."""
+    return None if slot is None else (1 if slot <= 2 else 2)
+
+
+def team_alternation_sweep(assignments: dict[int, int | None]) -> dict[int, int | None]:
+    """Fill unassigned hits using that teams alternate (paper §5.3, secondary sweep).
+
+    A rally is by definition a sequence of alternating teams: if the hits either
+    side of a gap belong to the same team, the missing one is the other team's.
+    We can recover the TEAM this way, not the individual player, so the gap is
+    filled with a negative marker (-team) meaning "team known, player unknown".
+    """
+    frames = sorted(assignments)
+    out = dict(assignments)
+    for i, frame in enumerate(frames):
+        if out[frame] is not None:
+            continue
+        prev_team = next(
+            (_team_of(out[frames[j]]) for j in range(i - 1, -1, -1) if out[frames[j]] is not None),
+            None,
+        )
+        next_team = next(
+            (
+                _team_of(out[frames[j]])
+                for j in range(i + 1, len(frames))
+                if out[frames[j]] is not None
+            ),
+            None,
+        )
+        inferred: int | None = None
+        if prev_team is not None and next_team is not None and prev_team == next_team:
+            inferred = 2 if prev_team == 1 else 1  # sandwiched: must be the other team
+        elif prev_team is not None and next_team is None:
+            inferred = 2 if prev_team == 1 else 1
+        elif next_team is not None and prev_team is None:
+            inferred = 2 if next_team == 1 else 1
+        if inferred is not None:
+            out[frame] = -inferred  # team-only result
+    return out
+
+
+def frame_window(
+    start_s: float, end_s: float, fps: float, min_frames: int = MIN_WINDOW_FRAMES
+) -> tuple[int, int]:
+    """Video-frame range for a predicted hit window (paper §5.3).
+
+    The model's own onset/offset are used when the window is long enough;
+    shorter ones are padded symmetrically to 500 ms (12 frames at 25 fps).
+    """
+    first, last = round(start_s * fps), round(end_s * fps)
+    span = last - first + 1
+    if span < min_frames:
+        pad = (min_frames - span) / 2
+        first, last = round(first - pad), round(last + pad)
+    return first, last
+
+
+def assign_hit_window(
+    first_frame: int, last_frame: int, states: dict[int, FrameState]
+) -> int | None:
+    """Weighted vote over an explicit frame range (see `assign_hit`)."""
+    centre = (first_frame + last_frame) // 2
+    half = max((last_frame - first_frame) // 2, 1)
+    return assign_hit(centre, states, window_half=half)
+
+
 def assign_hits(
-    hit_frames: Sequence[int], states: dict[int, FrameState], window_half: int = WINDOW_HALF
+    hit_frames: Sequence[int],
+    states: dict[int, FrameState],
+    window_half: int = WINDOW_HALF,
+    alternation_sweep: bool = True,
 ) -> dict[int, int | None]:
-    """Assign every detected hit frame to a player."""
-    return {hf: assign_hit(hf, states, window_half) for hf in hit_frames}
+    """Assign every detected hit frame to a player (negative = team only)."""
+    out: dict[int, int | None] = {hf: assign_hit(hf, states, window_half) for hf in hit_frames}
+    return team_alternation_sweep(out) if alternation_sweep else out
+
+
+def assign_hit_windows(
+    windows_s: Sequence[tuple[float, float]],
+    states: dict[int, FrameState],
+    fps: float,
+    alternation_sweep: bool = True,
+) -> dict[int, int | None]:
+    """Assign predicted hit windows (seconds) to players; keyed by centre frame."""
+    out: dict[int, int | None] = {}
+    for start_s, end_s in windows_s:
+        first, last = frame_window(start_s, end_s, fps)
+        out[(first + last) // 2] = assign_hit_window(first, last, states)
+    return team_alternation_sweep(out) if alternation_sweep else out

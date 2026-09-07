@@ -43,3 +43,25 @@ def test_switches_with_the_ball() -> None:
     # now the ball is by player 1
     st = _states(100, ball_xy=(100.0, 100.0), p1_wrist=(102.0, 100.0), p2_wrist=(505.0, 300.0))
     assert assign_hit(100, st) == 1
+
+
+def test_team_alternation_fills_a_gap() -> None:
+    from padel_ml.hit_assignment import team_alternation_sweep
+
+    # players 1,2 = team 1; players 3,4 = team 2. Gap sandwiched by team 1.
+    out = team_alternation_sweep({10: 1, 20: None, 30: 2})
+    assert out[20] == -2  # must have been team 2
+
+
+def test_short_window_is_padded_to_500ms() -> None:
+    from padel_ml.hit_assignment import frame_window
+
+    first, last = frame_window(4.00, 4.04, fps=25.0)  # 1-frame window
+    assert last - first + 1 >= 12
+
+
+def test_long_window_is_kept_as_is() -> None:
+    from padel_ml.hit_assignment import frame_window
+
+    first, last = frame_window(4.0, 5.0, fps=25.0)  # 25 frames
+    assert (first, last) == (100, 125)

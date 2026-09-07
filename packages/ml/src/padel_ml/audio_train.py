@@ -84,6 +84,47 @@ def peaks_from_frames(
     return out
 
 
+def windows_from_frames(
+    probs: FloatArray, threshold: float = 0.5, min_gap_frames: int = 4
+) -> list[tuple[int, int]]:
+    """Contiguous above-threshold runs as (start, end) spectrogram frames.
+
+    The paper drives hit assignment from the predicted hit WINDOW (padded to
+    500 ms only when it is shorter), not from a bare peak — so we emit the real
+    onset/offset the CRNN produces. The window's width is itself information: a
+    slice sounds different from a smash. Runs closer than `min_gap_frames` are
+    merged, as they belong to one hit.
+    """
+    above = probs >= threshold
+    runs: list[tuple[int, int]] = []
+    start: int | None = None
+    for i, hot in enumerate(above):
+        if hot and start is None:
+            start = i
+        elif not hot and start is not None:
+            runs.append((start, i - 1))
+            start = None
+    if start is not None:
+        runs.append((start, len(probs) - 1))
+    merged: list[tuple[int, int]] = []
+    for run in runs:
+        if merged and run[0] - merged[-1][1] < min_gap_frames:
+            merged[-1] = (merged[-1][0], run[1])
+        else:
+            merged.append(run)
+    return merged
+
+
+def hit_windows_seconds(
+    probs: FloatArray, threshold: float = 0.5, min_gap_frames: int = 4
+) -> list[tuple[float, float]]:
+    """Predicted hit windows as (start, end) seconds."""
+    return [
+        (frame_time(a), frame_time(b))
+        for a, b in windows_from_frames(probs, threshold, min_gap_frames)
+    ]
+
+
 @dataclass
 class AudioEval:
     f1: float
@@ -171,14 +212,10 @@ def fit_and_save(
     return out_path
 
 
-def detect_hits_in_audio(
-    audio_source: Path,
-    checkpoint: Path,
-    threshold: float = 0.5,
-    min_gap_frames: int = 8,
-    device: str | None = None,
-) -> list[float]:
-    """Run the saved detector over a video/audio file → list of hit times (s)."""
+def hit_probabilities(
+    audio_source: Path, checkpoint: Path, device: str | None = None
+) -> FloatArray:
+    """Per-spectrogram-frame hit probability for a video/audio file."""
     from padel_ml.audio_dataset import build_rally
 
     if device is None:
@@ -188,13 +225,35 @@ def detect_hits_in_audio(
     model.load_state_dict(ckpt["state_dict"])
     model.eval()
     mean, std = ckpt["mean"], ckpt["std"]
-
     feats = build_rally(audio_source, []).features
     feats = ((feats - mean[0]) / std[0]).astype(np.float32)
     with torch.no_grad():
         probs = torch.sigmoid(model(torch.from_numpy(feats)[None].to(device)))[0].cpu().numpy()
-    peaks = peaks_from_frames(probs, threshold=threshold, min_gap_frames=min_gap_frames)
-    return [frame_time(p) for p in peaks]
+    return probs.astype(np.float32)
+
+
+def detect_hits_in_audio(
+    audio_source: Path,
+    checkpoint: Path,
+    threshold: float = 0.5,
+    min_gap_frames: int = 8,
+    device: str | None = None,
+) -> list[float]:
+    """Run the saved detector over a video/audio file → list of hit times (s)."""
+    probs = hit_probabilities(audio_source, checkpoint, device)
+    return [frame_time(p) for p in peaks_from_frames(probs, threshold, min_gap_frames)]
+
+
+def detect_hit_windows_in_audio(
+    audio_source: Path,
+    checkpoint: Path,
+    threshold: float = 0.5,
+    min_gap_frames: int = 8,
+    device: str | None = None,
+) -> list[tuple[float, float]]:
+    """Hit WINDOWS (start, end) in seconds — what hit assignment consumes."""
+    probs = hit_probabilities(audio_source, checkpoint, device)
+    return hit_windows_seconds(probs, threshold, min_gap_frames)
 
 
 def train_audio_detector(
