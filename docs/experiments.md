@@ -999,3 +999,36 @@ VIGO_15 con 35 → 91,43%).
 **Estado del backbone: detección de golpe F1 0,93 (paper 0,92) × asignación de
 equipo 86,83% (paper 86,83%).** Los dos eslabones replicados y medidos contra el
 mismo ground truth que el trabajo original.
+
+### Matriz de confusión: reproducimos también el modo de fallo del paper
+
+Aciertos por jugador: J1 77, J2 62, J3 48, J4 70 (de 319).
+
+Errores más frecuentes (GT → predicho):
+
+| Error | n | Tipo |
+|---|---|---|
+| J4 → J2 | 15 | equipo opuesto |
+| J3 → J1 | 10 | equipo opuesto |
+| J1 → J2 | 9 | mismo equipo |
+| J3 → J2 | 7 | equipo opuesto |
+| J4 → J3 | 6 | mismo equipo |
+
+**Los dos errores dominantes son 4↔2 y 3↔1: exactamente los pares que el paper
+identifica.** Su texto dice "most errors originate between opposing players (1 with
+3 and 2 with 4)... due to the limitations of a single camera viewpoint" — el
+problema de percepción de profundidad, cuando el jugador del fondo se acerca a la
+red y su detección se solapa con la del rival de delante (su Fig. 9a).
+
+No solo reproducimos su métrica: reproducimos **el mismo modo de fallo**, lo cual
+es la evidencia más fuerte de que la réplica es fiel. Y define dónde está el techo:
+no se arregla con más ajuste fino del voto, sino con información de profundidad —
+la homografía sitúa a los jugadores en el plano del suelo, pero la pelota se
+proyecta a 2D y en el aire es ambigua. Vía de mejora futura (no del backbone):
+usar la altura estimada de la pelota o la coherencia temporal de la trayectoria
+para desempatar los casos jugador-de-delante vs jugador-del-fondo.
+
+Los errores dentro del mismo equipo (J1→J2 9, J4→J3 6) son el otro caso que ellos
+documentan: los dos jugadores de un lado van a por la misma bola y ambos quedan
+igual de cerca (su Fig. 9b). Estos no afectan a la métrica de EQUIPO, que es la
+que reproduce su cifra exactamente (86,83%).
