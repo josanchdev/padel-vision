@@ -49,10 +49,20 @@ golpes y 6 clases → 98,9% de accuracy. Estamos en ese régimen.
     saldrían pocos ejemplos y hundiría el macro-F1 como el `Other` a 0,18 del
     Nivel 2. Es más fácil añadir una clase después que rescatar un macro-F1
     hundido.
-- **C — Atributos derivados, sin coste de etiquetado:** `de_pared` (ya se anota,
-  ADR-0014 D) y `zona` (red/fondo, sale de la homografía). Dan granularidad
-  analítica ("40% de los reveses de J3 vienen de pared", "voleas de J1") sin
-  añadir clases al problema de clasificación.
+- **C — Atributos derivados, NO anotados. Se retira el flag de pared del
+  etiquetado** (corrige ADR-0014 D). Objeción de Jorge: *"si el modelo no
+  aprende a detectar que el golpe viene de la pared, ¿para qué lo quiero?"* —
+  y tiene razón: un flag que solo existe en los datos etiquetados a mano no se
+  puede producir en inferencia, así que como estadística de producto es inútil.
+  O el sistema lo detecta solo, o sobra. Ambos atributos se derivarán:
+  - `zona` (red/fondo) de la homografía (0,113 m), ya disponible.
+  - `de_pared` de la TRAYECTORIA de la pelota: un rebote en pared es un cambio
+    brusco de dirección junto a un límite de la pista — misma clase de problema
+    que la detección de botes en el suelo, ya resuelta en Nivel 3. Queda en
+    backlog para después del clasificador; si funciona, sale gratis y en
+    inferencia. Si fallara, se reconsideraría anotarlo (pero no se paga ese
+    coste por adelantado sobre 2.377 golpes).
+  La columna `from_wall` se mantiene en el CSV a 0 por compatibilidad de formato.
 - **D — Descartes: se etiquetan como `Other`, NO se entrenan, se usan para
   calibrar el rechazo.** Bandejas, víboras, dejadas y cualquier golpe atípico se
   marcan con una tecla de descarte y quedan en el CSV. El entrenamiento los
@@ -87,6 +97,12 @@ golpes y 6 clases → 98,9% de accuracy. Estamos en ese régimen.
 - (+) El rechazo por umbral es defendible ante el tribunal: el sistema conoce
   sus límites y están medidos, en vez de adivinar.
 - (+) Los descartes dejan de ser basura: son el conjunto de calibración.
+- (+) Etiquetar solo el tipo (sin flag de pared) es una decisión por golpe en vez
+  de dos: más rápido y con menos ruido. El anotador reproduce cada golpe en
+  BUCLE a velocidad real (±25 frames), no un frame estático: un tipo de golpe es
+  un movimiento, y pedir nombrarlo desde una imagen suelta produce etiquetas
+  ruidosas que el modelo hereda. Coherente con que el modelo vea una ventana
+  entera (Decisión F).
 - (−) Se renuncia a distinguir bandeja/víbora/dejada. Aceptado a propósito
   (Jorge): la granularidad se puede añadir después si los datos acompañan.
 - (−) Se renuncia al RGB como verificador de las dejadas que el audio no oye

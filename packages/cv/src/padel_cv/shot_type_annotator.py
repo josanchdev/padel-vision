@@ -11,7 +11,7 @@ whole window (ADR-0016 F), so the annotator should too.
 
 Keys:
     1 Saque   2 Derecha   3 Reves   4 Remate      o  descartar (Other)
-    w  marca/quita "de pared"                     z  deshacer
+    z  deshacer
     <-/->  golpe anterior/siguiente               a/d  frame a frame
     SPACE  pausa/reanuda el bucle                 r  reinicia el clip
     q  guardar y salir                            ESC  salir sin guardar
@@ -65,7 +65,6 @@ class TypeMark:
 
     frame: int
     shot_type: str | None = None
-    from_wall: bool = False
 
 
 def load_hit_frames(csv_path: Path, video_name: str, fps: float) -> list[int]:
@@ -79,13 +78,18 @@ def load_hit_frames(csv_path: Path, video_name: str, fps: float) -> list[int]:
 
 
 def save_marks(marks: list[TypeMark], csv_path: Path) -> None:
-    """Write labels; unlabelled hits are kept with an empty type."""
+    """Write labels; unlabelled hits are kept with an empty type.
+
+    `from_wall` stays as a column (always 0) so the format matches the older
+    shot CSVs, but it is no longer annotated: a wall rebound is meant to be
+    derived from the ball trajectory, not typed in by hand (see ADR-0016 C).
+    """
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     with csv_path.open("w", newline="") as handle:
         writer = csv.writer(handle, delimiter=";")
         writer.writerow(["frame", "type", "from_wall"])
         for mark in marks:
-            writer.writerow([mark.frame, mark.shot_type or "", int(mark.from_wall)])
+            writer.writerow([mark.frame, mark.shot_type or "", 0])
 
 
 def load_marks(csv_path: Path) -> dict[int, TypeMark]:
@@ -95,11 +99,7 @@ def load_marks(csv_path: Path) -> dict[int, TypeMark]:
     out: dict[int, TypeMark] = {}
     for row in csv.DictReader(csv_path.open(), delimiter=";"):
         frame = int(row["frame"])
-        out[frame] = TypeMark(
-            frame=frame,
-            shot_type=row["type"] or None,
-            from_wall=bool(int(row.get("from_wall") or 0)),
-        )
+        out[frame] = TypeMark(frame=frame, shot_type=row["type"] or None)
     return out
 
 
@@ -144,8 +144,6 @@ def _draw_progress(canvas: ImageArray, marks: list[TypeMark], index: int) -> Non
         color = TYPE_COLORS.get(mark.shot_type or "", _UNSET) if mark.shot_type else _UNSET
         radius = 8 if i == index else 5
         cv2.circle(canvas, (cx, y), radius, color, -1, cv2.LINE_AA)
-        if mark.from_wall:  # a wall hit gets a ring
-            cv2.circle(canvas, (cx, y), radius + 3, (255, 255, 255), 1, cv2.LINE_AA)
         if i == index:  # caret under the current hit
             cv2.drawMarker(
                 canvas, (cx, y + 18), _ACCENT, cv2.MARKER_TRIANGLE_UP, 12, 2, cv2.LINE_AA
@@ -178,7 +176,7 @@ def _draw_hud(
 
     if mark.shot_type:
         color = TYPE_COLORS.get(mark.shot_type, _INK)
-        label = mark.shot_type + (" · de pared" if mark.from_wall else "")
+        label = mark.shot_type
         size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.9, 2)[0]
         x0 = width - size[0] - 56
         cv2.rectangle(canvas, (x0 - 16, 22), (width - 24, 70), color, -1, cv2.LINE_AA)
@@ -210,7 +208,7 @@ def _draw_hud(
         x += 42 + len(name) * 13
     _text(
         canvas,
-        "w pared   z deshacer   <- -> golpe   SPACE pausa   a/d frame   q guardar y salir",
+        "z deshacer   <- -> golpe   SPACE pausa   a/d frame   r repetir   q guardar y salir",
         (32, height - 10),
         0.5,
         _MUTED,
@@ -276,7 +274,7 @@ def annotate_types(
     marks = [existing.get(f, TypeMark(frame=f)) for f in hit_frames]
     # resume on the first unlabelled hit
     index = next((i for i, m in enumerate(marks) if not m.shot_type), 0)
-    history: list[tuple[int, str | None, bool]] = []
+    history: list[tuple[int, str | None]] = []
 
     cv2.namedWindow(window, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window, 1280, 720)
@@ -285,7 +283,7 @@ def annotate_types(
     cursor = 0
     paused = False
     saved_flash = 0
-    delay = max(int(1000 / (fps * 0.5)), 1)  # half speed: the swing is fast
+    delay = max(int(1000 / fps), 1)  # real time
 
     while True:
         if clip:
@@ -323,20 +321,15 @@ def annotate_types(
             paused = False
 
         if key in SHOT_TYPES:
-            history.append((index, marks[index].shot_type, marks[index].from_wall))
+            history.append((index, marks[index].shot_type))
             marks[index].shot_type = SHOT_TYPES[key]
             save_marks(marks, out_csv)
             saved_flash = 8
             if index < len(marks) - 1:  # advance automatically: keeps the rhythm
                 go_to(index + 1)
-        elif key == ord("w"):
-            history.append((index, marks[index].shot_type, marks[index].from_wall))
-            marks[index].from_wall = not marks[index].from_wall
-            save_marks(marks, out_csv)
-            saved_flash = 8
         elif key == ord("z") and history:
-            i, shot_type, from_wall = history.pop()
-            marks[i].shot_type, marks[i].from_wall = shot_type, from_wall
+            i, shot_type = history.pop()
+            marks[i].shot_type = shot_type
             save_marks(marks, out_csv)
             go_to(i)
         elif key in (81, ord(",")):  # left arrow
