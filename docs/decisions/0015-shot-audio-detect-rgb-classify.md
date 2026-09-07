@@ -30,17 +30,18 @@ falsos del audio). Cada señal en lo que es mejor.
   split cross-rally, eval event-based (collar 250 ms): **F1 0,928 · prec 0,99 ·
   recall 0,87** — reproduce el paper (0,92). El audio se extrae del PROPIO vídeo
   (móvil/YouTube) con ffmpeg. Módulos: audio_dataset/audio_detector/audio_train.
-- **B — Clasificador de TIPO = RGB (contribución propia).** El paper para en la
-  detección binaria; clasificar el tipo (derecha/revés/remate/saque/…) es NUESTRA
-  aportación. Se hace sobre RGB (píxeles) porque conserva la información que
-  pose+pelota tira. El RGB además puede emitir "no-golpe" → hace de VERIFICADOR
-  del audio (dos señales independientes, oído+vista, se confirman).
-- **C — Diseño fino del RGB: PENDIENTE de investigar.** Frame entero (contexto,
-  no necesita saber "quién") vs recorte del golpeador (detalle del gesto, necesita
-  "quién"); ventana del golpe entero (backswing→impacto→follow-through) vs solo
-  impacto. NO se decide inventando: se leerá el/los papers de RGB/PES a fondo
-  (como se hizo con el audio) cuando el audio esté validado. Hipótesis de partida:
-  golpe entero (el gesto está en el movimiento) y probablemente contexto + detalle.
+- **B — Clasificador de TIPO = contribución propia. ⚠️ SUPERADA por ADR-0016:
+  NO es RGB, es pose+pelota (BST).** Se mantiene que clasificar el tipo es
+  nuestra aportación (el paper para en la detección binaria). Lo que cambia es la
+  señal: al leer los papers enteros se comprobó que el SotA de clasificación de
+  tipo (BST) **no usa RGB**, sino pose+trayectoria+posición. RGB gana en
+  *detectar el instante*; pose+pelota gana en *clasificar el gesto*. Ver ADR-0016.
+- **C — Diseño fino: RESUELTO en ADR-0016** tras leer E2E-Spot, BST y Santra et
+  al. enteros. No hay recorte de píxeles (ni frame entero ni recorte del
+  golpeador): no se procesan píxeles. La ventana sí es "el golpe entero", y
+  además adaptativa (de golpe vecino a golpe vecino + ε), como midió BST.
+  También se descarta el RGB como verificador de dejadas (decisión de Jorge:
+  recall 0,87 con casi cero falsos positivos es suficiente).
 - **D — El "QUIÉN golpea" se REPLICA del paper (no versión ingenua).** Decisión de
   Jorge: esto es el BACKBONE, y hacerlo ingenuo (1 frame muñeca-pelota) es
   inaceptable — cada eslabón multiplica al siguiente (detectar 30% × clasificar 25%
