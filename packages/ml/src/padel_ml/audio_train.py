@@ -28,6 +28,14 @@ from padel_ml.audio_detector import AudioHitCRNN, focal_bce_loss
 
 FloatArray = npt.NDArray[np.float32]
 
+DEFAULT_THRESHOLD = 0.4
+"""Detection threshold, chosen by sweeping it (docs/metrics/audio_threshold_sweep.json).
+
+0.5 was an inherited default; 0.4 measures better on every count that matters:
+F1 0.950 vs 0.933 and recall 0.928 vs 0.881, still at 0.973 precision. The extra
+recall is exactly the soft hits (drop shots, slices) that are hardest to hear.
+"""
+
 
 def build_all_rallies(dataset_dir: Path, cache: Path | None = None) -> list[RallyAudio]:
     """Build (or load cached) log-Mel features + labels for every rally mp4."""
@@ -70,7 +78,7 @@ def _sequences(rallies: list[RallyAudio], seq_len: int = SEQ_LEN) -> tuple[Float
 
 
 def peaks_from_frames(
-    probs: FloatArray, threshold: float = 0.5, min_gap_frames: int = 4
+    probs: FloatArray, threshold: float = DEFAULT_THRESHOLD, min_gap_frames: int = 4
 ) -> list[int]:
     """Frame indices of local maxima above threshold, min_gap apart (one per hit)."""
     out: list[int] = []
@@ -85,7 +93,7 @@ def peaks_from_frames(
 
 
 def windows_from_frames(
-    probs: FloatArray, threshold: float = 0.5, min_gap_frames: int = 4
+    probs: FloatArray, threshold: float = DEFAULT_THRESHOLD, min_gap_frames: int = 4
 ) -> list[tuple[int, int]]:
     """Contiguous above-threshold runs as (start, end) spectrogram frames.
 
@@ -116,7 +124,7 @@ def windows_from_frames(
 
 
 def hit_windows_seconds(
-    probs: FloatArray, threshold: float = 0.5, min_gap_frames: int = 4
+    probs: FloatArray, threshold: float = DEFAULT_THRESHOLD, min_gap_frames: int = 4
 ) -> list[tuple[float, float]]:
     """Predicted hit windows as (start, end) seconds."""
     return [
@@ -235,7 +243,7 @@ def hit_probabilities(
 def detect_hits_in_audio(
     audio_source: Path,
     checkpoint: Path,
-    threshold: float = 0.5,
+    threshold: float = DEFAULT_THRESHOLD,
     min_gap_frames: int = 8,
     device: str | None = None,
 ) -> list[float]:
@@ -247,7 +255,7 @@ def detect_hits_in_audio(
 def detect_hit_windows_in_audio(
     audio_source: Path,
     checkpoint: Path,
-    threshold: float = 0.5,
+    threshold: float = DEFAULT_THRESHOLD,
     min_gap_frames: int = 8,
     device: str | None = None,
 ) -> list[tuple[float, float]]:
@@ -307,7 +315,7 @@ def train_audio_detector(
         feats = ((r.features - mean[0]) / std[0]).astype(np.float32)
         with torch.no_grad():
             probs = torch.sigmoid(model(torch.from_numpy(feats)[None].to(device)))[0].cpu().numpy()
-        peaks = peaks_from_frames(probs, threshold=0.5, min_gap_frames=8)
+        peaks = peaks_from_frames(probs, threshold=DEFAULT_THRESHOLD, min_gap_frames=8)
         t, f, n = event_eval(peaks, hits.get(r.filename, []))
         tp, fp, fn = tp + t, fp + f, fn + n
     precision = tp / (tp + fp) if (tp + fp) else 0.0
