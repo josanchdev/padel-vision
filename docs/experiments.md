@@ -828,3 +828,74 @@ localizer pose+pelota 61%). El enfoque de audio era el correcto.
 
 Módulos: `audio_dataset` (features), `audio_detector` (CRNN + focal), `audio_train`
 (entreno + event-eval). Siguiente: validar en vídeo propio + el clasificador RGB.
+
+## Backbone del paper replicado: identidad, re-id, ventanas y pelota (sep 2026)
+
+Decisión de Jorge (ADR-0015 D): el "quién golpea" es backbone, así que se replica
+el método publicado, no una versión ingenua. Leído el paper entero
+(Decorte et al., CVPRW 2024) y contrastado punto por punto con lo que teníamos.
+
+**Lo que ya coincidía** (verificado contra el texto, no de memoria): arquitectura
+CRNN (109k params, focal loss, 40 log-Mel, FFT 2048, 50% overlap, seq 256);
+evaluación event-based con collar 250 ms y split cross-rally 70/30; ventana de
+500 ms / 12 frames con voto mayoritario ponderado por la ec. 1 y desempate por
+distancia mínima; distancia = mínimo de ambas muñecas con fallback al centro de
+la caja; detectar la pelota solo cerca de los golpes, no en todo el vídeo.
+
+**Diferencias detectadas al leerlo en detalle:**
+
+1. *Rango de frecuencia*: el paper dice "40 log-Mel bins in the range 0-42 kHz",
+   lo que implicaría un sample rate de ~84 kHz — incoherente con que ellos mismos
+   digan que las frecuencias ultrasónicas se perdieron en la compresión del
+   contenedor. Nosotros usamos 48 kHz (Nyquist 24 kHz) y obtenemos F1 0.93 ≈ su
+   0.92, así que empíricamente la diferencia es irrelevante. Anotado como
+   divergencia consciente, probablemente errata heredada del SED-net original.
+2. *Batch size*: ellos 128, nosotros 32.
+3. *Orden de pooling*: su `maxpool (1x5)` poolea frecuencia y su `reshape
+   (12x64)→(256x3)` confirma que los 256 frames de tiempo se conservan intactos —
+   coincide con nuestro `MaxPool2d((5,1))`. Falsa alarma, descartado.
+
+**Lo que faltaba y explicaba el fallo visible en la demo** (IDs saltando: track 1,
+4, 9, 10, 13...): todo el §5.2 del paper. Implementado en `player_identity.py`:
+
+- *Máscara de pista*: trapecio expandido desde las esquinas; sin él ByteTrack
+  trackea al público. El test se hace con el centro-inferior de la caja (los pies)
+  porque es lo que distingue a un jugador de alguien en la grada.
+- *Asignación inicial 1-4*: media de las cajas en los 3 primeros segundos, orden
+  por x (izquierda/derecha) y luego por y (fondo/frente). Es la numeración que usan
+  las anotaciones del dataset, así que es obligatoria para poder evaluarnos.
+- *Re-identificación por aparición/desaparición*: sin modelo visual (los equipos
+  visten igual). Con 4 jugadores conocidos, un track que nace mientras un slot está
+  desaparecido hereda ese slot; desempate por última posición conocida.
+
+**Otras piezas del paper adoptadas por ser mejores que las nuestras:**
+
+- *Punto de contacto con la pista* (§5.3): x de la cadera central + y media de los
+  tobillos, en vez de nuestro punto medio de tobillos. Más estable: al correr los
+  tobillos se abren y arrastran la x, la cadera no.
+- *Post-proceso de pelota* (§4.3): eliminar "teleportaciones" (detecciones
+  aisladas lejos de la trayectoria) e interpolar huecos cortos. Los huecos largos
+  se dejan vacíos a propósito: rellenarlos sería inventar trayectoria.
+- *Barrido secundario por alternancia de equipos* (§5.3): en un peloteo los equipos
+  golpean alternados, así que un hueco flanqueado por el mismo equipo tiene que ser
+  del otro. Recupera EQUIPO, no jugador — se marca con valor negativo (-equipo)
+  para no fingir una precisión que no se tiene.
+
+**Decisión de diseño (opción B, elegida con Jorge):** el detector emite VENTANAS
+reales (onset/offset por umbral) en lugar de picos aislados, como el paper, que
+usa los límites del modelo y solo rellena hasta 500 ms si la ventana es corta.
+Además de ser más fiel, la anchura de la ventana es información aprovechable
+después: un slice no suena como un remate.
+
+**Dónde mejoramos al paper:** ellos usan TrackNet preentrenado en tenis; nosotros
+entrenamos el nuestro en pádel (F1 0.94). Ellos calculan la homografía a mano por
+torneo tras descartar un método por color que les fallaba (su Fig. 3); nosotros
+mantenemos la opción manual pero con nuestro detector de pista v6 (0.196 m) como
+fallback automático, que es mejor que el método por color que ellos descartaron.
+
+**Ground truth localizado para evaluarnos:** el dataset trae `hit_assignments.xlsx`
+con 319 golpes de 16 rallies del torneo VIGO anotados con quién golpea, en formato
+`t{equipo}p{jugador}`. Los conteos por rally coinciden exactamente con su Tabla 3,
+así que podemos medirnos contra su 83,70% (jugador) y 86,83% (equipo) igual que
+hicimos con el audio. Leído sin openpyxl (xlsx es un zip de XML) en
+`hit_assignment_gt.py`.
