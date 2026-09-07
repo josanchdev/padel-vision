@@ -1156,3 +1156,50 @@ ejecución llegó a señalar 0,4 como claro ganador, y era ruido.
 El colapso a F1 0,000 en umbral 0,9 confirma lo ya observado: el modelo emite
 probabilidades moderadas (entrenado con focal loss), así que umbrales altos no
 son utilizables.
+
+## Cara a cara en igualdad de condiciones: pose+pelota vs audio (sep 2026)
+
+Hasta ahora la justificación del giro al audio comparaba cifras de datasets
+distintos (localizer 61% recall en citys_cup vs audio F1 0,93 en CVSPORTS), lo
+que es débil: cabía la objeción de que el audio ganara por tener un dataset más
+fácil. Petición de Jorge: correr el método antiguo sobre los mismos datos.
+
+`scripts/evidence_method_comparison.py` entrena el `ShotLocalizer` (TCN sobre
+pose+pelota, ADR-0013) sobre los **mismos rallies de VIGO**, con el **mismo split
+cross-rally 70/30** y la **misma métrica event-based (collar 250 ms)** que el
+detector de audio.
+
+| Umbral | F1 | Precisión | Recall |
+|---|---|---|---|
+| 0,3 | 0,608 | 0,447 | 0,947 |
+| 0,5 | 0,710 | 0,571 | 0,936 |
+| 0,7 | 0,769 | 0,680 | 0,883 |
+| **0,8** | **0,821** | 0,792 | 0,851 |
+| 0,9 | 0,805 | 0,875 | 0,745 |
+
+**Resultado: pose+pelota F1 0,821 · audio F1 0,956 → el audio gana por 13,5
+puntos de F1 sobre exactamente los mismos datos.**
+
+Tres matices que hacen la comparación honesta y no un hombre de paja:
+
+1. **El método antiguo corre con VENTAJA respecto a su medición original**: usa la
+   pose filtrada por máscara de pista, la identidad estable 1-4 y la pelota
+   post-procesada, todas mejoras posteriores a su descarte. Aun así pierde.
+2. **Sube de 0,61 a 0,82 respecto a lo medido en citys_cup.** Buena parte de aquel
+   mal resultado no era del método, sino del dominio: vídeo a 60 fps, pista
+   atípica y pelota detectada al 47%. Es un dato importante para la memoria — el
+   enfoque antiguo no era tan malo como parecía; lo que fallaba era el material.
+3. **El barrido inicial se quedó corto** (llegaba a 0,7 y daba 0,759 como mejor).
+   Ampliarlo a 0,9 encontró el óptimo real en 0,8. Infravalorar al método
+   competidor por no barrer lo suficiente habría sesgado la conclusión a nuestro
+   favor.
+
+**Dónde se pierde el método antiguo:** su precisión tope es 0,792 frente a 0,969
+del audio. Dispara falsos positivos porque una pose de golpeo y una pose de amago
+o preparación se parecen mucho en el esqueleto; el golpe, en cambio, o suena o no
+suena. Esa es la razón de fondo por la que el audio es la señal correcta para el
+*cuándo*, y coincide con lo que separa PES de clasificación en la literatura.
+
+Esta medición **cierra la deuda documentada** de `docs/metrics/README.md`: las
+cifras del localizer ya no dependen de un vídeo perdido, sino de un experimento
+regenerable con un comando.

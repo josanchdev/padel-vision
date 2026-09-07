@@ -1,0 +1,25 @@
+{
+  "name": "method_comparison_same_data",
+  "summary": "Cara a cara en igualdad de condiciones: pose+pelota F1 0.821 vs audio F1 0.956 (mismos rallies, mismo split, collar 250 ms).",
+  "metrics": {
+    "old_f1": 0.8205,
+    "old_precision": 0.7921,
+    "old_recall": 0.8511,
+    "audio_f1": 0.956,
+    "difference": 0.1355
+  },
+  "dataset": "CVSPORTS_Padel VIGO — 17 rallies, split 12/5",
+  "method": "ShotLocalizer (TCN pose+pelota, por frame) deslizado, mejor umbral",
+  "params": {
+    "window": 32,
+    "epochs": 30,
+    "collar_s": 0.25,
+    "best_threshold": 0.8
+  },
+  "per_class": {},
+  "confusion": [],
+  "labels": [],
+  "notes": "Justifica el cambio de rumbo con una medición y no con un recuerdo. Antes se comparaba el localizer (61% recall en citys_cup) con el audio (F1 0,93 en CVSPORTS): datasets distintos, comparación débil. Aquí el método antiguo se entrena y evalúa sobre los MISMOS rallies, con el MISMO split cross-rally y la MISMA métrica event-based (collar 250 ms) que el detector de audio. El localizer parte además con ventaja respecto a su medición original: usa la pose y la pelota de nuestros modelos actuales, ya mejorados.",
+  "commit": "084318b",
+  "timestamp": "2026-09-07T19:15:13+00:00"
+}

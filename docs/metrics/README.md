@@ -45,6 +45,7 @@ es un recuerdo.
 | `hit_assignment_replica.json` | Asignación: equipo 86,83% = paper; matriz de confusión | ADR-0015 D |
 | `hit_assignment_per_rally.json` | Tabla por rally, comparable con su Tabla 3 | ADR-0015 D |
 | `shot_baseline_poseonly.json` | Baseline antiguo pose-sola (macro-F1 0,62) | ADR-0013 |
+| `method_comparison_same_data.json` | **Cara a cara**: pose+pelota 0,821 vs audio 0,956, mismos datos | ADR-0015 |
 
 ### Figuras (`figures/`)
 
@@ -55,16 +56,20 @@ es un recuerdo.
 | `shot_detection_approaches.png` | **Por qué el audio**: recall de cada enfoque probado |
 | `hit_assignment_confusion.png` | Matriz de confusión de la asignación |
 | `hit_assignment_vs_paper.png` | Nuestra cifra frente a la publicada |
+| `method_comparison_same_data.png` | **Por qué se cambió de método**, medido en igualdad de condiciones |
 
 ## Evidencias que NO se pueden regenerar (deuda documentada)
 
 Honestidad metodológica: estos números están en la bitácora pero **no son
 reproducibles hoy**, y la memoria debe presentarlos como tales.
 
-- **Localizer pose+pelota (61% recall / 70% precisión)** y **detector por ventana
-  (29% recall)**: se midieron sobre `citys_cup_1080.mp4`, vídeo que se perdió (se
-  redescargó otra versión de YouTube que ya no alinea con las etiquetas). Las
-  etiquetas (413 golpes) sí se conservan y siguen alineadas con la pose cacheada.
+- **Detector por ventana (29% recall)**: se midió sobre `citys_cup_1080.mp4`,
+  vídeo que se perdió (se redescargó otra versión de YouTube que ya no alinea con
+  las etiquetas). Las etiquetas (413 golpes) sí se conservan y siguen alineadas
+  con la pose cacheada.
+- ~~Localizer pose+pelota (61% recall)~~ → **DEUDA CERRADA**: re-medido sobre
+  CVSPORTS en igualdad de condiciones (`method_comparison_same_data.json`),
+  F1 0,821 frente a 0,956 del audio.
 - **Heurística ADR-0012 (recall 15-52%)**: medida sobre PadelTracker100; es
   re-medible, pero el código de la heurística quedó superado.
 
