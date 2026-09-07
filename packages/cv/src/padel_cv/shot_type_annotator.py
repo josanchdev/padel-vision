@@ -2,13 +2,18 @@
 
 Unlike `shot_annotator`, this tool does not look for hits: the instant comes from
 a ground-truth file (CVSPORTS `hits.csv`, or our own marks). The loop is just
-jump -> look -> press a key, which is the fast part of labelling.
+watch -> press a key, which is the fast part of labelling.
+
+Each hit plays as a LOOPING CLIP, not a still frame. A stroke type is a movement,
+and asking a human to name it from one image is both slow and error-prone — the
+labels come out noisy and the model inherits that noise. The model itself sees a
+whole window (ADR-0016 F), so the annotator should too.
 
 Keys:
     1 Saque   2 Derecha   3 Reves   4 Remate      o  descartar (Other)
     w  marca/quita "de pared"                     z  deshacer
     <-/->  golpe anterior/siguiente               a/d  frame a frame
-    SPACE  reproduce el golpe a camara lenta      r  repite
+    SPACE  pausa/reanuda el bucle                 r  reinicia el clip
     q  guardar y salir                            ESC  salir sin guardar
 
 Progress is saved continuously, so closing and reopening resumes where it left.
@@ -48,8 +53,10 @@ _ACCENT = (235, 190, 80)
 _INK = (245, 245, 245)
 _MUTED = (165, 165, 165)
 
-PLAY_HALF_FRAMES = 12
-"""How many frames either side of the hit `SPACE` replays."""
+CLIP_HALF_FRAMES = 25
+"""Frames either side of the hit shown as a looping clip (~1 s each way at 25
+fps): enough to see wind-up, contact and follow-through, which is what tells a
+forehand from a backhand — one still frame does not."""
 
 
 @dataclass
@@ -152,6 +159,9 @@ def _draw_hud(
     frame_index: int,
     fps: float,
     saved: bool,
+    is_hit_frame: bool = False,
+    paused: bool = False,
+    total_context: tuple[int, int] | None = None,
 ) -> None:
     height, width = canvas.shape[:2]
     mark = marks[index]
@@ -160,13 +170,11 @@ def _draw_hud(
     # ---- top bar: where we are and what this hit is
     _band(canvas, 0, 92)
     _text(canvas, f"Golpe {index + 1} / {len(marks)}", (32, 40), 0.85, _INK, 2)
-    _text(
-        canvas,
-        f"{labelled} etiquetados · {len(marks) - labelled} pendientes",
-        (32, 72),
-        0.55,
-        _MUTED,
-    )
+    progress = f"{labelled} etiquetados · {len(marks) - labelled} pendientes en este rally"
+    if total_context is not None:  # how this rally sits in the whole dataset
+        done_all, all_hits = total_context
+        progress += f"   |   {done_all + labelled} / {all_hits} en total"
+    _text(canvas, progress, (32, 72), 0.55, _MUTED)
 
     if mark.shot_type:
         color = TYPE_COLORS.get(mark.shot_type, _INK)
@@ -202,7 +210,7 @@ def _draw_hud(
         x += 42 + len(name) * 13
     _text(
         canvas,
-        "w pared   z deshacer   <- -> golpe   SPACE repetir   q guardar y salir",
+        "w pared   z deshacer   <- -> golpe   SPACE pausa   a/d frame   q guardar y salir",
         (32, height - 10),
         0.5,
         _MUTED,
@@ -217,10 +225,31 @@ def _draw_hud(
         0.5,
         _MUTED,
     )
-    if frame_index == mark.frame:
+    if is_hit_frame:
         _text(canvas, "IMPACTO", (width // 2 - 60, 130), 0.7, _ACCENT, 2)
+    if paused:
+        _text(canvas, "PAUSA", (32, 130), 0.6, _MUTED, 2)
     if saved:
         _text(canvas, "guardado", (width - 150, 130), 0.6, (140, 220, 140), 2)
+
+
+def _load_clip(
+    capture: cv2.VideoCapture, hit_frame: int, half: int
+) -> tuple[list[ImageArray], int]:
+    """Decode the frames around a hit into memory, plus the hit's index in them.
+
+    Read sequentially from the clip's start: seeking per displayed frame makes
+    the loop stutter, and a clip is small enough to hold in memory.
+    """
+    first = max(hit_frame - half, 0)
+    capture.set(cv2.CAP_PROP_POS_FRAMES, first)
+    frames: list[ImageArray] = []
+    for _ in range(half * 2 + 1):
+        ok, image = capture.read()
+        if not ok:
+            break
+        frames.append(cast(ImageArray, image))
+    return frames, hit_frame - first
 
 
 def annotate_types(
@@ -228,8 +257,16 @@ def annotate_types(
     hit_frames: list[int],
     out_csv: Path,
     window: str = "Tipo de golpe",
+    clip_half: int = CLIP_HALF_FRAMES,
+    total_context: tuple[int, int] | None = None,
 ) -> None:
-    """Run the labelling loop over pre-located hits."""
+    """Run the labelling loop over pre-located hits.
+
+    Each hit plays as a looping clip rather than a still frame: a stroke type is
+    a movement (wind-up, contact, follow-through) and cannot reliably be told
+    from one image — by a human or, as it turns out, by the model, which sees a
+    whole window too (ADR-0016 F).
+    """
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         raise FileNotFoundError(f"Could not open video: {video_path}")
@@ -244,36 +281,46 @@ def annotate_types(
     cv2.namedWindow(window, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window, 1280, 720)
 
-    frame_index = marks[index].frame
-    playing = False
-    play_frame = 0
+    clip, hit_at = _load_clip(capture, marks[index].frame, clip_half)
+    cursor = 0
+    paused = False
     saved_flash = 0
-
-    def read_at(target: int) -> ImageArray | None:
-        capture.set(cv2.CAP_PROP_POS_FRAMES, max(target, 0))
-        ok, image = capture.read()
-        return cast(ImageArray, image) if ok else None
+    delay = max(int(1000 / (fps * 0.5)), 1)  # half speed: the swing is fast
 
     while True:
-        if playing:
-            frame_index = marks[index].frame - PLAY_HALF_FRAMES + play_frame
-            play_frame += 1
-            if play_frame > PLAY_HALF_FRAMES * 2:
-                playing = False
-                frame_index = marks[index].frame
-        image = read_at(frame_index)
-        if image is None:
+        if clip:
+            image = clip[min(cursor, len(clip) - 1)]
+        else:
             image = np.zeros((720, 1280, 3), dtype=np.uint8)
         canvas = image.copy()
-        _draw_hud(canvas, marks, index, frame_index, fps, saved_flash > 0)
+        _draw_hud(
+            canvas,
+            marks,
+            index,
+            marks[index].frame - hit_at + cursor,
+            fps,
+            saved_flash > 0,
+            is_hit_frame=cursor == hit_at,
+            paused=paused,
+            total_context=total_context,
+        )
         saved_flash = max(saved_flash - 1, 0)
         cv2.imshow(window, canvas)
+        if not paused and clip:
+            cursor = (cursor + 1) % len(clip)  # loop the clip continuously
 
-        key = cv2.waitKey(60 if playing else 20) & 0xFF
+        key = cv2.waitKey(delay if not paused else 30) & 0xFF
         if key == 255:
             if cv2.getWindowProperty(window, cv2.WND_PROP_VISIBLE) < 1:
                 break
             continue
+
+        def go_to(new_index: int) -> None:
+            nonlocal index, clip, hit_at, cursor, paused
+            index = max(0, min(new_index, len(marks) - 1))
+            clip, hit_at = _load_clip(capture, marks[index].frame, clip_half)
+            cursor = 0
+            paused = False
 
         if key in SHOT_TYPES:
             history.append((index, marks[index].shot_type, marks[index].from_wall))
@@ -281,9 +328,7 @@ def annotate_types(
             save_marks(marks, out_csv)
             saved_flash = 8
             if index < len(marks) - 1:  # advance automatically: keeps the rhythm
-                index += 1
-                frame_index = marks[index].frame
-                playing = False
+                go_to(index + 1)
         elif key == ord("w"):
             history.append((index, marks[index].shot_type, marks[index].from_wall))
             marks[index].from_wall = not marks[index].from_wall
@@ -292,26 +337,22 @@ def annotate_types(
         elif key == ord("z") and history:
             i, shot_type, from_wall = history.pop()
             marks[i].shot_type, marks[i].from_wall = shot_type, from_wall
-            index = i
-            frame_index = marks[index].frame
             save_marks(marks, out_csv)
+            go_to(i)
         elif key in (81, ord(",")):  # left arrow
-            index = max(index - 1, 0)
-            frame_index = marks[index].frame
-            playing = False
+            go_to(index - 1)
         elif key in (83, ord(".")):  # right arrow
-            index = min(index + 1, len(marks) - 1)
-            frame_index = marks[index].frame
-            playing = False
-        elif key == ord("a"):
-            frame_index = max(frame_index - 1, 0)
-            playing = False
+            go_to(index + 1)
+        elif key == ord(" "):
+            paused = not paused
+        elif key == ord("a"):  # step back one frame (implies pause)
+            paused = True
+            cursor = max(cursor - 1, 0)
         elif key == ord("d"):
-            frame_index += 1
-            playing = False
-        elif key in (ord(" "), ord("r")):
-            playing = True
-            play_frame = 0
+            paused = True
+            cursor = min(cursor + 1, len(clip) - 1 if clip else 0)
+        elif key == ord("r"):  # replay from the start of the clip
+            cursor, paused = 0, False
         elif key == ord("q"):
             save_marks(marks, out_csv)
             break

@@ -40,3 +40,38 @@ def test_four_classes_plus_discard() -> None:
 
 def test_load_marks_on_missing_file(tmp_path) -> None:
     assert load_marks(tmp_path / "nope.csv") == {}
+
+
+def test_clip_is_centred_on_the_hit() -> None:
+    """The loaded clip must put the hit frame where the caller expects it."""
+    import cv2
+
+    from padel_cv.shot_type_annotator import _load_clip
+
+    video = "data/raw/padel_audio_dataset/CVSPORTS_Padel/rallies/20230528_VIGO_00.mp4"
+    cap = cv2.VideoCapture(video)
+    if not cap.isOpened():
+        import pytest
+
+        pytest.skip("dataset video not available")
+    clip, hit_at = _load_clip(cap, hit_frame=120, half=25)
+    cap.release()
+    assert len(clip) == 51  # 25 either side + the hit itself
+    assert hit_at == 25  # the hit sits in the middle
+
+
+def test_clip_near_the_start_is_clamped() -> None:
+    import cv2
+
+    from padel_cv.shot_type_annotator import _load_clip
+
+    video = "data/raw/padel_audio_dataset/CVSPORTS_Padel/rallies/20230528_VIGO_00.mp4"
+    cap = cv2.VideoCapture(video)
+    if not cap.isOpened():
+        import pytest
+
+        pytest.skip("dataset video not available")
+    clip, hit_at = _load_clip(cap, hit_frame=10, half=25)
+    cap.release()
+    assert hit_at == 10  # cannot go before frame 0, so the hit shifts
+    assert len(clip) > 0

@@ -167,6 +167,25 @@ def process_video(
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv"}
 
 
+def _dataset_progress(hits_csv: Path, out_dir: Path, skip: str = "") -> tuple[int, int]:
+    """(labelled so far, total hits) across the dataset, excluding `skip`.
+
+    Seeing only "3/16" hides how the session fits into the 2,377-hit whole.
+    """
+    import csv as _csv
+
+    from padel_cv.shot_type_annotator import load_marks
+
+    total = sum(1 for _ in _csv.DictReader(hits_csv.open()))
+    done = 0
+    if out_dir.is_dir():
+        for csv_file in out_dir.glob("*.csv"):
+            if csv_file.stem == skip:
+                continue
+            done += sum(1 for m in load_marks(csv_file).values() if m.shot_type)
+    return done, total
+
+
 def _next_unlabelled_rally(rally_dir: Path, hits_csv: Path, out_dir: Path) -> Path | None:
     """First rally under `rally_dir` that still has hits without a type.
 
@@ -468,8 +487,10 @@ def main() -> int:
         if not frames:
             parser.error(f"No hits for {video.name} in {hits_csv}")
         out_csv = args.out / f"{video.stem}.csv" if args.out.is_dir() else args.out
+        context = _dataset_progress(hits_csv, args.out, skip=video.stem)
         print(f"{len(frames)} golpes localizados en {video.name} — solo falta el tipo")
-        annotate_types(video, frames, out_csv)
+        print(f"progreso del dataset: {context[0]} / {context[1]} golpes etiquetados")
+        annotate_types(video, frames, out_csv, total_context=context)
         done = load_marks(out_csv)
         counts = collections.Counter(m.shot_type for m in done.values() if m.shot_type)
         print(f"\n{sum(counts.values())}/{len(frames)} etiquetados -> {out_csv}")
