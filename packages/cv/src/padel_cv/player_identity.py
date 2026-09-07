@@ -38,6 +38,10 @@ MASK_PADDING_PX = 60.0
 MAX_MISSING_FRAMES = 75
 """How long a slot stays claimable by a new track after its own track died."""
 
+MIN_MISSING_FRAMES = 2
+"""A slot must be absent this long before a new track may claim it: one dropped
+detection is a flicker, not a lost player."""
+
 
 def _bbox_centre(pose: PoseDetection) -> tuple[float, float]:
     x1, y1, x2, y2 = pose.bbox_xyxy
@@ -118,11 +122,13 @@ class PlayerIdentityTracker:
     fps: float = 25.0
     initial_window_s: float = INITIAL_WINDOW_S
     max_missing_frames: int = MAX_MISSING_FRAMES
+    min_missing_frames: int = MIN_MISSING_FRAMES
 
     slot_by_track: dict[int, int] = field(default_factory=dict)
     last_position: dict[int, tuple[float, float]] = field(default_factory=dict)
     last_seen_frame: dict[int, int] = field(default_factory=dict)
     _initial_samples: dict[int, list[tuple[float, float]]] = field(default_factory=dict)
+    _initial_poses: list[PoseDetection] = field(default_factory=list)
     _initialized: bool = False
 
     def update(self, frame_index: int, poses: list[PoseDetection]) -> None:
@@ -132,6 +138,7 @@ class PlayerIdentityTracker:
             if frame_index < int(self.initial_window_s * self.fps):
                 return
             self._finish_initial()
+            self._label_initial_window()
 
         seen_now: list[PoseDetection] = []
         unknown: list[PoseDetection] = []
@@ -154,6 +161,19 @@ class PlayerIdentityTracker:
         for pose in poses:
             if pose.track_id is not None:
                 self._initial_samples.setdefault(pose.track_id, []).append(_bbox_centre(pose))
+                self._initial_poses.append(pose)
+
+    def _label_initial_window(self) -> None:
+        """Back-fill IDs on the poses of the startup window.
+
+        The first three seconds are what *defines* the numbering, but they are
+        still part of the rally — short rallies have hits in them — so once the
+        slots are known they are applied to those poses too.
+        """
+        for pose in self._initial_poses:
+            if pose.track_id is not None:
+                pose.player_id = self.slot_by_track.get(pose.track_id)
+        self._initial_poses.clear()
 
     def _finish_initial(self) -> None:
         """Pick the four longest-lived tracks of the window and number them."""
@@ -178,11 +198,21 @@ class PlayerIdentityTracker:
         The paper's reasoning: with four known players, a track that appears
         while exactly one slot is unaccounted for must be that player.
         """
+        # A slot is claimable only if its own track has really been gone for a
+        # few frames (a single dropped detection is not a lost player) and not
+        # so long that the player has surely left. Slots held by a live track
+        # are never reassigned, or two tracks would share one player.
+        live_slots = set(self.slot_by_track.values()) & {
+            s for s in (1, 2, 3, 4) if frame_index - self.last_seen_frame.get(s, -(10**9)) <= 1
+        }
         missing = [
             slot
             for slot in (1, 2, 3, 4)
             if slot not in slots_seen
-            and frame_index - self.last_seen_frame.get(slot, -(10**9)) <= self.max_missing_frames
+            and slot not in live_slots
+            and self.min_missing_frames
+            <= frame_index - self.last_seen_frame.get(slot, -(10**9))
+            <= self.max_missing_frames
         ]
         for pose in unknown:
             if not missing:
@@ -196,6 +226,10 @@ class PlayerIdentityTracker:
             )
             missing.remove(slot)
             assert pose.track_id is not None
+            # a slot belongs to exactly one track: drop any stale claim on it
+            for track, held in list(self.slot_by_track.items()):
+                if held == slot:
+                    del self.slot_by_track[track]
             self.slot_by_track[pose.track_id] = slot
             pose.player_id = slot
             self.last_position[slot] = centre
