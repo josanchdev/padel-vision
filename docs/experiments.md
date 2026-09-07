@@ -1032,3 +1032,87 @@ Los errores dentro del mismo equipo (J1→J2 9, J4→J3 6) son el otro caso que 
 documentan: los dos jugadores de un lado van a por la misma bola y ambos quedan
 igual de cerca (su Fig. 9b). Estos no afectan a la métrica de EQUIPO, que es la
 que reproduce su cifra exactamente (86,83%).
+
+## Lectura completa de los papers de clasificación de golpe (sep 2026)
+
+Papers leídos enteros: **E2E-Spot** (ECCV 2022, 33 pp.), **BST** (CVPRW 2026, 18 pp.),
+**Santra et al.** (arXiv:2503.00147). PDFs en `~/reference/papers/`.
+
+### Hallazgo que corrige el rumbo: el SotA de TIPO de golpe NO usa RGB
+
+Cuando en ADR-0015 se escribió "clasificador de TIPO por RGB", la hipótesis era que
+RGB conserva información que pose+pelota tira. **BST — el estado del arte en
+clasificación de tipo de golpe en deportes de raqueta — no usa RGB en absoluto:**
+usa pose (joints + bones) + trayectoria de la pelota + posición en pista, con
+transformers y cross-attention. Y bate a los modelos de esqueleto puro
+(ST-GCN, BlockGCN, SkateFormer, ProtoGCN) por márgenes grandes.
+
+La distinción importante que aclara la confusión: **RGB gana en DETECTAR el
+instante (PES), pose+pelota gana en CLASIFICAR el tipo.** Son tareas distintas:
+- E2E-Spot y Santra et al. resuelven *cuándo* (PES) → usan RGB porque el instante
+  del contacto es una diferencia visual sutil entre frames casi idénticos.
+- BST y TemPose resuelven *qué tipo* → usan pose+trayectoria porque el gesto está
+  en el movimiento del cuerpo y la trayectoria desambigua la intención.
+
+Nosotros ya tenemos el *cuándo* resuelto por AUDIO (F1 0,93), que es más barato que
+el RGB. **Luego lo que falta es exactamente lo que BST hace, y no necesita RGB.**
+
+### Números que justifican cada decisión de diseño (de las tablas de BST)
+
+Sobre ShuttleSet (25 clases, 33.481 golpes), efecto de cada entrada:
+
+| Modelo | Pose | Pelota | Posición | Acc | Macro-F1 | **Min-F1** |
+|---|---|---|---|---|---|---|
+| ST-GCN (esqueleto puro) | J | ✗ | ✗ | 0,7758 | 0,7352 | 0,3726 |
+| TemPose-V | J+B | ✗ | ✗ | 0,7756 | 0,7408 | 0,4286 |
+| TemPose-PF | J+B | ✗ | ✓ | 0,7942 | 0,7704 | 0,4912 |
+| TemPose-SF | J+B | ✓ | ✗ | 0,8100 | 0,7808 | 0,4872 |
+| BST-0 | J+B | ✓ | ✗ | 0,8194 | 0,7924 | 0,5210 |
+| BST-CG-AP | J+B | ✓ | ✓ | **0,8254** | 0,7983 | 0,5196 |
+
+**La PELOTA es la entrada que más aporta** (+3,4 pts de accuracy sobre pose sola;
+más que la posición en pista). Confirma la intuición de Jorge de que la pelota
+servía, y valida conservar nuestro TrackNet (F1 0,94).
+
+### La estrategia de recorte (respuesta a "¿cuántos frames?")
+
+BST compara tres estrategias y la suya gana:
+
+1. **Ancho fijo** (h±t): el problema es el dilema del tamaño — corto corta el gesto,
+   largo mete golpes ajenos. Longitud de secuencia usada: 30 frames.
+2. **Complete-pose**: del golpe anterior del rival al siguiente golpe del rival.
+3. **La suya** (gana): complete-pose **+ ε frames extra** después del siguiente golpe
+   del rival, para capturar el inicio de la trayectoria de respuesta. Longitud: 100.
+
+Es una ventana **adaptativa**, no fija: se define por los golpes vecinos, no por un
+número de frames. La razón del ε: permite inferir el tipo de golpe *hacia atrás*
+desde cómo responde el rival. Efecto medido (BST-0): **Min-F1 0,5210 → 0,5822**
+(+6 puntos en la clase más difícil), accuracy 0,8194 → 0,8284.
+
+**Esto es directamente aplicable a nuestro problema de las dejadas**: la clase rara
+es justo la que más se beneficia del contexto ampliado.
+
+### Hiperparámetros publicados de BST (para no inventar)
+
+epochs 1600 (early stop 300) · batch 128 · lr 5e-4 (AdamW) · cosine annealing con
+warm-up 400 pasos · weight decay 1e-2 · label smoothing 0,1 · longitud de secuencia
+100 (su estrategia) o 30 (ancho fijo) · pose 2D de RTMPose (mejor que 3D para esta
+tarea, medido por ellos) · TrackNetV3 para la pelota.
+
+### Otros datos de los papers de PES
+
+- **δ=0 es dificilísimo**: en tenis, E2E-Spot saca 45,34 mAP a δ=0 vs 96,10 a δ=1.
+  Acertar el frame EXACTO es el problema abierto del campo. Nuestro audio ya lo
+  resuelve → el clasificador no tiene que localizar, solo clasificar.
+- **E2E-Spot excluye a propósito la clasificación fina**: sus 6 clases de tenis son
+  saque/golpe/bote × cerca/lejos, y dicen explícitamente que dejan fuera
+  "forehand vs backhand, topspin vs slice, volley". El tipo de golpe es hueco
+  abierto, no algo ya resuelto.
+- **La focal loss puede estar restándonos**: el ablation de Santra et al. mide que
+  en PES la focal loss EMPEORA (72,65 → 70,36 mAP) frente a no usarla, y su SoftIC
+  loss mejora (→ 73,74). Nosotros usamos focal loss en el audio por seguir al paper
+  de pádel. Experimento barato pendiente: cambiar la loss y medir el recall.
+- **Bi-GRU de 1 capa basta**: bate a transformers, Bi-LSTM, MS-TCN y GRU profundas
+  en los ablations de ambos papers. No complicar el modelo temporal.
+- Longitud de clip: 100-128 frames es el óptimo en ambos papers (con 8-16 se
+  desploma; más de 192 empeora).
