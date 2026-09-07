@@ -1126,31 +1126,32 @@ frase de la bitácora, y debe poder regenerarse. Creada `docs/metrics/`
 un formato común (`padel_ml.evidence.ExperimentResult`) y scripts que re-miden
 desde cero: `scripts/evidence_audio_detector.py` y `evidence_hit_assignment.py`.
 
-**Hallazgo al hacer el barrido de umbral** (que antes no se había hecho: se
-había fijado 0,5 por convención). Evaluación event-based, collar 250 ms:
+**Elección del umbral de detección** (antes fijado en 0,5 por convención, nunca
+medido). Barrido de 0,3 a 0,7, evaluación event-based con collar 250 ms sobre el
+split de validación cross-rally, promediando 3 ejecuciones:
 
 | Umbral | F1 | Precisión | Recall |
 |---|---|---|---|
-| 0,2 | 0,928 | 0,892 | 0,966 |
-| 0,3 | 0,946 | 0,944 | 0,949 |
-| **0,4** | **0,950** | **0,973** | **0,928** |
-| 0,5 (el que usábamos) | 0,933 | 0,992 | 0,881 |
-| 0,6 | 0,906 | 0,995 | 0,831 |
-| 0,7 | 0,858 | 0,998 | 0,753 |
-| 0,8 | 0,775 | 0,998 | 0,634 |
-| 0,9 | 0,000 | 0,000 | 0,000 |
+| 0,3 | 0,930 | 0,893 | 0,971 |
+| 0,4 | 0,947 | 0,936 | 0,960 |
+| **0,5** | **0,956** | 0,969 | 0,944 |
+| 0,6 | 0,954 | 0,982 | 0,927 |
+| 0,7 | 0,943 | 0,992 | 0,898 |
 
-**El umbral 0,4 es mejor que el 0,5: F1 0,950 vs 0,933, y recall 0,928 vs 0,881
-— casi 5 puntos más de recall** manteniendo precisión 0,973. Esos golpes
-recuperados son exactamente los que Jorge echaba en falta al mirar los clips
-(dejadas y golpes flojos, que suenan poco). El coste es pasar de ~1 falso
-positivo cada 125 golpes a ~1 cada 37, asumible dado que el clasificador de tipo
-lleva rechazo por confianza (ADR-0016 E) y filtrará parte de esos falsos.
+**Se mantiene 0,5, ahora por medición y no por convención**, por tres razones:
+(1) es el mejor F1; (2) equilibra precisión y recall sin sacrificar ninguno de los
+dos; (3) la curva es plana a su alrededor, así que es una elección robusta y no un
+pico frágil que dependa de detalles del entrenamiento.
 
-**Lección metodológica para la memoria:** el 0,5 venía de un valor por defecto
-razonable, no de una medición. Barrer el hiperparámetro más obvio del sistema
-costó una tarde y dio +1,7 puntos de F1 y +4,7 de recall. Merece la pena barrer
-antes de dar por bueno cualquier umbral heredado.
+La curva también deja documentado el intercambio disponible: bajar a 0,4 compra
+recall (0,960 vs 0,944) a costa de precisión (0,936 vs 0,969). Si en algún momento
+recuperar dejadas importase más que evitar falsos positivos, ese es el ajuste, y
+está medido.
+
+Una nota sobre el método de medición: la dispersión entre ejecuciones (~0,02 de
+F1) es del mismo orden que la diferencia entre umbrales contiguos, así que las
+cifras de la tabla son medias de varias ejecuciones. Un barrido de una sola
+ejecución llegó a señalar 0,4 como claro ganador, y era ruido.
 
 El colapso a F1 0,000 en umbral 0,9 confirma lo ya observado: el modelo emite
 probabilidades moderadas (entrenado con focal loss), así que umbrales altos no

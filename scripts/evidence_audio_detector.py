@@ -18,6 +18,7 @@ import torch
 from padel_ml.audio_dataset import load_hits_csv
 from padel_ml.audio_detector import AudioHitCRNN, focal_bce_loss
 from padel_ml.audio_train import (
+    DEFAULT_THRESHOLD,
     _sequences,
     build_all_rallies,
     event_eval,
@@ -84,10 +85,15 @@ def sweep_thresholds(
     return rows
 
 
-def main() -> None:
+def main(seed: int = 0) -> None:
+    # Seeded so repeated runs are comparable: run-to-run spread (~0.02 F1) is as
+    # large as the gap between neighbouring thresholds, so an unseeded sweep
+    # cannot tell a real difference from luck. Not about bit-exact reproduction.
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     rallies = build_all_rallies(DATASET, CACHE)
-    rng = np.random.default_rng(0)
+    rng = np.random.default_rng(seed)
     index = np.arange(len(rallies))
     rng.shuffle(index)
     n_val = int(len(rallies) * 0.3)
@@ -126,7 +132,7 @@ def main() -> None:
     print("barrido de umbral:")
     sweep = sweep_thresholds(model, val_rallies, hits, mean, std, device)
     best = max(sweep, key=lambda r: r["f1"])
-    chosen = next(r for r in sweep if r["threshold"] == 0.5)
+    chosen = next(r for r in sweep if r["threshold"] == DEFAULT_THRESHOLD)
 
     # loss curve + threshold sweep figures
     import matplotlib
@@ -144,7 +150,7 @@ def main() -> None:
     thresholds = [r["threshold"] for r in sweep]
     for key, color in [("f1", "#3b7dd8"), ("precision", "#d84a3b"), ("recall", "#3bd87d")]:
         axes[1].plot(thresholds, [r[key] for r in sweep], marker="o", label=key, color=color)
-    axes[1].axvline(0.5, linestyle="--", color="grey", linewidth=1)
+    axes[1].axvline(DEFAULT_THRESHOLD, linestyle="--", color="grey", linewidth=1)
     axes[1].set_xlabel("umbral")
     axes[1].set_title("Sensibilidad al umbral (eval event-based, collar 250 ms)")
     axes[1].legend()
@@ -193,7 +199,8 @@ def main() -> None:
             "epochs": 30,
             "batch_size": 32,
             "lr": 1e-3,
-            "threshold": 0.5,
+            "threshold": DEFAULT_THRESHOLD,
+            "seed": seed,
             "min_gap_frames": 8,
             "collar_s": 0.25,
         },

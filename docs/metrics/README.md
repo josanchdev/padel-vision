@@ -39,7 +39,8 @@ es un recuerdo.
 | Fichero | Qué demuestra | Usado en |
 |---|---|---|
 | `audio_hit_detector.json` | Detector por audio F1 0,93 (paper 0,92) | ADR-0015 A |
-| `audio_threshold_sweep.json` | Que el umbral 0,5 es una elección medida | ADR-0015 A |
+| `audio_threshold_sweep.json` | Barrido de umbral (una ejecución) | ADR-0015 A |
+| `audio_threshold_seeds.json` | **Elección del umbral**: F1/P/R por umbral, media de 3 ejecuciones | ADR-0015 A |
 | `audio_training_loss.json` | Curva de entrenamiento del CRNN | ADR-0015 A |
 | `hit_assignment_replica.json` | Asignación: equipo 86,83% = paper; matriz de confusión | ADR-0015 D |
 | `hit_assignment_per_rally.json` | Tabla por rally, comparable con su Tabla 3 | ADR-0015 D |
@@ -50,6 +51,7 @@ es un recuerdo.
 | Figura | Qué muestra |
 |---|---|
 | `audio_detector_training.png` | Curva de pérdida + sensibilidad al umbral |
+| `audio_threshold_seeds.png` | Por qué 0,5: F1/precisión/recall por umbral con dispersión |
 | `shot_detection_approaches.png` | **Por qué el audio**: recall de cada enfoque probado |
 | `hit_assignment_confusion.png` | Matriz de confusión de la asignación |
 | `hit_assignment_vs_paper.png` | Nuestra cifra frente a la publicada |

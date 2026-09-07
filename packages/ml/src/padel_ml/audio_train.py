@@ -28,12 +28,15 @@ from padel_ml.audio_detector import AudioHitCRNN, focal_bce_loss
 
 FloatArray = npt.NDArray[np.float32]
 
-DEFAULT_THRESHOLD = 0.4
-"""Detection threshold, chosen by sweeping it (docs/metrics/audio_threshold_sweep.json).
+DEFAULT_THRESHOLD = 0.5
+"""Detection threshold, measured rather than assumed.
 
-0.5 was an inherited default; 0.4 measures better on every count that matters:
-F1 0.950 vs 0.933 and recall 0.928 vs 0.881, still at 0.973 precision. The extra
-recall is exactly the soft hits (drop shots, slices) that are hardest to hear.
+Swept over 0.3-0.7 (docs/metrics/audio_threshold_seeds.json): mean F1 0.930 /
+0.947 / **0.956** / 0.954 / 0.943. 0.5 wins on F1 and balances precision (0.969)
+against recall (0.944) without sacrificing either, and the curve is flat around
+it, so the choice is robust rather than a fragile peak. Dropping to 0.4 buys
+recall (0.960) at the cost of precision (0.936) if soft hits — drop shots,
+slices — ever matter more than false positives.
 """
 
 

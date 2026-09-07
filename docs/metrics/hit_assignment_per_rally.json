@@ -1,0 +1,98 @@
+[
+  {
+    "rally": "20230528_VIGO_00",
+    "hits": 16,
+    "player_accuracy": 0.6875,
+    "team_accuracy": 0.875
+  },
+  {
+    "rally": "20230528_VIGO_01",
+    "hits": 31,
+    "player_accuracy": 0.8065,
+    "team_accuracy": 0.8387
+  },
+  {
+    "rally": "20230528_VIGO_02",
+    "hits": 9,
+    "player_accuracy": 0.8889,
+    "team_accuracy": 0.8889
+  },
+  {
+    "rally": "20230528_VIGO_03",
+    "hits": 13,
+    "player_accuracy": 0.5385,
+    "team_accuracy": 0.6154
+  },
+  {
+    "rally": "20230528_VIGO_04",
+    "hits": 8,
+    "player_accuracy": 0.75,
+    "team_accuracy": 0.75
+  },
+  {
+    "rally": "20230528_VIGO_05",
+    "hits": 10,
+    "player_accuracy": 0.9,
+    "team_accuracy": 0.9
+  },
+  {
+    "rally": "20230528_VIGO_06",
+    "hits": 27,
+    "player_accuracy": 0.8519,
+    "team_accuracy": 0.8519
+  },
+  {
+    "rally": "20230528_VIGO_07",
+    "hits": 17,
+    "player_accuracy": 0.8824,
+    "team_accuracy": 0.9412
+  },
+  {
+    "rally": "20230528_VIGO_08",
+    "hits": 16,
+    "player_accuracy": 0.9375,
+    "team_accuracy": 1.0
+  },
+  {
+    "rally": "20230528_VIGO_09",
+    "hits": 35,
+    "player_accuracy": 0.8857,
+    "team_accuracy": 0.9143
+  },
+  {
+    "rally": "20230528_VIGO_10",
+    "hits": 10,
+    "player_accuracy": 0.6,
+    "team_accuracy": 1.0
+  },
+  {
+    "rally": "20230528_VIGO_11",
+    "hits": 46,
+    "player_accuracy": 0.8261,
+    "team_accuracy": 0.8696
+  },
+  {
+    "rally": "20230528_VIGO_12",
+    "hits": 20,
+    "player_accuracy": 0.65,
+    "team_accuracy": 0.8
+  },
+  {
+    "rally": "20230528_VIGO_14",
+    "hits": 21,
+    "player_accuracy": 0.7619,
+    "team_accuracy": 0.8095
+  },
+  {
+    "rally": "20230528_VIGO_15",
+    "hits": 35,
+    "player_accuracy": 0.9143,
+    "team_accuracy": 0.9429
+  },
+  {
+    "rally": "20230528_VIGO_16",
+    "hits": 5,
+    "player_accuracy": 0.4,
+    "team_accuracy": 0.6
+  }
+]
