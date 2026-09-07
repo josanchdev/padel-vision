@@ -56,10 +56,17 @@ falsos del audio). Cada señal en lo que es mejor.
     Más elegante que nuestro ByteTrack+anclaje geométrico → se adopta el suyo.
   - La PELOTA (TrackNet, F1 0,94) es la señal de "quién" por proximidad, como en el
     paper. Se mantiene; NO como detector de golpe (eso falla).
-- **D2 — Homografía/pista: manual + fallback automático.** El paper usa puntos
-  manuales por torneo (cámara fija) para máxima precisión. Decisión de Jorge: dar
-  al usuario la OPCIÓN de marcar los puntos de su pista (mejor resultado); si no lo
-  hace, fallback a nuestro detector automático (court v6, 0,196 m, ADR-0006).
+- **D2 — Homografía/pista: manual + fallback automático. ✅ El automático GANA.**
+  El paper usa puntos manuales por torneo (cámara fija) tras descartar su método
+  automático por color. Se mantiene la opción manual, pero medido en VIGO nuestro
+  detector v6 agregando 136 detecciones (mediana por keypoint; la cámara es fija,
+  MAD 2-14 px) da **0,113 m de error** sin intervención manual — mejor que nuestro
+  propio benchmark (0,196 m). **Mejora sobre el paper**, no solo réplica.
+- **D3 — El detector emite VENTANAS, no picos (opción B).** El paper usa los
+  límites onset/offset que predice el modelo y solo rellena hasta 500 ms si la
+  ventana es corta. Se replica así (`windows_from_frames`): es más fiel y la
+  anchura de la ventana es información aprovechable por el clasificador de tipo
+  (un slice no suena como un remate).
 - **E — Orden:** (1) detector de audio ✅ HECHO (F1 0,93); (2) replicar el backbone
   de asignación (quién golpea) + re-id + homografía manual del paper; (3) validar el
   audio en vídeo propio (generalización); (4) investigar RGB a fondo y diseñar el

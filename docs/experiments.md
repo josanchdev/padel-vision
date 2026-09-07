@@ -949,3 +949,53 @@ Resultado tras los arreglos: **76,6% jugador / 85,1% equipo, 0 golpes sin asigna
 ocultaba el fallo; medir la métrica *en el momento que importa* (los frames de
 golpe) lo hizo evidente al instante — 0 jugadores identificados en los dos
 primeros golpes.
+
+## HITO: asignación de golpe a jugador replicada — equipo 86,83% (igual que el paper)
+
+Evaluación sobre el GT completo del paper (319 golpes, 16 rallies de VIGO,
+`hit_assignments.xlsx`), usando los tiempos de golpe ANOTADOS para medir la
+asignación aislada (mezclar los errores del detector de audio confundiría dos cosas
+distintas; el audio ya está medido aparte, F1 0,93).
+
+| | Nosotros | Paper |
+|---|---|---|
+| Jugador (P2P) | 80,56 % | 83,70 % |
+| **Equipo** | **86,83 %** | **86,83 %** |
+| Golpes sin asignar | **0** | tienen categoría "Unassigned" (su Fig. 8) |
+
+**El equipo reproduce el número del paper exactamente.** El jugador queda 3,1
+puntos por debajo, con el matiz de que nosotros asignamos los 319 golpes mientras
+que ellos dejan algunos sin asignar — nuestra cifra es por tanto más exigente (un
+sistema que se abstiene en los casos difíciles sube su precisión aparente).
+
+Tabla por rally (comparable con su Tabla 3):
+
+| Rally | P2P % | Equipo % | Golpes |
+|---|---|---|---|
+| VIGO_00 | 68,75 | 87,50 | 16 |
+| VIGO_01 | 80,65 | 83,87 | 31 |
+| VIGO_02 | 88,89 | 88,89 | 9 |
+| VIGO_03 | 53,85 | 61,54 | 13 |
+| VIGO_04 | 75,00 | 75,00 | 8 |
+| VIGO_05 | 90,00 | 90,00 | 10 |
+| VIGO_06 | 85,19 | 85,19 | 27 |
+| VIGO_07 | 88,24 | 94,12 | 17 |
+| VIGO_08 | 93,75 | 100,00 | 16 |
+| VIGO_09 | 88,57 | 91,43 | 35 |
+| VIGO_10 | 60,00 | 100,00 | 10 |
+| VIGO_11 | 82,61 | 86,96 | 46 |
+| VIGO_12 | 65,00 | 80,00 | 20 |
+| VIGO_14 | 76,19 | 80,95 | 21 |
+| VIGO_15 | 91,43 | 94,29 | 35 |
+| VIGO_16 | 40,00 | 60,00 | 5 |
+| **GLOBAL** | **80,56** | **86,83** | **319** |
+
+Se reproduce también su observación cualitativa: **los peores rallies son los de
+menos golpes** (VIGO_16 con 5 golpes → 40%; VIGO_03 con 13 → 53,85%), porque un
+solo fallo mueve la media del rally enormemente. Los rallies largos, que son los
+que pesan en la métrica global, van muy bien (VIGO_11 con 46 golpes → 82,61%;
+VIGO_15 con 35 → 91,43%).
+
+**Estado del backbone: detección de golpe F1 0,93 (paper 0,92) × asignación de
+equipo 86,83% (paper 86,83%).** Los dos eslabones replicados y medidos contra el
+mismo ground truth que el trabajo original.
