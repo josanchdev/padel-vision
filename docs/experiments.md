@@ -1116,3 +1116,42 @@ tarea, medido por ellos) · TrackNetV3 para la pelota.
   en los ablations de ambos papers. No complicar el modelo temporal.
 - Longitud de clip: 100-128 frames es el óptimo en ambos papers (con 8-16 se
   desploma; más de 192 empeora).
+
+## Infraestructura de evidencias + hallazgo del umbral óptimo (sep 2026)
+
+Petición de Jorge: toda afirmación de la memoria debe apoyarse en datos guardados
+(matriz de confusión, F1/recall/precisión, gráficas, hiperparámetros), no en una
+frase de la bitácora, y debe poder regenerarse. Creada `docs/metrics/`
+(**versionada**, a diferencia de `runs/`, gitignoreada y solo en disco local) con
+un formato común (`padel_ml.evidence.ExperimentResult`) y scripts que re-miden
+desde cero: `scripts/evidence_audio_detector.py` y `evidence_hit_assignment.py`.
+
+**Hallazgo al hacer el barrido de umbral** (que antes no se había hecho: se
+había fijado 0,5 por convención). Evaluación event-based, collar 250 ms:
+
+| Umbral | F1 | Precisión | Recall |
+|---|---|---|---|
+| 0,2 | 0,928 | 0,892 | 0,966 |
+| 0,3 | 0,946 | 0,944 | 0,949 |
+| **0,4** | **0,950** | **0,973** | **0,928** |
+| 0,5 (el que usábamos) | 0,933 | 0,992 | 0,881 |
+| 0,6 | 0,906 | 0,995 | 0,831 |
+| 0,7 | 0,858 | 0,998 | 0,753 |
+| 0,8 | 0,775 | 0,998 | 0,634 |
+| 0,9 | 0,000 | 0,000 | 0,000 |
+
+**El umbral 0,4 es mejor que el 0,5: F1 0,950 vs 0,933, y recall 0,928 vs 0,881
+— casi 5 puntos más de recall** manteniendo precisión 0,973. Esos golpes
+recuperados son exactamente los que Jorge echaba en falta al mirar los clips
+(dejadas y golpes flojos, que suenan poco). El coste es pasar de ~1 falso
+positivo cada 125 golpes a ~1 cada 37, asumible dado que el clasificador de tipo
+lleva rechazo por confianza (ADR-0016 E) y filtrará parte de esos falsos.
+
+**Lección metodológica para la memoria:** el 0,5 venía de un valor por defecto
+razonable, no de una medición. Barrer el hiperparámetro más obvio del sistema
+costó una tarde y dio +1,7 puntos de F1 y +4,7 de recall. Merece la pena barrer
+antes de dar por bueno cualquier umbral heredado.
+
+El colapso a F1 0,000 en umbral 0,9 confirma lo ya observado: el modelo emite
+probabilidades moderadas (entrenado con focal loss), así que umbrales altos no
+son utilizables.
