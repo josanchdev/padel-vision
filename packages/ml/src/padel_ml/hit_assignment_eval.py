@@ -14,11 +14,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 import cv2
 import numpy as np
 
-from padel_cv.pipeline import BallDetection, Frame, PoseDetection
+from padel_cv.pipeline import BallDetection, Frame, ImageArray, PoseDetection
 from padel_cv.player_identity import PlayerIdentityTracker, court_mask_polygon, filter_players
 from padel_cv.stages.pose import PlayerPoseStage
 from padel_ml.ball_infer import BallDetector, BallHit
@@ -90,7 +91,9 @@ def build_states(
         ok, image = capture.read()
         if not ok:
             break
-        frame = pose_stage.process(Frame(index=index, timestamp_s=index / fps, image=image))
+        frame = pose_stage.process(
+            Frame(index=index, timestamp_s=index / fps, image=cast(ImageArray, image))
+        )
         players = filter_players(frame.poses, polygon)
         identity.update(index, players)
         # keep every pose object: the identity tracker back-fills IDs on the

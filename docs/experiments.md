@@ -899,3 +899,53 @@ con 319 golpes de 16 rallies del torneo VIGO anotados con quién golpea, en form
 así que podemos medirnos contra su 83,70% (jugador) y 86,83% (equipo) igual que
 hicimos con el audio. Leído sin openpyxl (xlsx es un zip de XML) en
 `hit_assignment_gt.py`.
+
+### Homografía de VIGO: el detector automático supera al método manual del paper
+
+El paper calcula la homografía con **puntos seleccionados a mano** por torneo,
+después de descartar un método automático por color que les daba esquinas
+inexactas (su Fig. 3). Nosotros probamos nuestro detector v6 sobre VIGO:
+
+- Frame a frame es inestable: acierta en 1 de cada 3 frames sueltos.
+- Pero la cámara es **fija**, así que se puede agregar: 136 muestras repartidas
+  por los 17 rallies, mediana por keypoint. Dispersión (MAD) de solo 2-14 px,
+  confirmando que la cámara no se mueve.
+- La homografía resultante da **error medio 0,113 m** (máx 0,248 m) al
+  reproyectar los 13 keypoints — mejor que nuestro propio benchmark WPT (0,196 m)
+  y sin intervención manual.
+
+**Conclusión para la memoria:** donde el paper tuvo que recurrir a marcado manual,
+nuestro detector aprendido (ADR-0006) resuelve el mismo problema automáticamente.
+Es una mejora concreta sobre el trabajo base. Guardado en `data/datasets/vigo_court.json`.
+La lección de v6 se confirma: para cámara fija, agregar muchas detecciones
+mediocres da una homografía mejor que cualquier detección individual.
+
+### Depuración de la asignación: de 68% a 76,6% (jugador)
+
+Primera medición sobre 2 rallies: 68,1% jugador / 78,7% equipo, lejos del paper.
+La matriz de confusión descartó de entrada el error más temido: la diagonal
+dominaba (2→2, 3→3, 1→1, 4→4) sin patrón de permutación, así que **la numeración
+1-4 coincide con la convención del dataset** — el orden x-luego-y del paper es
+correcto. Los fallos eran de asignación real, sobre todo 4→3, exactamente el error
+que el paper documenta (ambigüedad de profundidad con una sola cámara, su Fig. 9a).
+
+Dos bugs propios encontrados midiendo cuántos jugadores había identificados *en los
+frames de golpe* (no en promedio, que engañaba):
+
+1. **Los 3 primeros segundos salían sin identificar.** Esa ventana *define* la
+   numeración, pero sigue siendo parte del peloteo: VIGO_00 tiene su primer golpe
+   en t=1,36 s. Se rellenan los IDs retroactivamente al fijar los slots. El fallo
+   estaba doblemente enterrado: aunque el tracker rellenaba las poses, el
+   evaluador ya las había descartado por `player_id is None` antes de tiempo.
+2. **Dos tracks podían compartir un slot** (`{3:1, 9:1}`): la lista de slots
+   reciclables se calculaba con los vistos *en ese frame*, así que un jugador no
+   detectado durante un frame parecía "desaparecido". Ahora un slot solo se
+   recicla si lleva ≥2 frames ausente y ningún track vivo lo ocupa.
+
+Resultado tras los arreglos: **76,6% jugador / 85,1% equipo, 0 golpes sin asignar**
+(antes 4). El equipo ya entra en el rango del paper (86,83%).
+
+**Lección metodológica:** la métrica agregada ("3,7 poses por frame de media")
+ocultaba el fallo; medir la métrica *en el momento que importa* (los frames de
+golpe) lo hizo evidente al instante — 0 jugadores identificados en los dos
+primeros golpes.
