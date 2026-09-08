@@ -250,6 +250,27 @@ def _load_clip(
     return frames, hit_frame - first
 
 
+def ensure_qt_fonts() -> None:
+    """Give OpenCV's bundled Qt a font directory, or its windows render blank.
+
+    OpenCV ships a Qt build that looks for fonts under `cv2/qt/fonts`, but no
+    longer bundles any. Without them Qt floods stderr with QFontDatabase
+    warnings and the window comes up empty — which on WSL looks exactly like
+    "the GUI does not work". Symlinking the system DejaVu fonts fixes it.
+    """
+    fonts_dir = Path(cv2.__file__).parent / "qt" / "fonts"
+    if fonts_dir.is_dir() and any(fonts_dir.glob("*.ttf")):
+        return
+    system_fonts = Path("/usr/share/fonts/truetype/dejavu")
+    if not system_fonts.is_dir():
+        return
+    fonts_dir.mkdir(parents=True, exist_ok=True)
+    for font in system_fonts.glob("*.ttf"):
+        target = fonts_dir / font.name
+        if not target.exists():
+            target.symlink_to(font)
+
+
 def annotate_types(
     video_path: Path,
     hit_frames: list[int],
@@ -265,6 +286,7 @@ def annotate_types(
     from one image — by a human or, as it turns out, by the model, which sees a
     whole window too (ADR-0016 F).
     """
+    ensure_qt_fonts()
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         raise FileNotFoundError(f"Could not open video: {video_path}")
