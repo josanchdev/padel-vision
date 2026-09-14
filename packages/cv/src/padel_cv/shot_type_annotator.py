@@ -53,6 +53,9 @@ _ACCENT = (235, 190, 80)
 _INK = (245, 245, 245)
 _MUTED = (165, 165, 165)
 
+DISPLAY_WIDTH = 1280
+"""Frames are scaled to this width for display (1080p does not fit on screen)."""
+
 CLIP_HALF_FRAMES = 25
 """Frames either side of the hit shown as a looping clip (~1 s each way at 25
 fps): enough to see wind-up, contact and follow-through, which is what tells a
@@ -246,6 +249,12 @@ def _load_clip(
         ok, image = capture.read()
         if not ok:
             break
+        # Scale 1080p down to fit on screen: the window is AUTOSIZE (resizable
+        # windows render blank under WSLg), so the frame must arrive at the size
+        # it will be shown at.
+        if image.shape[1] > DISPLAY_WIDTH:
+            scale = DISPLAY_WIDTH / image.shape[1]
+            image = cv2.resize(image, (DISPLAY_WIDTH, round(image.shape[0] * scale)))
         frames.append(cast(ImageArray, image))
     return frames, hit_frame - first
 
@@ -269,6 +278,19 @@ def ensure_qt_fonts() -> None:
         target = fonts_dir / font.name
         if not target.exists():
             target.symlink_to(font)
+
+
+def _window_closed(window: str) -> bool:
+    """Whether the user closed the window with the X.
+
+    Qt raises "NULL guiReceiver" instead of returning a value when its window is
+    already gone, so the query has to be guarded — an unguarded call crashes the
+    annotator (and loses the session) exactly when the user closes the window.
+    """
+    try:
+        return bool(cv2.getWindowProperty(window, cv2.WND_PROP_VISIBLE) < 1)
+    except cv2.error:
+        return True
 
 
 def annotate_types(
@@ -298,8 +320,14 @@ def annotate_types(
     index = next((i for i, m in enumerate(marks) if not m.shot_type), 0)
     history: list[tuple[int, str | None]] = []
 
-    cv2.namedWindow(window, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(window, 1280, 720)
+    # AUTOSIZE + an immediate first paint: under WSLg a window that is created
+    # but not shown anything for a few seconds (decoding the first clip takes
+    # that long) comes up blank, present in the taskbar but never rendered.
+    cv2.namedWindow(window, cv2.WINDOW_AUTOSIZE)
+    splash = np.zeros((360, 640, 3), dtype=np.uint8)
+    _text(splash, "cargando el primer golpe...", (60, 190), 0.8, _INK, 2)
+    cv2.imshow(window, splash)
+    cv2.waitKey(1)
 
     clip, hit_at = _load_clip(capture, marks[index].frame, clip_half)
     cursor = 0
@@ -330,8 +358,8 @@ def annotate_types(
             cursor = (cursor + 1) % len(clip)  # loop the clip continuously
 
         key = cv2.waitKey(delay if not paused else 30) & 0xFF
-        if key == 255:
-            if cv2.getWindowProperty(window, cv2.WND_PROP_VISIBLE) < 1:
+        if key == 255:  # no key pressed: keep looping unless the window is gone
+            if _window_closed(window):
                 break
             continue
 
