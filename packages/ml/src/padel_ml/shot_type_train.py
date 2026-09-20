@@ -24,6 +24,38 @@ from torch.utils.data import DataLoader, TensorDataset
 from padel_ml.shot_type_dataset import CLASSES, ShotWindow
 from padel_ml.shot_type_model import ShotTypeBST
 
+SERVE_INDEX = CLASSES.index("Serve")
+
+
+def apply_serve_rule(probabilities: list[list[float]], windows: list[ShotWindow]) -> list[int]:
+    """Only the first hit of a rally may be a serve — and it almost always is.
+
+    Jorge's observation, and the labels bear it out exactly: all 97 serves in the
+    dataset are the opening hit of their rally, and 97 of the 99 rallies open
+    with one. That makes the serve a rule of the sport rather than something to
+    be learned, so the classifier should not be left guessing at it.
+
+    The model detects serves well (recall 0.937) but over-fires: 58 hits of other
+    classes were predicted as serves, dropping its precision to 0.605. This
+    rewrites those to their next-best class, and lets a rally opener be a serve
+    if the model ranks it there.
+    """
+    first_of_rally: dict[str, int] = {}
+    for i, window in enumerate(windows):
+        if window.rally not in first_of_rally:
+            first_of_rally[window.rally] = i
+    openers = set(first_of_rally.values())
+
+    out: list[int] = []
+    for i, row in enumerate(probabilities):
+        best = int(np.argmax(row))
+        if best == SERVE_INDEX and i not in openers:
+            without_serve = list(row)
+            without_serve[SERVE_INDEX] = -1.0
+            best = int(np.argmax(without_serve))
+        out.append(best)
+    return out
+
 
 @dataclass
 class FoldResult:
@@ -46,10 +78,24 @@ def to_tensors(windows: list[ShotWindow]) -> tuple[Tensor, Tensor, Tensor]:
     return pose, ball, labels
 
 
-def class_weights(labels: Tensor, n_classes: int) -> Tensor:
-    """Inverse-frequency weights, normalised to mean 1 so the loss keeps its scale."""
+def class_weights(labels: Tensor, n_classes: int, power: float = 0.0) -> Tensor:
+    """Inverse-frequency weights raised to `power`, normalised to mean 1.
+
+    `power=0` means no weighting at all, which is what measured best — against
+    the intuition that the serve (outnumbered 8.4:1) needs protecting:
+
+        power 1.0  acc 0.7938  macro-F1 0.7862  serve F1 0.736
+        power 0.5  acc 0.8107  macro-F1 0.8072  serve F1 0.775
+        power 0.0  acc 0.8129  macro-F1 0.8118  serve F1 0.790
+
+    Weighting made the serve *worse*, not better. Pushed hard enough to never
+    miss one, the model fires it everywhere: recall stayed at 0.94 while
+    precision fell to 0.605, and those false serves ate into the other three
+    classes too. Left alone it finds serves nearly as often and is right far
+    more of the time.
+    """
     counts = torch.bincount(labels, minlength=n_classes).float().clamp(min=1.0)
-    weights = counts.max() / counts
+    weights = (counts.max() / counts) ** power
     return weights / weights.mean()
 
 

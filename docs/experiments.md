@@ -1345,3 +1345,65 @@ mientras el paper deja algunos sin asignar. F1 por jugador entre 0,838 y 0,906.
 3. **El diagnóstico vino de mirar el vídeo.** Las métricas agregadas decían
    "79%" sin señalar dónde; ver la estela a saltos y los golpes mal atribuidos
    apuntó al eslabón correcto. Conviene inspeccionar la salida, no solo medirla.
+
+## El clasificador: sin pesos de clase y con la regla del saque (sep 2026)
+
+Dos cambios que suben el macro-F1 de 0,786 a **0,847**, ambos nacidos de mirar la
+matriz de confusión en vez de la métrica agregada.
+
+### Los pesos de clase empeoraban, incluido el saque
+
+El saque está 8,4:1 en desventaja frente a la derecha (97 vs 813), así que se
+ponderó la pérdida por frecuencia inversa — la práctica habitual. Barriendo la
+intensidad del peso:
+
+| Peso | Accuracy | macro-F1 | Saque P | Saque R | Saque F1 |
+|---|---|---|---|---|---|
+| ^1,0 (el que usábamos) | 0,7938 | 0,7862 | 0,605 | 0,937 | 0,736 |
+| ^0,5 | 0,8107 | 0,8072 | 0,677 | 0,905 | 0,775 |
+| **sin pesos** | **0,8129** | **0,8118** | **0,722** | 0,874 | **0,790** |
+
+**Sin pesos gana en todo, incluida la clase que los pesos pretendían proteger.**
+El mecanismo: empujado a no perder ni un saque, el modelo lo dispara por todas
+partes — mantenía recall 0,94 pero su precisión caía a 0,605, y esos 58 falsos
+saques se comían aciertos de las otras tres clases. Dejándolo en paz encuentra
+casi los mismos y acierta mucho más.
+
+Postura de Jorge, coincidente y previa a la medición: no dar nunca peso adicional
+a una clase minoritaria como ésta. La medición le da la razón.
+
+### La regla del saque (observación de Jorge)
+
+*"El saque se hace siempre en el primer golpe de cada rally. No tiene sentido que
+se clasifique como saque si hay más golpes antes."*
+
+Verificado sobre las etiquetas: **los 97 saques del dataset son el primer golpe de
+su rally, sin una sola excepción**, y 97 de los 99 rallies abren con uno. Es una
+regla del reglamento, no un patrón a aprender.
+
+Aplicada como post-proceso (`apply_serve_rule`): si el modelo predice saque en un
+golpe que no abre rally, se reescribe a su segunda opción.
+
+| | Sin regla | Con regla |
+|---|---|---|
+| Accuracy | 0,8129 | **0,8184** |
+| macro-F1 | 0,8118 | **0,8467** |
+| Saque: precisión | 0,722 | **1,000** |
+| Saque: F1 | 0,790 | **0,933** |
+
+**Precisión perfecta en el saque** sin perder ni uno real (recall intacto en
+0,874). Los falsos saques estaban todos en mitad de rally, donde un saque es
+imposible.
+
+Es conocimiento del dominio, no aprendizaje, y como tal debe declararse en la
+memoria: el mérito es de la regla, no del modelo. Es práctica habitual en
+análisis deportivo aprovechar las restricciones del reglamento.
+
+### Evolución completa del clasificador
+
+| Configuración | Accuracy | macro-F1 |
+|---|---|---|
+| Pelota 512px + pesos ^1,0 | 0,7750 | 0,7907 |
+| Pelota 768px + pesos ^1,0 | 0,7938 | 0,7862 |
+| Pelota 768px, sin pesos | 0,8129 | 0,8118 |
+| **+ regla del saque** | **0,8184** | **0,8467** |
