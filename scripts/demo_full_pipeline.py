@@ -199,8 +199,18 @@ def main() -> None:
 
         if hitter_pose is not None and active is not None:
             colour = TYPE_COLOURS.get(active[1] or "", REJECT)
+            # The hitter keeps HIS OWN colour, only drawn heavier: recolouring him
+            # by stroke type would break the one thing the colour is for — telling
+            # the four players apart — exactly when the viewer is looking hardest.
+            # The stroke type is carried by the label instead.
+            player_colour = PLAYER_COLOURS[hitter_pose.player_id]
             overlay.skeleton(
-                image, hitter_pose.keypoints, COCO_SKELETON, colour, thickness=3, joint_radius=4
+                image,
+                hitter_pose.keypoints,
+                COCO_SKELETON,
+                player_colour,
+                thickness=3,
+                joint_radius=4,
             )
             # The verdict goes right above the player who produced it: a tag in
             # the corner makes the viewer hunt for who it refers to.
@@ -221,7 +231,7 @@ def main() -> None:
                 f"JUGADOR {active[0]}",
                 (int((x1 + x2) / 2), top[1] - 4),
                 scale=0.46,
-                colour=overlay.MUTED,
+                accent=player_colour,  # same colour as his skeleton
                 centred=True,
             )
 
