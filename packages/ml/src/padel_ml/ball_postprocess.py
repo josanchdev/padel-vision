@@ -9,6 +9,13 @@ the paper explicitly post-processes away:
 - **Gaps**: the ball vanishes behind a player or leaves the frame. Short gaps
   are interpolated, which matters because hit assignment needs a ball position
   in as many frames of the hit window as possible.
+- **Frozen detections**: the opposite failure, and the costly one here. The
+  detector latches onto a static distractor and reports the very same pixel for
+  dozens of frames. Measured across the 99 CVSPORTS rallies, 17% of all ball
+  detections repeat the previous frame exactly — a real ball never does that.
+  Worse, a frozen point sits next to whichever player happens to be there, so
+  hit assignment confidently credits every hit to them: this is what put smashes
+  on the wrong side of the net.
 
 Long gaps are left alone: interpolating across them would invent a trajectory.
 """
@@ -24,6 +31,47 @@ MAX_JUMP_PX = 250.0
 
 MAX_GAP_FRAMES = 6
 """Gaps longer than this stay empty rather than being invented."""
+
+MAX_FROZEN_FRAMES = 3
+"""A ball repeating the same pixel longer than this is a static false positive.
+
+Three frames is 120 ms at 25 fps. A real ball can look static for a frame or two
+at the apex of a lob or through rounding, but not beyond that."""
+
+FROZEN_TOLERANCE_PX = 2.0
+"""How close two detections must be to count as the same point."""
+
+
+def remove_frozen(
+    hits: list[BallHit],
+    max_frozen: int = MAX_FROZEN_FRAMES,
+    tolerance_px: float = FROZEN_TOLERANCE_PX,
+) -> list[BallHit]:
+    """Drop runs where the detection stops moving — a latched distractor.
+
+    The whole run goes, not just its tail: the first frame of a frozen run is as
+    wrong as the last, and keeping it would leave a false anchor exactly where
+    the trajectory should have continued.
+    """
+    if not hits:
+        return []
+    out: list[BallHit] = []
+    run: list[BallHit] = [hits[0]]
+    for hit in hits[1:]:
+        previous = run[-1]
+        same_spot = (
+            abs(hit.x_px - previous.x_px) <= tolerance_px
+            and abs(hit.y_px - previous.y_px) <= tolerance_px
+        )
+        if same_spot:
+            run.append(hit)
+            continue
+        if len(run) <= max_frozen:
+            out.extend(run)
+        run = [hit]
+    if len(run) <= max_frozen:
+        out.extend(run)
+    return out
 
 
 def remove_teleports(hits: list[BallHit], max_jump_px: float = MAX_JUMP_PX) -> list[BallHit]:
@@ -79,6 +127,12 @@ def postprocess_ball(
     hits: list[BallHit],
     max_jump_px: float = MAX_JUMP_PX,
     max_gap_frames: int = MAX_GAP_FRAMES,
+    max_frozen: int = MAX_FROZEN_FRAMES,
 ) -> list[BallHit]:
-    """Remove teleports, then interpolate the short gaps that remain."""
-    return interpolate_gaps(remove_teleports(hits, max_jump_px), max_gap_frames)
+    """Drop frozen runs and teleports, then interpolate the short gaps left.
+
+    Frozen first: a latched run would otherwise look like a perfectly consistent
+    trajectory to the teleport filter, which only questions movement.
+    """
+    cleaned = remove_teleports(remove_frozen(hits, max_frozen), max_jump_px)
+    return interpolate_gaps(cleaned, max_gap_frames)
