@@ -18,6 +18,11 @@ packages/api/src/padel_api/static/index.html
 
 # Data & models — never commit videos or weights
 data/
+# ...except our own hand-made labels: 2,377 hits typed one by one. They are the
+# scarcest asset in the project (they cannot be regenerated) and weigh 400 KB.
+!data/labels/
+!data/labels/types/
+!data/labels/types/*.csv
 *.pt
 *.onnx
 runs/
