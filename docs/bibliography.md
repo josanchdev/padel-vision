@@ -22,14 +22,24 @@ autores/venue, enlace, y para qué se usó aquí. Verificar el formato de cita f
 - **BST: Badminton Stroke-type Transformer for Skeleton-based Action Recognition
   in Racket Sports** — Chang (Jing-Yuan). CVPRW 2026 (12th CVsports).
   arXiv:2502.21085. Repo: https://github.com/Va6lue/BST-Badminton-Stroke-type-Transformer
-  *Uso:* estado del arte de clasificación de tipo de golpe; pose+pelota con
-  cross-attention. Confirmó que pose-sola se satura y la trayectoria de pelota
-  desambigua el tipo. Tiene rama TenniSet (tenis 1v1).
+  PDF local: `~/reference/papers/2502.21085.pdf` (18 pp., LEÍDO ENTERO sep 2026).
+  *Uso:* **BASE DEL CLASIFICADOR DE TIPO DE GOLPE (ADR-0016).** Estado del arte
+  en clasificación de tipo de golpe en deportes de raqueta; pose+pelota con
+  cross-attention. **Reimplementamos su arquitectura BST-0** siguiendo el paper y
+  su implementación de referencia (repo público), con sus hiperparámetros
+  (d_model 100, d_head 128, 6 cabezas, 2+1 capas, dropout 0,3, TCN kernel 5) y su
+  **estrategia de ventana adaptativa** (§3.1). Adaptaciones propias documentadas:
+  un solo jugador en vez de dos (en pádel el golpe ya está atribuido) y flag de
+  presencia en la pelota. Sus tablas sostienen además dos decisiones nuestras:
+  la pelota es la entrada que más aporta (+3,4 pts sobre pose sola) y reducir
+  clases mejora mucho (35→25 clases: +6,6 pts de accuracy).
 
 - **TemPose: a new skeleton-based transformer model for fine-grained motion
   recognition in badminton** — Ibh, Grasshof, Witzner, Madeleine (2023).
   IEEE, https://ieeexplore.ieee.org/document/10208321
-  *Uso:* fusión temprana pose+pelota+posición vía TCN + transformer factorizado.
+  *Uso:* arquitectura de la que deriva BST; de aquí vienen los bloques que
+  reimplementamos (TCN dilatado, TransformerEncoder pre-norm, MLP_Head).
+  Citación obligatoria junto a BST: el crédito de esos bloques es suyo.
 
 - **ST-GCN (Spatial-Temporal Graph Convolutional Networks)** — Yan et al. (2018).
   *Uso:* baseline clásico de clasificación por esqueleto (nuestro Nivel 2, 0,53).
@@ -99,7 +109,15 @@ autores/venue, enlace, y para qué se usó aquí. Verificar el formato de cita f
 ---
 
 **Nota de método (para la memoria):** toda técnica o arquitectura de terceros
-usada o consultada está aquí con su fuente. Las decisiones de por qué se adoptó o
+usada o consultada está aquí con su fuente. Se distingue explícitamente entre
+**lo reimplementado de terceros** (detector de audio y asignación de golpe de
+Decorte et al.; arquitectura BST-0 de Chang sobre bloques de TemPose) y **la
+aportación propia**: el etiquetado de 2.377 golpes por tipo, la adaptación del
+clasificador a pádel, el detector de pista aprendido (ADR-0006), el detector de
+pelota entrenado sobre pádel, y la evaluación comparativa de todo ello. Reimplementar
+un método publicado citándolo es práctica estándar en investigación; lo que no es
+admisible es presentarlo como propio, y por eso cada módulo lleva su fuente en el
+docstring además de esta bibliografía. Las decisiones de por qué se adoptó o
 descartó cada una están en `docs/experiments.md` (bitácora) y `docs/decisions/`
 (ADRs).
 
