@@ -1,0 +1,58 @@
+{
+  "name": "dataset_shot_types",
+  "summary": "Etiquetado propio del tipo de golpe: 2377 golpes en 99 rallies de 11 torneos (2210 entrenables, 167 descartes).",
+  "metrics": {
+    "labelled": 2377,
+    "trainable": 2210,
+    "discards": 167,
+    "discard_rate": 0.0703,
+    "rallies": 99,
+    "tournaments": 11,
+    "imbalance_ratio": 8.38,
+    "median_hits_per_rally": 23
+  },
+  "dataset": "CVSPORTS_Padel — instantes del GT publicado, tipo etiquetado por nosotros",
+  "method": "Anotador propio: clip en bucle a velocidad real, una tecla por golpe",
+  "params": {
+    "classes": [
+      "Forehand",
+      "Backhand",
+      "Smash",
+      "Serve"
+    ],
+    "clip_half_frames": 25,
+    "class_weights_suggested": {
+      "Forehand": 1.0,
+      "Backhand": 1.11,
+      "Smash": 1.44,
+      "Serve": 8.38
+    }
+  },
+  "per_class": {
+    "Forehand": {
+      "support": 813,
+      "share": 0.342
+    },
+    "Backhand": {
+      "support": 735,
+      "share": 0.3092
+    },
+    "Smash": {
+      "support": 565,
+      "share": 0.2377
+    },
+    "Serve": {
+      "support": 97,
+      "share": 0.0408
+    },
+    "Other": {
+      "support": 167,
+      "share": 0.0703
+    }
+  },
+  "confusion": [],
+  "labels": [],
+  "notes": "Los descartes (Other) NO se entrenan: sirven para calibrar el umbral de rechazo (ADR-0016 D). El saque está desbalanceado 8,4:1 por construcción del dataset (un saque por punto), no por sesgo del etiquetado, y habrá que pesarlo en la pérdida. La distribución estable entre los 11 torneos habilita un split cross-torneo, más exigente que cross-rally porque mide generalización a pistas y cámaras nuevas.",
+  "commit": "a1cf4e9",
+  "timestamp": "2026-09-20T12:18:37+00:00"
+}

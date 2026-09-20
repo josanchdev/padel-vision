@@ -1,0 +1,79 @@
+{
+  "20230528_VIGO": {
+    "Serve": 16,
+    "Backhand": 94,
+    "Smash": 76,
+    "Other": 21,
+    "Forehand": 108
+  },
+  "20230604_BRUSSEL": {
+    "Serve": 11,
+    "Backhand": 76,
+    "Smash": 55,
+    "Forehand": 85,
+    "Other": 23
+  },
+  "20230702_VALLADOLID": {
+    "Serve": 6,
+    "Backhand": 40,
+    "Forehand": 40,
+    "Smash": 21,
+    "Other": 7
+  },
+  "20230709_VALENCIA": {
+    "Serve": 4,
+    "Forehand": 44,
+    "Smash": 24,
+    "Backhand": 26,
+    "Other": 6
+  },
+  "20230806_MALAGA": {
+    "Serve": 10,
+    "Forehand": 63,
+    "Backhand": 73,
+    "Smash": 42,
+    "Other": 13
+  },
+  "20230903_FINLAND": {
+    "Serve": 10,
+    "Backhand": 87,
+    "Other": 32,
+    "Smash": 81,
+    "Forehand": 110
+  },
+  "20230927_MADRID": {
+    "Serve": 11,
+    "Backhand": 103,
+    "Forehand": 97,
+    "Smash": 68,
+    "Other": 17
+  },
+  "20231008_DUITSLAND": {
+    "Serve": 7,
+    "Backhand": 63,
+    "Forehand": 87,
+    "Smash": 62,
+    "Other": 8
+  },
+  "20231015_AMSTERDAM": {
+    "Serve": 9,
+    "Backhand": 56,
+    "Forehand": 62,
+    "Smash": 44,
+    "Other": 19
+  },
+  "20231102_MENORCA": {
+    "Serve": 6,
+    "Backhand": 62,
+    "Forehand": 68,
+    "Smash": 47,
+    "Other": 4
+  },
+  "20231112_MALMO": {
+    "Serve": 7,
+    "Backhand": 55,
+    "Forehand": 49,
+    "Smash": 45,
+    "Other": 17
+  }
+}
