@@ -42,9 +42,12 @@ def extract(video: Path, pose_stage: PlayerPoseStage, ball: BallDetector) -> dic
     capture = cv2.VideoCapture(str(video))
     fps = capture.get(cv2.CAP_PROP_FPS) or 25.0
     identity = PlayerIdentityTracker(fps=fps)
-    keypoints: dict[int, list[np.ndarray]] = {}
-    player_ids: dict[int, list[int]] = {}
-    boxes: dict[int, list[tuple[float, float, float, float]]] = {}
+    # Keep the pose OBJECTS while scanning, not copies of their fields: the
+    # identity tracker needs its first three seconds to work out who is who and
+    # only then back-fills the ids onto those same objects. Reading player_id
+    # inside the loop would freeze the rally's first 75 frames as unidentified —
+    # and that is exactly where every serve lives.
+    poses_by_frame: dict[int, list] = {}
     raw_ball: list[BallHit] = []
     index = 0
     while True:
@@ -56,14 +59,22 @@ def extract(video: Path, pose_stage: PlayerPoseStage, ball: BallDetector) -> dic
         )
         players = filter_players(frame.poses, polygon)
         identity.update(index, players)
-        keypoints[index] = [p.keypoints.astype(np.float32) for p in players]
-        player_ids[index] = [p.player_id if p.player_id is not None else -1 for p in players]
-        boxes[index] = [p.bbox_xyxy for p in players]
+        poses_by_frame[index] = players
         hit = ball.detect(image, index)
         if hit is not None:
             raw_ball.append(hit)
         index += 1
     capture.release()
+
+    keypoints = {
+        i: [p.keypoints.astype(np.float32) for p in players]
+        for i, players in poses_by_frame.items()
+    }
+    player_ids = {
+        i: [p.player_id if p.player_id is not None else -1 for p in players]
+        for i, players in poses_by_frame.items()
+    }
+    boxes = {i: [p.bbox_xyxy for p in players] for i, players in poses_by_frame.items()}
 
     return {
         "keypoints": keypoints,
