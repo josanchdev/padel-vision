@@ -23,6 +23,10 @@ data/
 !data/labels/
 !data/labels/types/
 !data/labels/types/*.csv
+# Hand-marked courts: 12 homographies, 6 clicks each, verified to 3-12 cm.
+!data/datasets/
+!data/datasets/courts/
+!data/datasets/courts/*.json
 *.pt
 *.onnx
 runs/
