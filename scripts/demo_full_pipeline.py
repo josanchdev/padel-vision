@@ -26,6 +26,7 @@ from padel_ml.hit_assignment import FrameState, assign_hit
 from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, build_window
 from padel_ml.shot_type_model import ShotTypeBST
 
+from padel_cv import overlay
 from padel_cv.court_registry import court_file_for, load_corners
 from padel_cv.pipeline import BallDetection, Frame, ImageArray, PoseDetection
 from padel_cv.player_identity import PlayerIdentityTracker, court_mask_polygon, filter_players
@@ -38,51 +39,17 @@ AUDIO_CKPT = REPO / "runs" / "audio" / "audio_crnn.pt"
 TYPE_CKPT = REPO / "runs" / "shot_type" / "bst0.pt"
 
 SPANISH = {"Forehand": "DERECHA", "Backhand": "REVES", "Smash": "REMATE", "Serve": "SAQUE"}
+#: BGR. Chosen to stay distinct against a blue court and from each other.
 TYPE_COLOURS = {
-    "Forehand": (235, 170, 60),
-    "Backhand": (90, 160, 240),
-    "Smash": (90, 90, 235),
-    "Serve": (120, 200, 90),
+    "Forehand": (60, 200, 255),  # amber
+    "Backhand": (255, 190, 90),  # cyan-blue
+    "Smash": (90, 90, 255),  # red
+    "Serve": (120, 230, 120),  # green
 }
 PLAYER_COLOURS = {1: (80, 220, 80), 2: (255, 160, 0), 3: (60, 80, 255), 4: (0, 220, 255)}
 REJECT = (150, 150, 150)
 FLASH_FRAMES = 18
 MIN_KP_CONF = 0.3
-
-
-def draw_skeleton(
-    image: np.ndarray, pose: PoseDetection, colour: tuple[int, int, int], thickness: int
-) -> None:
-    kp = pose.keypoints
-    for a, b in COCO_SKELETON:
-        if kp[a, 2] >= MIN_KP_CONF and kp[b, 2] >= MIN_KP_CONF:
-            cv2.line(
-                image,
-                (int(kp[a, 0]), int(kp[a, 1])),
-                (int(kp[b, 0]), int(kp[b, 1])),
-                colour,
-                thickness,
-                cv2.LINE_AA,
-            )
-    for j in range(len(kp)):
-        if kp[j, 2] >= MIN_KP_CONF:
-            cv2.circle(
-                image, (int(kp[j, 0]), int(kp[j, 1])), thickness + 1, colour, -1, cv2.LINE_AA
-            )
-
-
-def text(
-    image: np.ndarray,
-    string: str,
-    org: tuple[int, int],
-    scale: float,
-    colour: tuple[int, int, int],
-    weight: int = 2,
-) -> None:
-    cv2.putText(
-        image, string, org, cv2.FONT_HERSHEY_SIMPLEX, scale, (0, 0, 0), weight + 3, cv2.LINE_AA
-    )
-    cv2.putText(image, string, org, cv2.FONT_HERSHEY_SIMPLEX, scale, colour, weight, cv2.LINE_AA)
 
 
 def main() -> None:
@@ -211,48 +178,60 @@ def main() -> None:
         active = current if i <= flash_until else None
         hitter = active[0] if active else None
 
+        hitter_pose = None
         for pose in poses_by_frame.get(i, []):
             if pose.player_id is None:
                 continue
             is_hitter = hitter is not None and pose.player_id == hitter
-            colour = (
-                TYPE_COLOURS.get(active[1] or "", REJECT)
-                if is_hitter and active
-                else PLAYER_COLOURS[pose.player_id]
-            )
-            draw_skeleton(image, pose, colour, 4 if is_hitter else 2)
-            x1, y1 = pose.bbox_xyxy[0], pose.bbox_xyxy[1]
-            text(image, f"J{pose.player_id}", (int(x1), int(y1) - 8), 0.7, colour)
-
-        if i in ball_by_frame:
-            x, y = ball_by_frame[i]
-            cv2.circle(image, (int(x), int(y)), 9, (0, 255, 255), 2, cv2.LINE_AA)
-
-        if active is not None:
-            label = SPANISH.get(active[1] or "", "SIN CLASIFICAR")
-            colour = TYPE_COLOURS.get(active[1] or "", REJECT)
-            who = f"J{active[0]}" if active[0] else "?"
-            text(image, f"{label}  ·  {who}  ·  {active[2]:.0%}", (40, 90), 1.5, colour, 3)
-
-        # Running tally, laid out upwards from a fixed baseline so it never
-        # runs off the bottom of the frame as classes appear.
-        rows = sorted(counts.items(), key=lambda kv: -kv[1])
-        baseline = height - 40
-        for position, (name, count) in enumerate(reversed(rows)):
-            text(
+            if is_hitter:
+                hitter_pose = pose
+                continue  # drawn last, so it sits on top of the others
+            overlay.skeleton(image, pose.keypoints, COCO_SKELETON, PLAYER_COLOURS[pose.player_id])
+            overlay.label(
                 image,
-                f"{SPANISH[name]}: {count}",
-                (40, baseline - position * 28),
-                0.6,
-                TYPE_COLOURS[name],
+                f"J{pose.player_id}",
+                (int(pose.bbox_xyxy[0]), int(pose.bbox_xyxy[1]) - 6),
+                scale=0.5,
+                accent=PLAYER_COLOURS[pose.player_id],
             )
-        text(
-            image,
-            f"{sum(counts.values())} golpes",
-            (40, baseline - len(rows) * 28 - 6),
-            0.7,
-            (235, 235, 235),
-        )
+
+        overlay.ball_trail(image, [ball_by_frame.get(f) for f in range(max(i - 11, 0), i + 1)])
+
+        if hitter_pose is not None and active is not None:
+            colour = TYPE_COLOURS.get(active[1] or "", REJECT)
+            overlay.skeleton(
+                image, hitter_pose.keypoints, COCO_SKELETON, colour, thickness=3, joint_radius=4
+            )
+            # The verdict goes right above the player who produced it: a tag in
+            # the corner makes the viewer hunt for who it refers to.
+            x1, y1, x2, _ = hitter_pose.bbox_xyxy
+            name = SPANISH.get(active[1] or "", "SIN CLASIFICAR")
+            # Clear of the head: the box top already sits at the crown, so the
+            # plate would otherwise cover the face of the player it describes.
+            top = overlay.label(
+                image,
+                f"{name}  {active[2]:.0%}",
+                (int((x1 + x2) / 2), int(y1) - 34),
+                scale=0.72,
+                accent=colour,
+                centred=True,
+            )
+            overlay.label(
+                image,
+                f"JUGADOR {active[0]}",
+                (int((x1 + x2) / 2), top[1] - 4),
+                scale=0.46,
+                colour=overlay.MUTED,
+                centred=True,
+            )
+
+        rows = [
+            (SPANISH[name], str(counts.get(name, 0)), TYPE_COLOURS[name])
+            for name in CLASSES
+            if counts.get(name)
+        ]
+        if rows:
+            overlay.panel(image, f"GOLPES DETECTADOS   {sum(counts.values())}", rows)
         writer.write(image)
     writer.release()
     print(f"\n[done] {args.out}")
