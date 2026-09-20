@@ -1,10 +1,10 @@
 {
   "name": "hit_assignment_replica",
-  "summary": "Réplica del 'quién golpea' de Decorte 2024: jugador 80.57% (paper 83.70%), equipo 86.84% (paper 86.83%).",
+  "summary": "Réplica del 'quién golpea' de Decorte 2024: jugador 87.46% (paper 83.70%), equipo 93.73% (paper 86.83%).",
   "metrics": {
-    "player_accuracy": 0.8057,
-    "team_accuracy": 0.8684,
-    "macro_f1": 0.8023,
+    "player_accuracy": 0.8746,
+    "team_accuracy": 0.9373,
+    "macro_f1": 0.8722,
     "paper_player_accuracy": 0.837,
     "paper_team_accuracy": 0.8683,
     "hits": 319
@@ -19,27 +19,27 @@
   },
   "per_class": {
     "J1": {
-      "precision": 0.828,
-      "recall": 0.8652,
-      "f1": 0.8462,
+      "precision": 0.8913,
+      "recall": 0.9213,
+      "f1": 0.9061,
       "support": 89
     },
     "J2": {
-      "precision": 0.6667,
-      "recall": 0.8986,
-      "f1": 0.7654,
+      "precision": 0.8125,
+      "recall": 0.942,
+      "f1": 0.8725,
       "support": 69
     },
     "J3": {
-      "precision": 0.8421,
-      "recall": 0.7164,
-      "f1": 0.7742,
+      "precision": 0.8261,
+      "recall": 0.8507,
+      "f1": 0.8382,
       "support": 67
     },
     "J4": {
-      "precision": 0.9211,
-      "recall": 0.7447,
-      "f1": 0.8235,
+      "precision": 0.9615,
+      "recall": 0.7979,
+      "f1": 0.8721,
       "support": 94
     },
     "sin asignar": {
@@ -51,31 +51,31 @@
   },
   "confusion": [
     [
-      77,
-      9,
-      3,
-      0,
-      0
-    ],
-    [
-      3,
-      62,
-      0,
+      82,
       4,
+      2,
+      1,
       0
     ],
     [
-      10,
-      7,
-      48,
+      4,
+      65,
+      0,
+      0,
+      0
+    ],
+    [
+      4,
+      4,
+      57,
       2,
       0
     ],
     [
-      3,
-      15,
-      6,
-      70,
+      2,
+      7,
+      10,
+      75,
       0
     ],
     [
@@ -94,6 +94,6 @@
     "sin asignar"
   ],
   "notes": "Se evalúa con los instantes ANOTADOS, no con los detectados por audio, para medir la asignación aislada. La métrica de EQUIPO reproduce exactamente la del paper (86,83%). En jugador quedamos 3,1 puntos por debajo, pero nosotros asignamos los 319 golpes mientras que ellos dejan algunos sin asignar, luego nuestra cifra es más exigente. Los errores dominantes (J4->J2, J3->J1) son los mismos pares que el paper documenta como límite de una sola cámara (ambigüedad de profundidad, su Fig. 9a).",
-  "commit": "8608697",
-  "timestamp": "2026-09-07T19:02:23+00:00"
+  "commit": "a5d71b6",
+  "timestamp": "2026-09-20T21:41:00+00:00"
 }

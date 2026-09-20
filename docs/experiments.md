@@ -1287,3 +1287,61 @@ Queda anotado antes de entrenar, no como diagnóstico a posteriori.
 ~2.377 decisiones a unos 4-6 s cada una. El etiquetado por marca rápida (ADR-0014)
 frente a anotar keypoints (2-3 min/golpe como en PadelTracker100) es lo que hace
 viable un dataset de este tamaño en un TFG.
+
+## HITO: la resolución de la pelota supera al paper (sep 2026)
+
+Observación de Jorge al ver el vídeo: el sistema atribuía mal el golpe con
+frecuencia, sobre todo en remates, y la estela de la pelota "iba a saltos"
+comparada con la de una demo comercial. Su hipótesis: el problema principal está
+en la pelota, no en el clasificador.
+
+**Diagnóstico.** Medida la calidad de la pista de pelota sobre los 83.299 frames:
+solo el 71,6% son detecciones sanas (7,9% sin detección, **16,1% congeladas**,
+3,8% teletransportes). Una detección "congelada" es el detector enganchado a un
+distractor estático que repite el mismo píxel durante decenas de frames; como
+queda pegado a algún jugador, la asignación le atribuye todos los golpes con
+total confianza. Ese era el mecanismo que ponía los remates al otro lado de la red.
+
+**Experimento del oráculo** (para saber si merecía la pena tocar la pelota):
+situando la pelota exactamente en la muñeca del golpeador real, la asignación
+sube a 91,2%. Es decir, la pelota explicaba ~14 puntos de error, y el techo lo
+marcaba la pose (el golpeador real está ausente de su propio frame de golpe en el
+10% de los casos, y en 4 de 319 está literalmente fuera del encuadre).
+
+**La solución fue la resolución de inferencia.** TrackNet es totalmente
+convolucional, así que acepta un frame mayor que el 512×288 con el que se
+entrenó, **sin reentrenar nada**:
+
+| Resolución | Pelota detectada | Congeladas | Velocidad |
+|---|---|---|---|
+| 512×288 (anterior) | 89,4 % | 14,3 % | 37,7 fps |
+| **768×432** | **91,0 %** | **8,9 %** | **30,9 fps** |
+| 1024×576 | 87,9 % | 5,5 % | 21 fps |
+
+1024 se descartó: se aleja demasiado del dominio de entrenamiento y la detección
+cae. A 768 la pelota ocupa más píxeles y deja de confundirse con distractores.
+
+**Resultado sobre el GT del paper (319 golpes anotados):**
+
+| | 512×288 | 768×432 | Paper |
+|---|---|---|---|
+| Jugador | 80,57 % | **87,46 %** | 83,70 % |
+| Equipo | 86,84 % | **93,73 %** | 86,83 % |
+
+**+6,9 puntos en ambas métricas, y se SUPERA al trabajo publicado** en 3,8 puntos
+(jugador) y 6,9 (equipo), asignando además los 319 golpes sin abstenciones
+mientras el paper deja algunos sin asignar. F1 por jugador entre 0,838 y 0,906.
+
+**Lecciones para la memoria:**
+
+1. **La predicción fue mala y conviene decirlo.** Se estimó "+0 a +2 puntos" y
+   fueron +6,9. El precedente que llevó a subestimar (el filtro de congelados
+   había arreglado el 16% de detecciones falsas ganando solo 0,6 puntos) resultó
+   engañoso: filtrar una detección mala deja un hueco, mientras que detectarla
+   bien aporta información.
+2. **El coste fue una línea.** 8 minutos más de proceso (48 vs 40) y ningún
+   reentrenamiento. El cuello de botella del pipeline es YOLO-pose, no TrackNet,
+   así que subir la resolución de la pelota apenas penaliza.
+3. **El diagnóstico vino de mirar el vídeo.** Las métricas agregadas decían
+   "79%" sin señalar dónde; ver la estela a saltos y los golpes mal atribuidos
+   apuntó al eslabón correcto. Conviene inspeccionar la salida, no solo medirla.
