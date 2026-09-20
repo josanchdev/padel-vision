@@ -385,6 +385,14 @@ def main() -> int:
         help="Treat `video` as a directory: open the next rally with unlabelled hits",
     )
 
+    court = subparsers.add_parser(
+        "annotate-court",
+        help="Mark the court by hand for a tournament (6 clicks, ADR-0015 D2)",
+    )
+    court.add_argument("video", type=Path, help="One rally of the tournament (camera is fixed)")
+    court.add_argument("-o", "--out", type=Path, required=True, help="Output court JSON")
+    court.add_argument("--frame", type=int, default=30, help="Frame to show")
+
     args = parser.parse_args()
     if args.command == "process":
         tracker = None if args.tracker == "none" else args.tracker
@@ -463,6 +471,17 @@ def main() -> int:
         )
         print(f"\n{len(marks)} golpes anotados -> {args.out}")
         print("por tipo:", _marks_summary(marks))
+    elif args.command == "annotate-court":
+        from padel_cv.court_annotator import annotate_court
+
+        homography = annotate_court(args.video, args.out, frame_index=args.frame)
+        if homography is None:
+            print("cancelado")
+        else:
+            import json as _json
+
+            error = _json.loads(args.out.read_text())["reprojection_error_m"]
+            print(f"guardado -> {args.out}  (error de reproyeccion {error} m)")
     elif args.command == "annotate-types":
         import collections
 
