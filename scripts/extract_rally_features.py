@@ -94,7 +94,12 @@ def main() -> None:
     if missing:
         print(f"AVISO: {len(missing)} rallies sin pista marcada: {missing[:3]}")
 
-    pose_stage = PlayerPoseStage(device=args.device)
+    # conf 0.25, not the 0.4 default: measured over a full rally it finds all
+    # four players in 85% of frames instead of 80%, and the far-side pair is
+    # exactly who a higher threshold drops. yolo26n beats the larger 26m here
+    # (85% vs 55%) and is twice as fast — the bottleneck is the tiny far-side
+    # players, not model capacity.
+    pose_stage = PlayerPoseStage(device=args.device, confidence=0.25)
     started = time.perf_counter()
     total_frames = 0
     for i, video in enumerate(pending, 1):
