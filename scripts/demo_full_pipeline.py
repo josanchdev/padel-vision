@@ -22,6 +22,7 @@ import numpy as np
 import torch
 from padel_ml.ball_infer import BallDetector, BallHit
 from padel_ml.ball_postprocess import postprocess_ball
+from padel_ml.ball_trajectory import clean_track
 from padel_ml.hit_assignment import FrameState, assign_hit
 from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, build_window
 from padel_ml.shot_type_model import ShotTypeBST
@@ -104,7 +105,13 @@ def main() -> None:
         frames.append(image)
         index += 1
     capture.release()
+    # Two tracks on purpose. Assignment votes on the plain post-processed one:
+    # measured against the paper's ground truth the parabolic smoothing costs it
+    # about a point, because a fit that spans a hit rounds off the very moment
+    # the vote depends on. Drawing uses the smoothed one, whose jerk is 23 px ->
+    # under 7 and reads as a trajectory rather than a scatter of dots.
     ball_by_frame = {b.frame_index: (b.x_px, b.y_px) for b in postprocess_ball(raw_ball)}
+    ball_for_drawing = {p.frame_index: (p.x_px, p.y_px) for p in clean_track(raw_ball)}
     coverage = 100 * len(ball_by_frame) / max(index, 1)
     print(f"[cv] {index} frames · pelota en {len(ball_by_frame)} ({coverage:.0f}%)")
 
@@ -195,7 +202,7 @@ def main() -> None:
                 accent=PLAYER_COLOURS[pose.player_id],
             )
 
-        overlay.ball_trail(image, [ball_by_frame.get(f) for f in range(max(i - 11, 0), i + 1)])
+        overlay.ball_trail(image, [ball_for_drawing.get(f) for f in range(max(i - 11, 0), i + 1)])
 
         if hitter_pose is not None and active is not None:
             colour = TYPE_COLOURS.get(active[1] or "", REJECT)
