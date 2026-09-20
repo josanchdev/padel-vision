@@ -1203,3 +1203,87 @@ suena. Esa es la razón de fondo por la que el audio es la señal correcta para 
 Esta medición **cierra la deuda documentada** de `docs/metrics/README.md`: las
 cifras del localizer ya no dependen de un vídeo perdido, sino de un experimento
 regenerable con un comando.
+
+## Etiquetado del tipo de golpe: 2.377 golpes, 99 rallies, 11 torneos (sep 2026)
+
+Completado el etiquetado que bloqueaba el clasificador (ADR-0016). Es la
+aportación de datos propia del TFG: el dataset CVSPORTS_Padel trae el INSTANTE de
+cada golpe anotado, pero no su TIPO — eso lo añadimos nosotros.
+
+### Metodología
+
+Herramienta propia (`padel-cv annotate-types`, `shot_type_annotator.py`). El
+instante viene del ground truth del dataset, así que el bucle de trabajo es
+**ver → pulsar una tecla → siguiente**: desaparece la parte cara del etiquetado
+(localizar el frame) y con ella su principal fuente de ruido, la puntería
+temporal del anotador (que era una debilidad conocida de ADR-0014).
+
+Dos decisiones de diseño de la herramienta, ambas nacidas de etiquetar de verdad:
+
+1. **Cada golpe se reproduce en BUCLE a velocidad real** (±25 frames, ~1 s a cada
+   lado), no como frame estático. Jorge lo detectó al empezar: con una imagen
+   suelta es dificilísimo distinguir derecha de revés. Y era incoherente —el
+   modelo ve una ventana entera (ADR-0016 F) y al anotador se le estaba dando
+   menos información que al modelo. Etiquetas dudosas producen ruido que el
+   modelo hereda.
+2. **Una sola decisión por golpe.** Se retiró el flag "de pared" (ADR-0016 C) por
+   objeción de Jorge: un atributo que solo existe en los datos etiquetados a mano
+   no se puede producir en inferencia, luego como estadística de producto no
+   sirve. Pasa a derivarse de la trayectoria de la pelota.
+
+### Resultado
+
+| Clase | n | % |
+|---|---|---|
+| Derecha | 813 | 34,2 % |
+| Revés | 735 | 30,9 % |
+| Remate | 565 | 23,8 % |
+| Saque | 97 | 4,1 % |
+| *Other* (descarte) | 167 | 7,0 % |
+| **Total** | **2.377** | |
+
+**2.210 golpes entrenables** + 167 descartes. Cobertura del 100 %: los 99 rallies
+completos, sin ningún golpe sin etiquetar.
+
+Reparto por torneo (11 torneos, 104-320 golpes cada uno): la distribución de
+clases se mantiene estable en todos, lo que permite un split **cross-torneo** —
+dejar torneos enteros fuera para test y medir generalización a pistas y cámaras
+nuevas, que es más exigente (y más representativo del uso real) que un split
+cross-rally.
+
+### El criterio de descarte, y por qué los descartes no son basura
+
+`Other` marca lo que NO debe entrenar al modelo, en dos familias:
+- **Gesto no reconocible**: bandeja, víbora, pelotazo defensivo (la pelota da en
+  la pala mientras el jugador se protege), golpe forzado sin gesto claro.
+- **Frame inservible**: repeticiones con picture-in-picture, cambios de cámara,
+  jugador fuera de encuadre, pose rota.
+
+Se etiquetan pero **no se entrenan** (ADR-0016 D): un cajón de sastre visualmente
+incoherente envenena el modelo — una bandeja no se parece a una dejada, y
+aprender "brazo alto raro = Other" le robaría remates. Su función es **calibrar
+el umbral de rechazo**: ya entrenado, se le pasan los `Other` para ver qué
+confianza les asigna y fijar ahí el corte de "Sin clasificar".
+
+La tasa de descarte es del 7,0 % global y oscila entre 2,1 % (MENORCA) y 10,0 %
+(FINLAND, AMSTERDAM), con mediana de 1 descarte por rally. Esa consistencia entre
+torneos indica criterio estable a lo largo de las ~5 horas de etiquetado.
+
+**Hallazgo sobre el dataset:** aparecen repeticiones dentro de los rallies, a
+pesar de que el paper afirma haber anotado inicio y fin de cada rally
+precisamente "para evitar repeticiones, jugadas con cambio de cámara y cámaras en
+movimiento". Son pocas, pero conviene decirlo en la memoria: el dataset no está
+tan limpio como declara su publicación.
+
+### Desbalance conocido
+
+El saque queda en 8,4:1 respecto a la derecha (97 vs 813). Es estructural, no un
+sesgo del etiquetado: los clips son de un punto y cada punto tiene exactamente un
+saque. Habrá que pesar la clase en la función de pérdida o su F1 se hundirá.
+Queda anotado antes de entrenar, no como diagnóstico a posteriori.
+
+### Coste
+
+~2.377 decisiones a unos 4-6 s cada una. El etiquetado por marca rápida (ADR-0014)
+frente a anotar keypoints (2-3 min/golpe como en PadelTracker100) es lo que hace
+viable un dataset de este tamaño en un TFG.
