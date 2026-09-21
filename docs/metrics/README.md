@@ -29,6 +29,7 @@ Cada experimento es un JSON con la misma forma (`padel_ml.evidence.ExperimentRes
 uv run python scripts/evidence_audio_detector.py   # detector de audio + comparativa
 uv run python scripts/evidence_hit_assignment.py   # asignación de golpe a jugador
 uv run python scripts/evidence_dataset_stats.py    # estadísticas del etiquetado propio
+uv run python scripts/evidence_shot_classifier.py  # clasificador de tipo (cross-torneo)
 ```
 
 Los scripts vuelven a medir desde cero y sobreescriben los JSON y las figuras de
@@ -48,6 +49,8 @@ es un recuerdo.
 | `shot_baseline_poseonly.json` | Baseline antiguo pose-sola (macro-F1 0,62) | ADR-0013 |
 | `dataset_shot_types.json` | **Etiquetado propio**: 2.377 golpes, reparto, desbalance | ADR-0016 |
 | `dataset_per_tournament.json` | Golpes por torneo y clase (base del split cross-torneo) | ADR-0016 |
+| `shot_type_classifier.json` | **Clasificador de tipo**: acc 0,818, macro-F1 0,847, matriz | ADR-0016 |
+| `shot_type_per_tournament.json` | Accuracy por torneo (11 folds) | ADR-0016 |
 | `method_comparison_same_data.json` | **Cara a cara**: pose+pelota 0,821 vs audio 0,956, mismos datos | ADR-0015 |
 
 ### Figuras (`figures/`)
@@ -60,6 +63,7 @@ es un recuerdo.
 | `hit_assignment_confusion.png` | Matriz de confusión de la asignación |
 | `hit_assignment_vs_paper.png` | Nuestra cifra frente a la publicada |
 | `dataset_shot_types.png` | **El dataset propio**: clases y reparto por torneo |
+| `shot_type_confusion.png` | Matriz de confusión del clasificador de tipo |
 | `method_comparison_same_data.png` | **Por qué se cambió de método**, medido en igualdad de condiciones |
 
 ## Evidencias que NO se pueden regenerar (deuda documentada)

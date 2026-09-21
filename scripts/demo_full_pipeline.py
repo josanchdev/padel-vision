@@ -26,6 +26,7 @@ from padel_ml.ball_trajectory import clean_track
 from padel_ml.hit_assignment import FrameState, assign_hit
 from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, build_window
 from padel_ml.shot_type_model import ShotTypeBST
+from padel_ml.shot_type_train import SERVE_INDEX
 
 from padel_cv import overlay
 from padel_cv.court_registry import court_file_for, load_corners
@@ -166,6 +167,14 @@ def main() -> None:
                     )
                     probabilities = torch.softmax(logits, dim=1)[0].cpu().numpy()
                 best = int(np.argmax(probabilities))
+                # Only the rally's opening hit may be a serve (ADR-0016): every
+                # serve in the dataset is one, and letting the model call a
+                # mid-rally hit a serve was its single biggest source of false
+                # positives (precision 0.722 -> 1.000 once forbidden).
+                if best == SERVE_INDEX and position > 0:
+                    without_serve = probabilities.copy()
+                    without_serve[SERVE_INDEX] = -1.0
+                    best = int(np.argmax(without_serve))
                 confidence = float(probabilities[best])
                 label = CLASSES[best] if confidence >= args.threshold else None
         shots[frame] = (hitter, label, confidence)

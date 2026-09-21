@@ -182,7 +182,7 @@ def train_one_fold(
                 pose_te[start : start + 128].to(device), ball_te[start : start + 128].to(device)
             )
             probabilities.extend(torch.softmax(logits, dim=1).cpu().tolist())
-    predictions = [int(np.argmax(p)) for p in probabilities]
+    predictions = apply_serve_rule(probabilities, test_windows)
     truths = y_te.tolist()
     accuracy, macro_f1, per_class, confusion = _metrics(truths, predictions, n_classes)
     return FoldResult(
@@ -224,14 +224,25 @@ def cross_tournament_cv(
     return results
 
 
-def aggregate(results: list[FoldResult]) -> dict[str, object]:
-    """Pool every fold's predictions: one global confusion matrix and metrics."""
+def aggregate(
+    results: list[FoldResult], windows_by_tournament: dict[str, list[ShotWindow]] | None = None
+) -> dict[str, object]:
+    """Pool every fold's predictions: one global confusion matrix and metrics.
+
+    Pass `windows_by_tournament` to apply the serve rule; without it the raw
+    argmax is used, which is only meaningful for measuring the rule's effect.
+    """
     n_classes = len(CLASSES)
     truths: list[int] = []
     predictions: list[int] = []
     for result in results:
         truths.extend(result.truths)
-        predictions.extend(int(np.argmax(p)) for p in result.probabilities)
+        if windows_by_tournament is not None:
+            predictions.extend(
+                apply_serve_rule(result.probabilities, windows_by_tournament[result.tournament])
+            )
+        else:
+            predictions.extend(int(np.argmax(p)) for p in result.probabilities)
     accuracy, macro_f1, per_class, confusion = _metrics(truths, predictions, n_classes)
     return {
         "accuracy": round(accuracy, 4),

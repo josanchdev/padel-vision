@@ -1,0 +1,208 @@
+# Padel Vision — cómo funciona el sistema
+
+Ficha técnica del sistema completo: qué hace cada paso, de dónde sale, qué se
+midió y cuánto tarda. Pensada para explicarlo en una reunión y como esqueleto del
+capítulo de arquitectura de la memoria.
+
+---
+
+## El problema
+
+Dado el vídeo de un partido de pádel grabado desde la cámara fija habitual de
+retransmisión, responder automáticamente tres preguntas por cada golpe:
+
+1. **¿CUÁNDO?** — el instante exacto del golpe
+2. **¿QUIÉN?** — cuál de los cuatro jugadores lo ejecutó
+3. **¿QUÉ TIPO?** — derecha, revés, remate o saque
+
+Las dos primeras las resuelve el trabajo de referencia (Decorte et al., CVPRW
+2024). **La tercera es la aportación propia**: ese paper se detiene en la
+detección binaria y no clasifica el gesto.
+
+---
+
+## El flujo en 5 pasos
+
+```
+Vídeo (mp4 con audio)
+   │
+   ├─1─ AUDIO ──────────► CRNN ──────────► instantes de golpe        F1 0,956
+   │
+   ├─2─ IMAGEN ─────────► YOLO26-pose ───► esqueletos + identidad J1-J4
+   │                      + máscara de pista + re-identificación
+   │
+   ├─3─ IMAGEN ─────────► TrackNetV3 ────► trayectoria de la pelota  F1 0,94
+   │                      + limpieza física (parábola local)
+   │
+   ├─4─ 1+2+3 ──────────► voto ponderado ► QUIÉN golpeó       87,46% jugador
+   │                                                          93,73% equipo
+   │
+   └─5─ pose + pelota ──► BST-0 ─────────► TIPO de golpe      81,84% acc
+                          + regla del saque                   0,847 macro-F1
+```
+
+### Paso 1 — CUÁNDO: detección por audio
+
+**Qué hace.** Convierte el audio a espectrograma log-Mel (40 bandas) y una red
+convolucional-recurrente (CRNN) marca, frame a frame, si suena un golpe.
+
+**Por qué audio y no imagen.** Un golpe de pala produce un chasquido muy
+característico. Detectar el instante exacto por imagen es de los problemas
+abiertos de la visión por computador: en tenis, el estado del arte (E2E-Spot)
+acierta el frame exacto solo el 45% de las veces. El sonido lo resuelve casi
+gratis.
+
+**De dónde sale.** Reimplementado del paper de Decorte et al. (arquitectura
+SED-net adaptada). **Se probó primero el camino propio** —detectar el golpe por
+pose y trayectoria de pelota— y se descartó midiéndolo: F1 0,821 frente a 0,956
+del audio sobre los mismos datos.
+
+**Resultado:** F1 **0,956** (el paper reporta 0,92).
+
+### Paso 2 — Los jugadores
+
+**Qué hace.** YOLO26-pose extrae los esqueletos (17 articulaciones); una máscara
+de pista descarta al público; y un algoritmo de identidad asigna a cada jugador
+un número estable J1-J4 que se mantiene aunque el detector lo pierda un momento.
+
+**Lo propio aquí.** La numeración y la re-identificación se replican del paper,
+pero se añadió el *puente de huecos*: el detector pierde a un jugador uno o dos
+frames, y el frame del golpe tiene la misma probabilidad que cualquier otro de
+ser uno de ellos. Medido: el golpeador real faltaba de su propio frame de golpe
+en el 10% de los casos.
+
+### Paso 3 — La pelota
+
+**Qué hace.** TrackNetV3 localiza la pelota frame a frame; después se limpia la
+trayectoria con un modelo físico (entre golpe y bote la pelota es un proyectil,
+así que su recorrido en imagen es casi parabólico).
+
+**Lo propio aquí.** Tres cosas:
+- El detector está **entrenado sobre pádel** (F1 0,94). El paper usa un TrackNet
+  preentrenado en tenis.
+- **Resolución de inferencia a 768×432** en vez de 512×288. La red es totalmente
+  convolucional, así que admite un frame mayor sin reentrenar: las detecciones
+  "congeladas" (el detector enganchado a un objeto estático) bajan del 14,3% al
+  8,9%. **Este cambio, de una línea, dio +6,9 puntos de asignación.**
+- Limpieza física de la trayectoria: rechaza detecciones que no siguen la
+  parábola, rellena huecos y suaviza. La continuidad de la estela mejora 3,4×.
+
+### Paso 4 — QUIÉN golpeó
+
+**Qué hace.** En una ventana de 500 ms alrededor del golpe, mide la distancia de
+la pelota a las muñecas de cada jugador y decide por voto ponderado (los frames
+donde la pelota está más cerca pesan más).
+
+**Lo propio aquí.** Sobre el método del paper se añadió medir la distancia en
+**alturas de cuerpo** en vez de píxeles. Un jugador del fondo se dibuja pequeño,
+así que los mismos píxeles significan mucha más distancia real para él; sin
+normalizar, durante un remate —con la pelota alta— el voto se lo llevaba
+sistemáticamente quien estaba al fondo.
+
+**Resultado:** **87,46%** por jugador, **93,73%** por equipo (paper: 83,70% y
+86,83%), sobre su mismo ground truth de 319 golpes anotados.
+
+### Paso 5 — QUÉ TIPO (la aportación propia)
+
+**Qué hace.** Una red BST-0 (dos redes temporales convolucionales, un
+transformer y cross-attention entre pose y pelota) clasifica el gesto en
+derecha, revés, remate o saque.
+
+**De dónde sale.** Arquitectura reimplementada de BST (Chang, CVPRW 2026) sobre
+bloques de TemPose, adaptada a pádel: un solo jugador en vez de dos (el golpe ya
+está atribuido) y un indicador de presencia en la pelota.
+
+**Lo propio aquí.**
+- **El dataset**: 2.377 golpes etiquetados a mano, uno a uno. El dataset público
+  trae el instante de cada golpe pero no su tipo.
+- **Sin pesos de clase**, contra la práctica habitual. El saque está 8,4:1 en
+  desventaja y la intuición dice compensarlo; medido, ponderar empeoraba incluso
+  al propio saque (macro-F1 0,786 con pesos frente a 0,812 sin ellos).
+- **La regla del saque**: solo el primer golpe de un peloteo puede ser un saque.
+  Verificado sobre las etiquetas, los 97 saques lo son sin excepción. Es una
+  regla del reglamento, no algo que el modelo deba adivinar: su precisión pasa
+  de 0,722 a 1,000 sin perder ni un saque real.
+
+**Resultado:** accuracy **81,84%**, macro-F1 **0,847**, en validación cruzada
+dejando torneos enteros fuera.
+
+---
+
+## Modelos: qué es de quién
+
+| Modelo | Función | Origen | Entrenado por nosotros |
+|---|---|---|---|
+| CRNN de audio | cuándo | arquitectura de Decorte et al. | **sí** |
+| YOLO26-pose | jugadores | Ultralytics, pesos COCO | no |
+| TrackNetV3 | pelota | arquitectura TrackNet | **sí**, sobre pádel |
+| Court v6 | pista | YOLO-pose de keypoints | **sí** |
+| BST-0 | tipo de golpe | arquitectura de Chang | **sí** |
+
+Cuatro de los cinco están entrenados en este trabajo. El único de terceros es
+el detector de personas, que se usa con sus pesos originales.
+
+Además, dos componentes que no son modelos: la **asignación de golpe a jugador**
+(voto ponderado) y la **homografía de pista**, que se calcula automáticamente o
+se marca a mano con seis clics por torneo.
+
+---
+
+## Resultados
+
+Todas las cifras sobre el ground truth publicado de CVSPORTS_Padel, con el mismo
+protocolo de evaluación que el paper.
+
+| Métrica | Este trabajo | Paper de referencia |
+|---|---|---|
+| Detección de golpes (F1) | **0,956** | 0,92 |
+| Asignación — jugador | **87,46 %** | 83,70 % |
+| Asignación — equipo | **93,73 %** | 86,83 % |
+| Clasificación de tipo (accuracy) | **81,84 %** | *no lo hace* |
+| Clasificación de tipo (macro-F1) | **0,847** | *no lo hace* |
+| Detección de pelota (F1) | **0,94** | usa un modelo de tenis |
+| Detección de pista (error) | **0,11 m** manual · **0,196 m** automático | solo manual |
+
+Dos matices de honestidad:
+
+- La asignación se evalúa con los instantes **anotados**, no con los detectados,
+  para medir ese paso aislado. Mezclar ambos confundiría dos fuentes de error.
+- El sistema asigna los 319 golpes sin abstenerse; el paper deja algunos sin
+  asignar, lo que hace su cifra menos exigente que la nuestra.
+
+---
+
+## Coste de procesado
+
+Medido sobre un peloteo real (1.608 frames, 1080p, 25 fps) en una RTX 3090:
+
+| Etapa | Tiempo | % |
+|---|---|---|
+| Audio (CRNN) | 1,0 s | 1,1 % |
+| Pose (YOLO26n) | 52,4 s | 57,8 % |
+| Pelota (TrackNetV3) | 37,3 s | 41,1 % |
+| **Total** | **90,7 s** | |
+
+**Factor: 1,41× tiempo real.**
+
+| Duración del vídeo | Tiempo de proceso |
+|---|---|
+| 1 minuto | 1,4 min |
+| 5 minutos | 7 min |
+| Partido de 60 min | ~85 min |
+
+El audio, que resuelve la pregunta más difícil, cuesta el 1% del total. El gasto
+está en la visión, y dentro de ella la pose domina sobre la pelota.
+
+---
+
+## Lo que queda fuera del alcance
+
+Declarado a propósito, no por omisión:
+
+- **Marcador y resultado del punto**: requiere segmentar puntos y distinguir
+  juego real de repeticiones, una pila de robustez documentada en el backlog.
+- **Bandeja, víbora y dejada** como clases propias: se descartaron para mantener
+  cuatro clases bien separadas; hay evidencia publicada de que reducir clases
+  mejora sustancialmente (BST: +6,6 puntos al pasar de 35 a 25 clases).
+- **Vídeos de cámara móvil o a nivel de pista**: todo el sistema asume la cámara
+  fija elevada de retransmisión.

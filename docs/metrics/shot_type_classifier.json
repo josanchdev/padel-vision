@@ -1,0 +1,84 @@
+{
+  "name": "shot_type_classifier",
+  "summary": "Clasificador de tipo de golpe (BST-0 adaptado): accuracy 81.84%, macro-F1 0.8467 en validación cruzada por torneos.",
+  "metrics": {
+    "accuracy": 0.8184,
+    "macro_f1": 0.8467,
+    "accuracy_without_serve_rule": 0.8129,
+    "macro_f1_without_serve_rule": 0.8118,
+    "n": 2197,
+    "tournaments": 11
+  },
+  "dataset": "2197 golpes etiquetados por nosotros sobre CVSPORTS_Padel, 11 torneos; leave-one-tournament-out",
+  "method": "BST-0 (pose + trayectoria de pelota, cross-attention), sin pesos de clase",
+  "params": {
+    "epochs": 60,
+    "batch_size": 64,
+    "lr": 0.0005,
+    "seq_len": 100,
+    "class_weight_power": 0.0,
+    "serve_rule": "solo el primer golpe del rally puede ser saque",
+    "ball_inference_size": "768x432"
+  },
+  "per_class": {
+    "Forehand": {
+      "precision": 0.802,
+      "recall": 0.7881,
+      "f1": 0.795,
+      "support": 807
+    },
+    "Backhand": {
+      "precision": 0.7873,
+      "recall": 0.7992,
+      "f1": 0.7932,
+      "support": 732
+    },
+    "Smash": {
+      "precision": 0.8547,
+      "recall": 0.8774,
+      "f1": 0.8659,
+      "support": 563
+    },
+    "Serve": {
+      "precision": 1.0,
+      "recall": 0.8737,
+      "f1": 0.9326,
+      "support": 95
+    }
+  },
+  "confusion": [
+    [
+      636,
+      122,
+      49,
+      0
+    ],
+    [
+      115,
+      585,
+      32,
+      0
+    ],
+    [
+      38,
+      31,
+      494,
+      0
+    ],
+    [
+      4,
+      5,
+      3,
+      83
+    ]
+  ],
+  "labels": [
+    "Derecha",
+    "Revés",
+    "Remate",
+    "Saque"
+  ],
+  "notes": "Split CROSS-TORNEO, no cross-rally: los rallies de un torneo comparten pista, cámara e iluminación, así que un split por rally filtraría. La cifra responde a si funciona en una pista nunca vista. Dos decisiones medidas: (1) SIN pesos de clase — ponderar por frecuencia inversa empeoraba incluso el saque, la clase que pretendía proteger (macro-F1 0,786 con pesos frente a 0,812 sin ellos); (2) la regla del saque, que es conocimiento del reglamento y no aprendizaje: sube su precisión de 0,722 a 1,000 sin perder ninguno real.",
+  "commit": "ae9368c",
+  "timestamp": "2026-09-21T13:32:17+00:00"
+}
