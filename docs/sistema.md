@@ -43,6 +43,10 @@ Vídeo (mp4 con audio)
 
 ### Paso 1 — CUÁNDO: detección por audio
 
+**Para qué sirve.** Es el disparador de todo lo demás: marca los instantes que
+merece la pena analizar. Sin él habría que examinar los 90.000 frames de un
+partido; con él, solo los ~1.500 en los que ocurre algo.
+
 **Qué hace.** Convierte el audio a espectrograma log-Mel (40 bandas) y una red
 convolucional-recurrente (CRNN) marca, frame a frame, si suena un golpe.
 
@@ -61,17 +65,45 @@ del audio sobre los mismos datos.
 
 ### Paso 2 — Los jugadores
 
-**Qué hace.** YOLO26-pose extrae los esqueletos (17 articulaciones); una máscara
-de pista descarta al público; y un algoritmo de identidad asigna a cada jugador
-un número estable J1-J4 que se mantiene aunque el detector lo pierda un momento.
+**Para qué sirve.** Es el paso que alimenta a los dos últimos: el paso 4 necesita
+saber dónde están las muñecas de cada jugador para medir su distancia a la
+pelota, y el paso 5 recibe directamente la secuencia de esqueletos del golpeador
+como entrada del clasificador. Convierte "hay píxeles de gente" en "éstos son los
+cuatro jugadores, éste es J3, y así se está moviendo".
 
-**Lo propio aquí.** La numeración y la re-identificación se replican del paper,
-pero se añadió el *puente de huecos*: el detector pierde a un jugador uno o dos
-frames, y el frame del golpe tiene la misma probabilidad que cualquier otro de
-ser uno de ellos. Medido: el golpeador real faltaba de su propio frame de golpe
-en el 10% de los casos.
+Hace tres cosas:
+
+**a) Extraer los esqueletos.** YOLO26-pose localiza a las personas y devuelve 17
+articulaciones de cada una (muñecas, codos, hombros, caderas, tobillos…).
+
+**b) Descartar al público.** El detector encuentra *personas*, y en un partido
+hay cientos: grada, árbitro, cámaras. Una máscara construida con la homografía de
+la pista conserva solo a quien pisa dentro; sin ella el sistema podría atribuir
+un golpe a alguien sentado en las gradas.
+
+**c) Saber quién es quién.** Esto es lo menos evidente y lo más importante. El
+detector no sabe que son siempre los mismos cuatro: en cada frame encuentra
+"cuatro personas" sin memoria de las anteriores. Si un jugador queda tapado un
+instante, al reaparecer sería alguien nuevo. Sin resolver esto no se puede
+afirmar "J3 ha jugado 12 derechas", porque no habría forma de saber que esas 12
+son de la misma persona. El componente de identidad mantiene los números J1-J4
+estables durante todo el partido y los recupera tras las oclusiones.
+
+**Lo propio aquí.** La numeración inicial y la re-identificación se replican del
+paper (por posiciones de aparición y desaparición, no por apariencia: los
+compañeros visten igual). Se añadió el *puente de huecos*: el detector pierde a
+un jugador uno o dos frames, y el frame del golpe tiene la misma probabilidad que
+cualquier otro de ser uno de ellos. Medido sobre el ground truth, el golpeador
+real faltaba de su propio frame de golpe en el 10% de los casos.
 
 ### Paso 3 — La pelota
+
+**Para qué sirve.** La pelota es la prueba de quién golpeó: en el instante del
+golpe está pegada a la pala de alguien. El paso 4 decide por proximidad, y el
+paso 5 la usa como segunda entrada — es lo que distingue un remate de una
+defensa alta, que en el esqueleto se parecen pero mandan la pelota en
+direcciones opuestas. Es la entrada que más aporta al clasificador según las
+mediciones publicadas de BST.
 
 **Qué hace.** TrackNetV3 localiza la pelota frame a frame; después se limpia la
 trayectoria con un modelo físico (entre golpe y bote la pelota es un proyectil,
@@ -89,9 +121,14 @@ así que su recorrido en imagen es casi parabólico).
 
 ### Paso 4 — QUIÉN golpeó
 
+**Para qué sirve.** Sin esto, el sistema sabría que hubo un golpe pero no de
+quién, y ninguna estadística por jugador sería posible. También decide de qué
+jugador se recorta el esqueleto que recibirá el clasificador.
+
 **Qué hace.** En una ventana de 500 ms alrededor del golpe, mide la distancia de
 la pelota a las muñecas de cada jugador y decide por voto ponderado (los frames
-donde la pelota está más cerca pesan más).
+donde la pelota está más cerca pesan más). Votar sobre varios frames en vez de
+uno solo lo hace robusto a que falte la pose o la pelota en el instante exacto.
 
 **Lo propio aquí.** Sobre el método del paper se añadió medir la distancia en
 **alturas de cuerpo** en vez de píxeles. Un jugador del fondo se dibuja pequeño,
@@ -104,9 +141,15 @@ sistemáticamente quien estaba al fondo.
 
 ### Paso 5 — QUÉ TIPO (la aportación propia)
 
+**Para qué sirve.** Es lo que convierte "hubo un golpe de J3" en información
+útil para un entrenador: cuántas derechas juega cada uno, cuántos remates
+resuelve, qué lado se le busca al rival.
+
 **Qué hace.** Una red BST-0 (dos redes temporales convolucionales, un
 transformer y cross-attention entre pose y pelota) clasifica el gesto en
-derecha, revés, remate o saque.
+derecha, revés, remate o saque. Recibe una ventana adaptativa que va del golpe
+anterior del rival al siguiente, de modo que ve el gesto completo —preparación,
+impacto y terminación— y no un frame suelto.
 
 **De dónde sale.** Arquitectura reimplementada de BST (Chang, CVPRW 2026) sobre
 bloques de TemPose, adaptada a pádel: un solo jugador en vez de dos (el golpe ya
