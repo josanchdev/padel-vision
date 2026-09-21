@@ -1407,3 +1407,72 @@ análisis deportivo aprovechar las restricciones del reglamento.
 | Pelota 768px + pesos ^1,0 | 0,7938 | 0,7862 |
 | Pelota 768px, sin pesos | 0,8129 | 0,8118 |
 | **+ regla del saque** | **0,8184** | **0,8467** |
+
+---
+
+## Primera prueba sobre vídeo externo (Premier Padel Gijón)
+
+Clip de 48 s descargado de YouTube (1080p, audio original), pista de otro color
+y otra cámara: **el primer metraje del proyecto que ningún modelo ha visto**. El
+split cross-torneo ya mide generalización, pero dentro de la misma producción;
+esto sale de ella. Pista marcada a mano, error de reproyección **0,053 m**.
+
+Procesado completo en 74 s (1,54× tiempo real), 27 golpes detectados, 26 con
+jugador asignado. Pendiente de etiquetar para tener cifras; lo que sigue son
+observaciones medibles sin ground truth.
+
+### La alternancia de equipo delata la asignación
+
+En pádel los golpes alternan de equipo, así que dos golpes seguidos del mismo
+equipo son un error por construcción. Además el emparejamiento real se puede
+deducir de los propios datos, porque el correcto es el que menos se viola:
+
+| Emparejamiento | Violaciones |
+|---|---|
+| **(J1,J2) vs (J3,J4)** | **6** |
+| (J1,J3) vs (J2,J4) | 12 |
+| (J1,J4) vs (J2,J3) | 13 |
+
+6 de 26 golpes violan la alternancia, así que al menos uno de cada par está mal:
+**suelo de error ~23%**, frente al 12,5% medido sobre CVSPORTS. Confirma la
+intuición de Jorge de que la asignación es el problema dominante fuera de
+dominio.
+
+Matiz importante: tres de esos seis pares coinciden con intervalos de 0,43-0,53 s
+entre golpes, la firma de un **golpe inventado por el detector de audio**, que se
+asigna a quien tenga cerca y rompe la alternancia sin culpa de la asignación. Son
+dos fallos distintos y el etiquetado debe separarlos.
+
+### El fallo de la pelota es local, no global
+
+La cobertura agregada (73%) engañaba. Medida en la ventana de voto (±6 frames)
+de cada golpe, la distribución es bimodal: **19 de 27 golpes tienen 13/13
+frames**, y el problema se concentra en 6 golpes con 0-6. El golpe del frame 441,
+único sin jugador asignado, tiene **0 de 13**.
+
+El detector crudo está al 51%; la limpieza física **añade 311 posiciones**
+reconstruyendo la parábola. Cuando hay detecciones alrededor las tapa; ante un
+apagón largo (24 apagones de 8+ frames, 343 frames en total) no tiene de dónde
+agarrarse. La reconstrucción parabólica sostiene la asignación más de lo que se
+había reconocido.
+
+### Más resolución NO es mejor: el límite del +6,9
+
+Se probó subir la resolución de inferencia como se hizo en CVSPORTS. Resultado
+monótonamente **peor**:
+
+| Resolución | Detecciones | Apagones ≥8f | Cobertura media en ventana |
+|---|---|---|---|
+| **768×432** | **739 (51%)** | **24 (343 f)** | **0,50** |
+| 1024×576 | 606 (42%) | 31 (488 f) | 0,38 |
+| 1280×720 | 510 (35%) | 36 (543 f) | 0,34 |
+
+Corrige la lectura del experimento anterior: aquel +6,9 no fue "más resolución es
+mejor" sino **acercarse al tamaño aparente de pelota con el que se entrenó**.
+Estirar más allá la hace mayor de lo que la red espera. La mediana de `y` de las
+detecciones es 395, pegada al fondo de pista (318), y el 27% caen por encima: la
+pelota pasa gran parte del tiempo pequeña y recortada contra el público, no
+contra la pista.
+
+**Conclusión operativa**: la vía de mejora no es la resolución de inferencia sino
+el dominio de entrenamiento del detector de pelota.
