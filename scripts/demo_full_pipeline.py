@@ -64,6 +64,9 @@ def main() -> None:
         default=0.0,
         help="Reject below this confidence (0 = never reject)",
     )
+    parser.add_argument(
+        "--court", type=Path, help="Court JSON (default: resolved from the video name)"
+    )
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
 
@@ -81,7 +84,15 @@ def main() -> None:
     print(f"[audio] {len(hit_frames)} golpes detectados")
 
     # 2) pose + ball + stable identities
-    court = court_file_for(args.rally.stem)
+    court = args.court or court_file_for(args.rally.stem)
+    if court is None:
+        # Loud on purpose: without the mask the crowd counts as players, and a
+        # spectator can win the vote for a hit. Easy to miss in a silent run.
+        print(
+            f"[aviso] sin pista marcada para '{args.rally.stem}' — el publico NO se filtra.\n"
+            f"        marcala con: uv run padel-cv annotate-court {args.rally} "
+            f"-o data/datasets/courts/{args.rally.stem}.json"
+        )
     polygon = court_mask_polygon(load_corners(court)) if court else None
     pose_stage = PlayerPoseStage(device=device, confidence=0.25)
     ball_detector = BallDetector(BALL_CKPT, device=device)

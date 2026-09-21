@@ -31,7 +31,16 @@ def court_file_for(rally_stem: str, courts_dir: Path = COURTS_DIR) -> Path | Non
 
     Prefers the most specific range file: for rally 05 of a tournament with
     `X.json` and `X@04.json`, the latter wins because 5 >= 4.
+
+    A file named exactly after the video wins over everything, which is how a
+    one-off clip (an external video, not part of a tournament series) gets its
+    court. Without it the name would not match the CVSPORTS pattern, the mask
+    would silently be None and the crowd would enter the pipeline as players.
     """
+    own = courts_dir / f"{rally_stem}.json"
+    if own.exists():
+        return own
+
     match = _RALLY_RE.match(rally_stem)
     if match is None:
         return None
