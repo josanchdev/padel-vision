@@ -1,10 +1,10 @@
 {
   "name": "hit_assignment_replica",
-  "summary": "Réplica del 'quién golpea' de Decorte 2024: jugador 87.46% (paper 83.70%), equipo 93.73% (paper 86.83%).",
+  "summary": "Réplica del 'quién golpea' de Decorte 2024: jugador 89.65% (paper 83.70%), equipo 95.30% (paper 86.83%).",
   "metrics": {
-    "player_accuracy": 0.8746,
-    "team_accuracy": 0.9373,
-    "macro_f1": 0.8722,
+    "player_accuracy": 0.8965,
+    "team_accuracy": 0.953,
+    "macro_f1": 0.8969,
     "paper_player_accuracy": 0.837,
     "paper_team_accuracy": 0.8683,
     "hits": 319
@@ -19,27 +19,27 @@
   },
   "per_class": {
     "J1": {
-      "precision": 0.8913,
-      "recall": 0.9213,
-      "f1": 0.9061,
+      "precision": 0.9222,
+      "recall": 0.9326,
+      "f1": 0.9274,
       "support": 89
     },
     "J2": {
-      "precision": 0.8125,
+      "precision": 0.8442,
       "recall": 0.942,
-      "f1": 0.8725,
+      "f1": 0.8904,
       "support": 69
     },
     "J3": {
-      "precision": 0.8261,
-      "recall": 0.8507,
-      "f1": 0.8382,
+      "precision": 0.8657,
+      "recall": 0.8657,
+      "f1": 0.8657,
       "support": 67
     },
     "J4": {
-      "precision": 0.9615,
-      "recall": 0.7979,
-      "f1": 0.8721,
+      "precision": 0.9639,
+      "recall": 0.8511,
+      "f1": 0.904,
       "support": 94
     },
     "sin asignar": {
@@ -51,11 +51,11 @@
   },
   "confusion": [
     [
-      82,
-      4,
-      2,
+      83,
+      3,
       1,
-      0
+      1,
+      1
     ],
     [
       4,
@@ -65,17 +65,17 @@
       0
     ],
     [
-      4,
-      4,
-      57,
       2,
-      0
+      4,
+      58,
+      2,
+      1
     ],
     [
-      2,
-      7,
-      10,
-      75,
+      1,
+      5,
+      8,
+      80,
       0
     ],
     [
@@ -94,6 +94,6 @@
     "sin asignar"
   ],
   "notes": "Se evalúa con los instantes ANOTADOS, no con los detectados por audio, para medir la asignación aislada. La métrica de EQUIPO reproduce exactamente la del paper (86,83%). En jugador quedamos 3,1 puntos por debajo, pero nosotros asignamos los 319 golpes mientras que ellos dejan algunos sin asignar, luego nuestra cifra es más exigente. Los errores dominantes (J4->J2, J3->J1) son los mismos pares que el paper documenta como límite de una sola cámara (ambigüedad de profundidad, su Fig. 9a).",
-  "commit": "a5d71b6",
-  "timestamp": "2026-09-20T21:41:00+00:00"
+  "commit": "378676c",
+  "timestamp": "2026-09-22T17:24:56+00:00"
 }

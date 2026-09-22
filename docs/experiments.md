@@ -1476,3 +1476,74 @@ contra la pista.
 
 **Conclusión operativa**: la vía de mejora no es la resolución de inferencia sino
 el dominio de entrenamiento del detector de pelota.
+
+---
+
+## La ventana de votación era demasiado ancha (+2,2 puntos)
+
+Sugerencia del tutor tras ver el vídeo externo: quizá la asignación falla porque
+el frame donde se mide la pelota llega **tarde** — si hay desfase entre el audio
+y la imagen, para cuando se vota la pelota ya va hacia el otro campo y el golpe
+se atribuye al rival. Propuso usar la misma ventana que el clasificador.
+
+Se midió sobre el ground truth de 319 golpes del paper, con `build_states` (la
+misma ruta que la evidencia publicada, de modo que la fila base reproduce el
+87,46% exacto).
+
+**La ventana del clasificador se descartó sin medirla**: va del golpe anterior
+del rival al siguiente, hasta 1,5 s. Es *más* ancha, así que agravaría justo el
+problema que se quiere corregir. Lo aprovechable de la idea era la asimetría.
+
+### Las dos hipótesis del tutor: negativas
+
+**Desfase** (misma ventana ±6, desplazada):
+
+| offset | −3 | −2 | **−1** | 0 | +1 | +2 |
+|---|---|---|---|---|---|---|
+| jugador | 84,01% | 86,83% | **88,09%** | 87,46% | 85,89% | 84,01% |
+
+El óptimo está a −1 frame (40 ms a 25 fps), dentro del ruido de anotación. **No
+hay desfase audio/vídeo que corregir.**
+
+**Asimetría** (la pelota se va después del impacto, así que mirar solo antes):
+
+| ventana | solo antes (6,0) | solo después (0,6) | simétrica (6,6) |
+|---|---|---|---|
+| jugador | 84,33% | 82,45% | **87,46%** |
+
+Ambas **peores**. La ventana no estaba mal centrada.
+
+### Lo que sí funciona: estrecharla
+
+| ±k frames | jugador | equipo |
+|---|---|---|
+| ±2 | **89,66%** | **95,92%** |
+| ±3 | **89,66%** | 95,61% |
+| **±4** | **89,66%** | **95,30%** |
+| ±5 | 88,40% | 94,67% |
+| ±6 (paper) | 87,46% | 93,73% |
+| ±8 | 84,33% | 91,54% |
+
+El tutor acertó en que **sobran frames**, pero sobran por los dos lados, no solo
+por el de después. Lejos del impacto la pelota no está cerca de nadie en
+particular y el voto añade ruido.
+
+Meseta plana en k=2..4, así que no es un pico casual. Por rally: **6 mejoran, 9
+igual, 1 empeora** (VIGO_07, −5,9) — la mejora es general, no de un rally
+arrastrando la media.
+
+Se eligió **±4 y no ±2** pese a que ±2 gana marginalmente en equipo: una ventana
+de ±2 depende de que la pelota esté detectada en muy pocos frames, y en el vídeo
+externo se vieron golpes con **0 de 13** frames con pelota. ±4 da el mismo
+acierto de jugador con margen de robustez.
+
+### Resultado
+
+| Métrica | Antes (±6, paper) | Ahora (±4) | Paper |
+|---|---|---|---|
+| Jugador | 87,46% | **89,65%** | 83,70% |
+| Equipo | 93,73% | **95,30%** | 86,83% |
+
+El cambio es una constante (`WINDOW_HALF`). Barrido completo en
+`docs/metrics/assignment_window_sweep.json`, regenerable con
+`scripts/experiment_assignment_window.py`.

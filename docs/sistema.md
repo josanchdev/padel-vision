@@ -1,8 +1,7 @@
 # Padel Vision — cómo funciona el sistema
 
 Ficha técnica del sistema completo: qué hace cada paso, de dónde sale, qué se
-midió y cuánto tarda. Pensada para explicarlo en una reunión y como esqueleto del
-capítulo de arquitectura de la memoria.
+midió y cuánto tarda.
 
 ---
 

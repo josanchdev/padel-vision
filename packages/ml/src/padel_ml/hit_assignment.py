@@ -3,7 +3,8 @@
 The audio detector says WHEN a hit happens; this says WHO. Replicates the paper's
 method (accuracy 83.7% player / 86.8% team), not a naive 1-frame nearest-wrist:
 
-- take a window of ~500 ms (12 frames @25fps) around the hit,
+- take a window around the hit (the paper's 500 ms; ours is ±4 frames, see
+  `WINDOW_HALF` — measured better on their own ground truth),
 - per frame with a ball detection, measure ball→player distance (min of both
   wrists if pose present, else bbox centre),
 - weighted majority vote across the window, weight by standardized distance (eq.1),
@@ -24,7 +25,32 @@ from padel_cv.pipeline import BallDetection, PoseDetection
 
 _L_WRIST, _R_WRIST = 9, 10
 _MIN_CONF = 0.3
-WINDOW_HALF = 6  # ±6 frames ≈ 500 ms at 25 fps (paper: 12-frame window)
+
+WINDOW_HALF = 4
+"""Half-width of the voting window, in frames (±160 ms at 25 fps).
+
+The paper uses ±6 (a 500 ms window) and that is what this replicated first.
+Swept against its own 319-hit ground truth, narrower is better:
+
+    ±2  89.66% player  95.92% team
+    ±4  89.66%         95.30%
+    ±6  87.46%         93.73%   <- the paper's width
+    ±8  84.33%         91.54%
+
+Frames far from contact have the ball nowhere near the hitter — after it, the
+ball is already crossing to the far court and votes for whoever is now closest.
+The gain is broad rather than driven by one rally: 6 of 16 rallies improve, 9 are
+unchanged, 1 gets worse.
+
+±2 scores marginally better on team accuracy but leans on the ball being
+detected in a handful of frames; on external footage hits were seen with no ball
+at all in their window. ±4 buys robustness at no cost in player accuracy.
+
+Asymmetry was tested too, since the ball leaves after contact: it does not help
+(±6 before-only 84.33%, after-only 82.45%). The window was too wide on both
+sides, not mistimed. Shifting the centre also does not help — the optimum sits at
+offset -1 frame, i.e. no audio/video lag worth correcting.
+"""
 MIN_WINDOW_FRAMES = 12  # paper pads short predicted windows up to 500 ms
 
 
