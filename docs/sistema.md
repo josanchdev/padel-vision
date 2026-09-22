@@ -33,8 +33,8 @@ Vídeo (mp4 con audio)
    ├─3─ IMAGEN ─────────► TrackNetV3 ────► trayectoria de la pelota  F1 0,94
    │                      + limpieza física (parábola local)
    │
-   ├─4─ 1+2+3 ──────────► voto ponderado ► QUIÉN golpeó       87,46% jugador
-   │                                                          93,73% equipo
+   ├─4─ 1+2+3 ──────────► voto ponderado ► QUIÉN golpeó       89,65% jugador
+   │                                                          95,30% equipo
    │
    └─5─ pose + pelota ──► BST-0 ─────────► TIPO de golpe      81,84% acc
                           + regla del saque                   0,847 macro-F1
@@ -124,18 +124,24 @@ así que su recorrido en imagen es casi parabólico).
 quién, y ninguna estadística por jugador sería posible. También decide de qué
 jugador se recorta el esqueleto que recibirá el clasificador.
 
-**Qué hace.** En una ventana de 500 ms alrededor del golpe, mide la distancia de
-la pelota a las muñecas de cada jugador y decide por voto ponderado (los frames
+**Qué hace.** En una ventana de ±4 frames (160 ms) alrededor del golpe, mide la
+distancia de la pelota a las muñecas de cada jugador y decide por voto ponderado (los frames
 donde la pelota está más cerca pesan más). Votar sobre varios frames en vez de
 uno solo lo hace robusto a que falte la pose o la pelota en el instante exacto.
 
-**Lo propio aquí.** Sobre el método del paper se añadió medir la distancia en
-**alturas de cuerpo** en vez de píxeles. Un jugador del fondo se dibuja pequeño,
-así que los mismos píxeles significan mucha más distancia real para él; sin
-normalizar, durante un remate —con la pelota alta— el voto se lo llevaba
-sistemáticamente quien estaba al fondo.
+**Lo propio aquí.** Dos cosas sobre el método del paper:
 
-**Resultado:** **87,46%** por jugador, **93,73%** por equipo (paper: 83,70% y
+- Medir la distancia en **alturas de cuerpo** en vez de píxeles. Un jugador del
+  fondo se dibuja pequeño, así que los mismos píxeles significan mucha más
+  distancia real para él; sin normalizar, durante un remate —con la pelota
+  alta— el voto se lo llevaba sistemáticamente quien estaba al fondo.
+- **Ventana de ±4 frames en vez de los 500 ms del paper.** Lejos del impacto la
+  pelota no está cerca de nadie en particular y el voto añade ruido: medido
+  sobre su propio ground truth, estrechar la ventana da +2,2 puntos. Se probó
+  también desplazarla y hacerla asimétrica —por si hubiera desfase entre audio e
+  imagen— y ambas salieron peores.
+
+**Resultado:** **89,65%** por jugador, **95,30%** por equipo (paper: 83,70% y
 86,83%), sobre su mismo ground truth de 319 golpes anotados.
 
 ### Paso 5 — QUÉ TIPO (la aportación propia)
@@ -197,8 +203,8 @@ protocolo de evaluación que el paper.
 | Métrica | Este trabajo | Paper de referencia |
 |---|---|---|
 | Detección de golpes (F1) | **0,956** | 0,92 |
-| Asignación — jugador | **87,46 %** | 83,70 % |
-| Asignación — equipo | **93,73 %** | 86,83 % |
+| Asignación — jugador | **89,65 %** | 83,70 % |
+| Asignación — equipo | **95,30 %** | 86,83 % |
 | Clasificación de tipo (accuracy) | **81,84 %** | *no lo hace* |
 | Clasificación de tipo (macro-F1) | **0,847** | *no lo hace* |
 | Detección de pelota (F1) | **0,94** | usa un modelo de tenis |

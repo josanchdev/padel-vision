@@ -30,6 +30,7 @@ uv run python scripts/evidence_audio_detector.py   # detector de audio + compara
 uv run python scripts/evidence_hit_assignment.py   # asignación de golpe a jugador
 uv run python scripts/evidence_dataset_stats.py    # estadísticas del etiquetado propio
 uv run python scripts/evidence_shot_classifier.py  # clasificador de tipo (cross-torneo)
+uv run python scripts/experiment_assignment_window.py  # ancho de la ventana de voto
 ```
 
 Los scripts vuelven a medir desde cero y sobreescriben los JSON y las figuras de
@@ -44,7 +45,8 @@ es un recuerdo.
 | `audio_threshold_sweep.json` | Barrido de umbral (una ejecución) | ADR-0015 A |
 | `audio_threshold_seeds.json` | **Elección del umbral**: F1/P/R por umbral, media de 3 ejecuciones | ADR-0015 A |
 | `audio_training_loss.json` | Curva de entrenamiento del CRNN | ADR-0015 A |
-| `hit_assignment_replica.json` | Asignación: equipo 86,83% = paper; matriz de confusión | ADR-0015 D |
+| `hit_assignment_replica.json` | Asignación: jugador 89,65%, equipo 95,30%; matriz de confusión | ADR-0015 D |
+| `assignment_window_sweep.json` | **Ancho de la ventana de voto**: desfase, asimetría y ±k | ADR-0015 D |
 | `hit_assignment_per_rally.json` | Tabla por rally, comparable con su Tabla 3 | ADR-0015 D |
 | `shot_baseline_poseonly.json` | Baseline antiguo pose-sola (macro-F1 0,62) | ADR-0013 |
 | `dataset_shot_types.json` | **Etiquetado propio**: 2.377 golpes, reparto, desbalance | ADR-0016 |
