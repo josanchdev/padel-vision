@@ -1,0 +1,122 @@
+{
+  "name": "external_evaluation_v2",
+  "summary": "Sistema completo sobre metraje externo (30 golpes, etiquetado a ciegas): deteccion F1 0.750, jugador 85.7%, tipo 66.7%, extremo a extremo 48.3%.",
+  "metrics": {
+    "labelled_hits": 30,
+    "detected_hits": 26,
+    "detection_precision": 0.8077,
+    "detection_recall": 0.7,
+    "detection_f1": 0.75,
+    "player_accuracy": 0.8571,
+    "team_accuracy": 0.9524,
+    "hitter_not_detected": 0,
+    "type_accuracy": 0.6667,
+    "type_accuracy_right_player": 0.7778,
+    "end_to_end": 0.4828,
+    "in_freeze": 0,
+    "detections_in_freeze_unjudged": 1,
+    "type_macro_f1": 0.522,
+    "miami_rally1/labelled_hits": 30,
+    "miami_rally1/detected_hits": 26,
+    "miami_rally1/detection_precision": 0.8077,
+    "miami_rally1/detection_recall": 0.7,
+    "miami_rally1/detection_f1": 0.75,
+    "miami_rally1/player_accuracy": 0.8571,
+    "miami_rally1/team_accuracy": 0.9524,
+    "miami_rally1/hitter_not_detected": 0,
+    "miami_rally1/type_accuracy": 0.6667,
+    "miami_rally1/type_accuracy_right_player": 0.7778,
+    "miami_rally1/end_to_end": 0.4828,
+    "miami_rally1/in_freeze": 0,
+    "miami_rally1/detections_in_freeze_unjudged": 1
+  },
+  "dataset": "Clips externos a CVSPORTS, etiquetados a ciegas: miami_rally1",
+  "method": "analyze_rally: audio CRNN + YOLO26-pose + TrackNetV3 + voto +-4 + BST-0 + regla del saque",
+  "params": {
+    "collar_s": 0.25,
+    "sync_mode": "video",
+    "audio_lag_per_clip": {
+      "miami_rally1": "+200 ms (video)"
+    },
+    "max_click_distance_body_heights": 0.5,
+    "freeze_min_frames": 3,
+    "freeze_max_changed_px": 3,
+    "clips": [
+      "miami_rally1"
+    ],
+    "other_labelled_as": {}
+  },
+  "per_class": {
+    "Forehand": {
+      "precision": 1.0,
+      "recall": 0.75,
+      "f1": 0.8571,
+      "support": 8
+    },
+    "Backhand": {
+      "precision": 0.5,
+      "recall": 0.8,
+      "f1": 0.6154,
+      "support": 5
+    },
+    "Smash": {
+      "precision": 0.6667,
+      "recall": 0.5714,
+      "f1": 0.6154,
+      "support": 7
+    },
+    "Serve": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 1
+    }
+  },
+  "confusion": [
+    [
+      6,
+      1,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      4,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      3,
+      4,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "labels": [
+    "Forehand",
+    "Backhand",
+    "Smash",
+    "Serve",
+    "Unclassified"
+  ],
+  "notes": "Emparejamiento: cada golpe del sistema con el etiquetado mas cercano a <=250 ms (mismo criterio que el detector de audio y el paper). Jugador: el clic del etiquetado se resuelve al jugador detectado que esta ahi, asi que no depende de que el sistema mantenga J1-J4. Equipo: mismo lado de la red, medido en la pista. Tipo sobre golpes emparejados con etiqueta de las cuatro clases; 'Other' cuenta para cuando y quien pero no para tipo. Condiciones de cada clip en docs/experiments.md.",
+  "commit": "7d23219",
+  "timestamp": "2026-09-27T21:27:16+00:00"
+}

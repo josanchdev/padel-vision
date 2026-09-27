@@ -8,7 +8,7 @@ with the result so the number can be traced to the exact code that produced it.
     uv run python scripts/evaluate_external.py
     uv run python scripts/evaluate_external.py miami_rally1   # a subset
 
-Writes docs/metrics/external_evaluation.json, docs/metrics/external_hits.csv
+Writes docs/metrics/<name>.json, docs/metrics/<name>_hits.csv
 (every hit, the table behind every number) and the type confusion figure.
 """
 
@@ -77,6 +77,14 @@ SPANISH = {
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("clips", nargs="*", help="Clip names (default: every labelled clip)")
+    parser.add_argument(
+        "--name",
+        default="external_evaluation_v2",
+        help="Evidence name. v1 (external_evaluation) is the frozen first run: never overwrite it",
+    )
+    parser.add_argument(
+        "--sync", default="video", choices=["video", "global", "none"], help="audio_sync mode"
+    )
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
 
@@ -88,13 +96,16 @@ def main() -> None:
 
     rows: list[HitRow] = []
     per_clip: dict[str, dict[str, float]] = {}
+    lags: dict[str, str] = {}
     for clip in clips:
         video = VIDEOS / f"{clip}.mp4"
         court = court_file_for(clip)
         if court is None:  # never run external footage without its court
             parser.error(f"{clip}: no court marked (padel-cv annotate-court)")
         print(f"[{clip}] analizando...", flush=True)
-        analysis = analyze_rally(video, models, court)
+        analysis = analyze_rally(video, models, court, sync_mode=args.sync)
+        lags[clip] = f"{1000 * analysis.sync.lag_s:+.0f} ms ({analysis.sync.source})"
+        print(f"  desfase audio {lags[clip]}")
         clip_rows = score_clip(
             clip, load_truth(LABELS / f"{clip}.csv"), analysis, frozen_frames(video)
         )
@@ -111,7 +122,7 @@ def main() -> None:
         metrics.update({f"{clip}/{k}": v for k, v in numbers.items()})
 
     result = ExperimentResult(
-        name="external_evaluation",
+        name=args.name,
         summary=(
             f"Sistema completo sobre metraje externo ({overall['labelled_hits']:.0f} golpes, "
             f"etiquetado a ciegas): deteccion F1 {overall['detection_f1']:.3f}, jugador "
@@ -126,6 +137,8 @@ def main() -> None:
         ),
         params={
             "collar_s": COLLAR_S,
+            "sync_mode": args.sync,
+            "audio_lag_per_clip": lags,
             "max_click_distance_body_heights": MAX_CLICK_DISTANCE,
             "freeze_min_frames": FREEZE_MIN_FRAMES,
             "freeze_max_changed_px": FREEZE_MAX_CHANGED_PX,
@@ -146,12 +159,12 @@ def main() -> None:
         ),
     )
     path = result.save()
-    write_rows(rows, METRICS_DIR / "external_hits.csv")
+    write_rows(rows, METRICS_DIR / f"{args.name}_hits.csv")
     plot_confusion(
         matrix,
         labels,
         f"Tipo de golpe, metraje externo ({len(truth)} golpes)",
-        FIGURES_DIR / "external_type_confusion.png",
+        FIGURES_DIR / f"{args.name}_type_confusion.png",
     )
 
     print()
