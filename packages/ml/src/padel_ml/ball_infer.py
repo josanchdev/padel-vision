@@ -64,6 +64,15 @@ class BallDetector:
         self._frame_size = frame_size or (768, 432)
         self._buffer: deque[np.ndarray] = deque(maxlen=INPUT_FRAMES)
 
+    def reset(self) -> None:
+        """Forget the buffered frames before starting a new video.
+
+        The network sees INPUT_FRAMES consecutive frames at once, so without this
+        the first detections of a video would be computed partly from the tail
+        of the previous one.
+        """
+        self._buffer.clear()
+
     def detect(self, image: np.ndarray, frame_index: int) -> BallHit | None:
         """Feed one BGR frame; return a BallHit once the buffer is full."""
         small = cv2.resize(image, self._frame_size, interpolation=cv2.INTER_AREA)

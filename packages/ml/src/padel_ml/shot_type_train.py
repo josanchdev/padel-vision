@@ -6,8 +6,9 @@ Splitting by rally would leak — rallies of one tournament share court, lightin
 and camera angle, and the model would be graded on conditions it memorised.
 
 The serve is outnumbered 8.4:1 by the forehand (one serve per point, by
-construction), so the loss is class-weighted; without it the serve's F1
-collapses while accuracy still looks fine.
+construction). The loss is nevertheless NOT class-weighted: measured, weighting
+made every class worse, the serve included (see `class_weights`). What protects
+the serve is a rule of the sport instead (see `best_class`).
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
 import torch
 from torch import Tensor, nn
 from torch.utils.data import DataLoader, TensorDataset
@@ -27,34 +29,36 @@ from padel_ml.shot_type_model import ShotTypeBST
 SERVE_INDEX = CLASSES.index("Serve")
 
 
-def apply_serve_rule(probabilities: list[list[float]], windows: list[ShotWindow]) -> list[int]:
-    """Only the first hit of a rally may be a serve — and it almost always is.
+def best_class(probabilities: npt.ArrayLike, may_serve: bool) -> int:
+    """Argmax, except that a hit which cannot be a serve is never given one.
 
+    Only the first hit of a rally may be a serve — and it almost always is.
     Jorge's observation, and the labels bear it out exactly: all 97 serves in the
     dataset are the opening hit of their rally, and 97 of the 99 rallies open
     with one. That makes the serve a rule of the sport rather than something to
-    be learned, so the classifier should not be left guessing at it.
+    be learned, so the classifier is not left guessing at it.
 
-    The model detects serves well (recall 0.937) but over-fires: 58 hits of other
-    classes were predicted as serves, dropping its precision to 0.605. This
-    rewrites those to their next-best class, and lets a rally opener be a serve
-    if the model ranks it there.
+    Left alone the model over-fires the serve in mid-rally; forbidding it there
+    takes serve precision from 0.722 to 1.000 without losing a real one. A hit
+    that may serve still gets one only if the model ranks it first.
+
+    The one place the rule lives: evaluation (`apply_serve_rule`) and inference
+    (`padel_ml.rally_analysis`) both call it, so they cannot drift apart.
     """
+    row = np.array(probabilities, dtype=np.float64)
+    if not may_serve:
+        row[SERVE_INDEX] = -np.inf
+    return int(np.argmax(row))
+
+
+def apply_serve_rule(probabilities: list[list[float]], windows: list[ShotWindow]) -> list[int]:
+    """`best_class` over a dataset, where each rally's opener is its first window."""
     first_of_rally: dict[str, int] = {}
     for i, window in enumerate(windows):
         if window.rally not in first_of_rally:
             first_of_rally[window.rally] = i
     openers = set(first_of_rally.values())
-
-    out: list[int] = []
-    for i, row in enumerate(probabilities):
-        best = int(np.argmax(row))
-        if best == SERVE_INDEX and i not in openers:
-            without_serve = list(row)
-            without_serve[SERVE_INDEX] = -1.0
-            best = int(np.argmax(without_serve))
-        out.append(best)
-    return out
+    return [best_class(row, may_serve=i in openers) for i, row in enumerate(probabilities)]
 
 
 @dataclass

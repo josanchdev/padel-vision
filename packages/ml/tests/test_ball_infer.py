@@ -32,6 +32,20 @@ def test_detector_needs_full_buffer_before_detecting(tmp_path) -> None:
     assert 0 <= hit.x_px <= 640 and 0 <= hit.y_px <= 360
 
 
+def test_reset_empties_the_buffer_between_videos(tmp_path) -> None:
+    """After a reset the next video must fill its own buffer, not borrow frames."""
+    ckpt = tmp_path / "ball.pt"
+    _save_ckpt(ckpt)
+    det = BallDetector(ckpt, min_confidence=0.0)
+    img = np.zeros((360, 640, 3), dtype=np.uint8)
+    for i in range(3):
+        det.detect(img, i)
+    det.reset()
+    assert det.detect(img, 0) is None
+    assert det.detect(img, 1) is None
+    assert det.detect(img, 2) is not None
+
+
 def test_detect_over_video_returns_hits(tmp_path) -> None:
     ckpt = tmp_path / "ball.pt"
     _save_ckpt(ckpt)

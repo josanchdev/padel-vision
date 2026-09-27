@@ -33,6 +33,7 @@ class PlayerPoseStage:
     ) -> None:
         from ultralytics import YOLO
 
+        self._model_name = model_name
         self._model = YOLO(model_name)
         self._confidence = confidence
         # Far-side players are ~60 px tall in 1080p broadcast footage; at the
@@ -43,6 +44,20 @@ class PlayerPoseStage:
         # Tracker config ("bytetrack.yaml" / "botsort.yaml") or None to disable
         # tracking and run per-frame detection only.
         self._tracker = tracker
+
+    def reset(self) -> None:
+        """Drop the tracker state before starting a new video.
+
+        With tracking on, ByteTrack carries its tracks across calls, so the first
+        frames of a new video would be matched against the last players of the
+        previous one — and the J1-J4 identity is built on those track IDs.
+        Ultralytics has no public reset, so the model is reloaded: a fraction of
+        a second against the tens of seconds a rally takes to process.
+        """
+        if self._tracker is not None:
+            from ultralytics import YOLO
+
+            self._model = YOLO(self._model_name)
 
     def process(self, frame: Frame) -> Frame:
         if self._tracker is not None:

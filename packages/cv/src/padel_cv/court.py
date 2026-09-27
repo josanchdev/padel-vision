@@ -118,14 +118,19 @@ def is_on_court(x_m: float, y_m: float, margin_m: float = 0.5) -> bool:
     )
 
 
+def localize_pose(homography: HomographyArray, pose: PoseDetection) -> None:
+    """Project one pose to court coordinates and flag whether it is on court."""
+    x_px, y_px = ankle_midpoint(pose)
+    x_m, y_m = project_point(homography, x_px, y_px)
+    pose.court_position_m = (x_m, y_m)
+    pose.on_court = is_on_court(x_m, y_m)
+
+
 def localize_players(frame: Frame) -> None:
     """Project every pose to court coordinates using the frame homography."""
     assert frame.homography is not None
     for pose in frame.poses:
-        x_px, y_px = ankle_midpoint(pose)
-        x_m, y_m = project_point(frame.homography, x_px, y_px)
-        pose.court_position_m = (x_m, y_m)
-        pose.on_court = is_on_court(x_m, y_m)
+        localize_pose(frame.homography, pose)
 
 
 def homography_from_keypoints(

@@ -1547,3 +1547,33 @@ acierto de jugador con margen de robustez.
 El cambio es una constante (`WINDOW_HALF`). Barrido completo en
 `docs/metrics/assignment_window_sweep.json`, regenerable con
 `scripts/experiment_assignment_window.py`.
+
+---
+
+## Un solo camino de código para demo, evaluación y web
+
+El pipeline completo vivía en un script (`scripts/demo_full_pipeline.py`). La
+evaluación externa y el worker de la web necesitan ejecutarlo, y hacerlo sobre
+copias le quitaría el sentido a la evaluación: una cifra medida sobre una copia
+no dice nada del código que realmente corre.
+
+Se extrajo a `padel_ml.rally_analysis` (`analyze_rally`, `resolve_shots`) y
+`padel_ml.rally_render`. El script queda como envoltorio fino.
+
+**Verificación**: el script anterior y el nuevo, sobre el clip de Gijón, dan los
+**mismos 27 golpes** (instante, jugador, tipo y confianza idénticos, `diff`
+vacío) en el mismo tiempo (75-76 s).
+
+Tres defectos del script anterior salieron al hacerlo reutilizable:
+
+| Defecto | Consecuencia | Arreglo |
+|---|---|---|
+| Guardaba todos los frames decodificados | **10,6 GB** de pico para 48 s de 1080p; un punto de 2 min no cabe | El render es una segunda pasada: **1,9 GB** |
+| Vídeo en MPEG-4 Part 2 (`mp4v`) | El navegador no lo reproduce | H.264 |
+| YOLO (tracker) y TrackNet (buffer de 3 frames) guardan estado | Al procesar varios vídeos seguidos, el inicio de uno se mezcla con el final del anterior; la identidad J1-J4 se construye sobre los IDs del tracker | `reset()` en ambos, llamado al empezar cada vídeo |
+
+El tercero no afectaba al demo (un proceso por vídeo), pero sí habría afectado a
+la evaluación externa y al worker, que reutilizan los modelos cargados.
+
+La regla del saque quedó en una sola función (`best_class`) que usan la
+evaluación cross-torneo y la inferencia, para que no puedan divergir.
