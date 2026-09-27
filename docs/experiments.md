@@ -1657,3 +1657,32 @@ instantes detectados. Pendiente de decidir con Jorge cómo corregirlo.
 Evidencias: `external_evaluation.json`, `external_hits.csv` (cada golpe),
 `external_av_offset.json`, `figures/external_type_confusion.png`. Regenerables con
 `scripts/evaluate_external.py` y `scripts/experiment_av_offset.py`.
+
+---
+
+## Test externo limpio: tres puntos nuevos, elegidos por regla
+
+La sincronización por vídeo se diseñó mirando Miami, así que Miami ya no puede
+ser su test. Se añaden tres puntos que **nadie ha visto procesados**, sacados de
+la misma recopilación ya descargada (*"THE BEST PADEL POINTS OF 2025... so far"*,
+Daily Padel, gFl3ADnFRtc) con una **regla fijada antes de mirar**:
+
+1. Se segmenta la recopilación en planos por cortes de imagen (diferencia media
+   entre frames > 18 en escala de grises 160×90). Solo imagen: ninguna salida
+   del sistema interviene en la elección, que si no favorecería los puntos donde
+   el sistema funciona.
+2. Candidatos: planos continuos de ≥ 15 s (27 en la recopilación). La regla
+   recupera el punto de Miami exactamente donde se había recortado a mano
+   (1:10.6-1:59.7), lo que valida la segmentación.
+3. Se toman **los tres siguientes a Miami, en orden**, comprobando con miniaturas
+   que son cámara principal (no repeticiones).
+
+| Clip | Tramo | Duración | Pista |
+|---|---|---|---|
+| `best2025_0202` | 2:02.6-3:18.8 | 76 s | azul |
+| `best2025_0340` | 3:40.8-3:58.3 | 17 s | azul, otro torneo |
+| `best2025_0405` | 4:05.3-4:35.9 | 31 s | **roja** (Tucumán) |
+
+Tres torneos distintos, ninguno de CVSPORTS; la pista roja es el dominio visual
+más alejado del entrenamiento. Se etiquetan a ciegas antes de ejecutar el sistema
+sobre ellos.
