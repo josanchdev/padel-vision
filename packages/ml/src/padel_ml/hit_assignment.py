@@ -62,7 +62,7 @@ class FrameState:
     ball: BallDetection | None
 
 
-def _player_distance(pose: PoseDetection, ball_xy: tuple[float, float]) -> float | None:
+def player_distance(pose: PoseDetection, ball_xy: tuple[float, float]) -> float | None:
     """Ball→player distance in BODY HEIGHTS: min of both wrists, else bbox centre.
 
     Not raw pixels. A far-side player is drawn small, so the same pixel gap means
@@ -159,7 +159,7 @@ def assign_hit(
         for pose in poses:
             if pose.player_id is None:
                 continue
-            d = _player_distance(pose, ball_xy)
+            d = player_distance(pose, ball_xy)
             if d is not None:
                 dists[pose.player_id] = d
                 best_overall[pose.player_id] = min(best_overall.get(pose.player_id, d), d)

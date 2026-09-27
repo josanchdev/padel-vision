@@ -16,6 +16,7 @@ a full match would also carry replays and dead time between points.
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -33,6 +34,7 @@ from padel_cv.match_data import BounceRecord, MatchAnalysis, PlayerFrameRecord, 
 from padel_cv.pipeline import BallDetection, Frame, ImageArray, PoseDetection
 from padel_cv.player_identity import PlayerIdentityTracker, court_mask_polygon, filter_players
 from padel_cv.stages.pose import PlayerPoseStage
+from padel_ml.audio_sync import AudioSync, choose_sync, corrected_frames, lag_samples
 from padel_ml.audio_train import detect_hits_in_audio
 from padel_ml.ball_infer import BallDetector, BallHit
 from padel_ml.ball_postprocess import postprocess_ball
@@ -59,6 +61,9 @@ class ModelPaths:
     """Where the three trained models live."""
 
     audio: Path
+    audio_lag: Path
+    """The global audio lag (`scripts/calibrate_audio_lag.py`), used only for
+    videos too short to estimate their own."""
     ball: Path
     shot_type: Path
 
@@ -67,6 +72,7 @@ class ModelPaths:
         """The layout the training scripts write to."""
         return cls(
             audio=runs_dir / "audio" / "audio_crnn.pt",
+            audio_lag=runs_dir / "audio" / "audio_lag.json",
             ball=runs_dir / "ball_full" / "tracknetv3.pt",
             shot_type=runs_dir / "shot_type" / "bst0.pt",
         )
@@ -78,6 +84,11 @@ class RallyModels:
     def __init__(self, paths: ModelPaths, device: str | None = None) -> None:
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.audio_checkpoint = paths.audio
+        if not paths.audio_lag.exists():
+            raise FileNotFoundError(
+                f"{paths.audio_lag} missing: run scripts/calibrate_audio_lag.py once"
+            )
+        self.global_lag_s = float(json.loads(paths.audio_lag.read_text())["lag_s"])
         self.pose = PlayerPoseStage(device=self.device, confidence=POSE_CONFIDENCE)
         self.ball = BallDetector(paths.ball, device=self.device)
         checkpoint = torch.load(paths.shot_type, map_location=self.device, weights_only=False)
@@ -135,6 +146,8 @@ class RallyAnalysis:
     ball_smoothed: dict[int, tuple[float, float]]
     """Physics-cleaned ball track: what gets drawn."""
     bounces: list[Bounce]
+    sync: AudioSync
+    """How far the audio instants were moved back to the contact, and why."""
 
     def to_match_data(self) -> MatchAnalysis:
         """The versioned JSON contract the web consumes (ADR-0010)."""
@@ -210,18 +223,44 @@ def resolve_shots(
     return shots
 
 
+def synchronise(
+    hit_times_s: list[float],
+    players: dict[int, list[PoseDetection]],
+    ball: dict[int, tuple[float, float]],
+    fps: float,
+    global_lag_s: float,
+    mode: str = "video",
+) -> AudioSync:
+    """How far to move this video's audio instants back to the contact."""
+    if mode == "none":
+        return AudioSync(0.0, "none", 0)
+    if mode == "global":
+        return AudioSync(global_lag_s, "global", 0)
+    if mode != "video":
+        raise ValueError(f"unknown sync mode: {mode}")
+    raw = sorted({round(t * fps) for t in hit_times_s})
+    return choose_sync(lag_samples(raw, players, ball, fps), global_lag_s)
+
+
 def analyze_rally(
     video: Path,
     models: RallyModels,
     court: Path | None,
     min_confidence: float = 0.0,
     on_progress: Callable[[float], None] | None = None,
+    sync_mode: str = "video",
 ) -> RallyAnalysis:
     """Run the whole chain over one rally.
 
     `court` has no default on purpose. Without it the crowd is not filtered and
     a spectator can win the vote for a hit, so running without a court has to be
     a visible decision of the caller, never a silent fallback.
+
+    `sync_mode` sets how the audio instants are moved back to the contact (see
+    `padel_ml.audio_sync`): "video" estimates the lag from this video's own hits
+    (falling back to the global lag when it has too few), "global" always uses
+    the global lag, "none" leaves the instants as the audio heard them. The last
+    two exist to measure the first.
     """
     hit_times = detect_hits_in_audio(video, models.audio_checkpoint, device=models.device)
     polygon = court_mask_polygon(load_corners(court)) if court is not None else None
@@ -277,7 +316,8 @@ def analyze_rally(
     ball = {b.frame_index: (b.x_px, b.y_px) for b in postprocess_ball(raw_ball)}
     ball_smoothed = {p.frame_index: (p.x_px, p.y_px) for p in clean_track(raw_ball)}
 
-    hit_frames = sorted({round(t * fps) for t in hit_times})
+    sync = synchronise(hit_times, players, ball, fps, models.global_lag_s, sync_mode)
+    hit_frames = corrected_frames(hit_times, fps, sync.lag_s)
     shots = resolve_shots(
         hit_frames, players, ball, fps, models.classify, models.seq_len, min_confidence
     )
@@ -300,4 +340,5 @@ def analyze_rally(
         ball=ball,
         ball_smoothed=ball_smoothed,
         bounces=bounces,
+        sync=sync,
     )

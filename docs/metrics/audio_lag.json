@@ -1,0 +1,38 @@
+{
+  "name": "audio_lag",
+  "summary": "El audio llega 120 ms tarde al contacto (mediana global, sin etiquetas); el contacto estimado cae a +0 ms del instante anotado en VIGO.",
+  "metrics": {
+    "global_lag_ms": 120.0,
+    "20230528_VIGO/lag_ms": 80.0,
+    "20230604_BRUSSEL/lag_ms": 80.0,
+    "20230702_VALLADOLID/lag_ms": 120.0,
+    "20230709_VALENCIA/lag_ms": 120.0,
+    "20230806_MALAGA/lag_ms": 80.0,
+    "20230903_FINLAND/lag_ms": 120.0,
+    "20230927_MADRID/lag_ms": 80.0,
+    "20231008_DUITSLAND/lag_ms": 120.0,
+    "20231015_AMSTERDAM/lag_ms": 240.0,
+    "20231102_MENORCA/lag_ms": 120.0,
+    "20231112_MALMO/lag_ms": 80.0,
+    "vigo_contact_error_ms_q1": -80.0,
+    "vigo_contact_error_ms_median": 0.0,
+    "vigo_contact_error_ms_q3": 40.0,
+    "vigo_video_lag_error_ms_q1": 5.3,
+    "vigo_video_lag_error_ms_median": 16.0,
+    "vigo_video_lag_error_ms_q3": 32.0
+  },
+  "dataset": "CVSPORTS, 99 rallies (calibracion); VIGO, instantes del paper (validacion)",
+  "method": "contacto = frame con la pelota mas cerca de una muneca (alturas de cuerpo)",
+  "params": {
+    "n_hits": 2202,
+    "min_hits_per_video": 8,
+    "n_videos_validated": 15,
+    "n_hits_validated": 290
+  },
+  "per_class": {},
+  "confusion": [],
+  "labels": [],
+  "notes": "Las etiquetas solo validan: la calibracion no las usa. 'contact_error' mide el estimador golpe a golpe; 'video_lag_error' mide la estimacion por video (mediana de sus golpes) frente al desfase real de ese video.",
+  "commit": "3808867",
+  "timestamp": "2026-09-27T21:25:19+00:00"
+}

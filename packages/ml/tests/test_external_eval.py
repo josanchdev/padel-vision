@@ -2,6 +2,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from padel_ml.audio_sync import AudioSync
 from padel_ml.external_eval import clicked_player, frozen_frames, score_clip, summarize
 from padel_ml.rally_analysis import RallyAnalysis, Shot
 
@@ -40,6 +41,7 @@ def _analysis(shots: list[Shot], n_frames: int = 300) -> RallyAnalysis:
         ball={},
         ball_smoothed={},
         bounces=[],
+        sync=AudioSync(0.0, "none", 0),
     )
 
 

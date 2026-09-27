@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import numpy as np
+from padel_ml.audio_sync import AudioSync
 from padel_ml.rally_analysis import UNKNOWN_PLAYER, RallyAnalysis, Shot, resolve_shots
 from padel_ml.shot_type_dataset import CLASSES
 from padel_ml.shot_type_train import best_class
@@ -121,6 +122,7 @@ def test_match_data_marks_unknown_players_and_unclassified_shots() -> None:
         ball={},
         ball_smoothed={},
         bounces=[],
+        sync=AudioSync(0.0, "none", 0),
     )
     data = analysis.to_match_data().to_dict()
     assert [s["player_id"] for s in data["shots"]] == [UNKNOWN_PLAYER, 2]
