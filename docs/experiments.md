@@ -1421,6 +1421,21 @@ red dice MIAMI P1. Fichero: `data/raw/external/miami_rally1.mp4`.) El
 split cross-torneo ya mide generalización, pero dentro de la misma producción;
 esto sale de ella. Pista marcada a mano, error de reproyección **0,053 m**.
 
+**Condiciones del vídeo, medidas al etiquetar** (todas vienen del original de
+YouTube, no del recorte; se comprobó en el fichero fuente):
+
+- **Frames 0-16 no son el punto**: cola del clip anterior de la recopilación y
+  una transición naranja. El saque cae hacia los frames 15-16, con la
+  transición desvaneciéndose.
+- **Grabado a 25 fps y exportado a 30**: uno de cada 6 frames es un duplicado.
+- **Una congelación de la emisión, frames 449-461** (0,43 s): la imagen se
+  detiene y en el 462 salta con el golpe ya dado. Ese impacto no es visible; se
+  etiqueta en el centro de la congelación (frame 455, a menos de 7 frames de
+  cualquier instante posible) y se reporta aparte en la evaluación.
+
+Son condiciones reales de metraje publicado que el sistema debe soportar, y una
+razón más para preferir partidos completos del canal oficial a recopilaciones.
+
 Procesado completo en 74 s (1,54× tiempo real), 27 golpes detectados, 26 con
 jugador asignado. Pendiente de etiquetar para tener cifras; lo que sigue son
 observaciones medibles sin ground truth.
