@@ -1596,3 +1596,64 @@ la evaluación externa y al worker, que reutilizan los modelos cargados.
 
 La regla del saque quedó en una sola función (`best_class`) que usan la
 evaluación cross-torneo y la inferencia, para que no puedan divergir.
+
+---
+
+## Evaluación externa v1: el sistema generaliza; la sincronización audio-imagen, no
+
+Primera evaluación sobre metraje que ningún modelo ha visto, con **etiquetas a
+ciegas** (Jorge marca instante, clic en el golpeador y tipo sin ver ninguna
+salida del sistema) y **sistema congelado** (commit registrado en la evidencia).
+Clip `miami_rally1`: 30 golpes etiquetados. El golpe cuyo impacto cae en la
+congelación de la emisión no se etiquetó (no se ve); la regla simétrica —las
+detecciones junto a una congelación no se juzgan— se fijó y se subió a git
+**antes** de ver ningún resultado.
+
+| Capa | Miami (externo) | CVSPORTS |
+|---|---|---|
+| Detección F1 | 0,691 | 0,956 |
+| Jugador | 57,9% | 89,65%* |
+| Equipo | 84,2% | 95,30%* |
+| Tipo (jugador correcto) | 54,5% | 81,84% |
+| Extremo a extremo | 20,7% | — |
+
+\* medido con los instantes **anotados**, no con los detectados.
+
+### Diagnóstico: el instante llega tarde
+
+Emparejando cada detección con la marca visual de Jorge, el sistema cae **~5
+frames (167 ms) tarde** en casi todos los golpes. El voto mira ±4 frames
+alrededor de ese instante, así que mira la pelota cuando ya ha salido de la pala:
+**la hipótesis del tutor**, que CVSPORTS no mostraba porque allí la asignación se
+evaluó con instantes anotados.
+
+El retraso tiene dos partes, separadas midiendo el chasquido directamente en la
+onda (sin red neuronal):
+
+| | CVSPORTS | Miami |
+|---|---|---|
+| Chasquido en la onda − impacto visual | ~0 | **+135 ms** (el sonido del vídeo va tarde) |
+| Detección CRNN − instante de referencia | **+69 ms** (latencia del detector) | +167 ms |
+
+### Oráculo: cuánto explica el instante
+
+Moviendo las detecciones hacia atrás un desplazamiento fijo y repuntuando
+(diagnóstico, no cambio del sistema):
+
+| Desplazamiento | Detección F1 | Jugador | Equipo | Tipo (jug. ok) | Extremo a extremo |
+|---|---|---|---|---|---|
+| 0 (sistema) | 0,691 | 57,9% | 84,2% | 54,5% | 20,7% |
+| −2 f (latencia de CVSPORTS) | 0,786 | 81,8% | 86,4% | 72,2% | 44,8% |
+| −5 f (oráculo del clip) | 0,750 | **90,5%** | **95,2%** | 79,0% | 51,7% |
+
+Con el instante bien puesto, jugador y equipo **igualan las cifras de CVSPORTS**
+en metraje externo: pose, pelota y voto generalizan. El eslabón débil fuera de
+dominio es la sincronización audio-imagen, no la visión.
+
+Consecuencia para la memoria: la cifra de asignación de CVSPORTS mide el paso
+aislado y es correcta como tal, pero la cadena completa nunca se había medido con
+instantes detectados. Pendiente de decidir con Jorge cómo corregirlo.
+
+Evidencias: `external_evaluation.json`, `external_hits.csv` (cada golpe),
+`external_av_offset.json`, `figures/external_type_confusion.png`. Regenerables con
+`scripts/evaluate_external.py` y `scripts/experiment_av_offset.py`.

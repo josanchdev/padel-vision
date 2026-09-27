@@ -1,0 +1,72 @@
+{
+  "name": "external_av_offset",
+  "summary": "La caida externa se debe a la sincronizacion audio-imagen: el detector marca ~69 ms tarde incluso en CVSPORTS, y el video externo suma su propio retraso de sonido. Recolocando el instante, jugador y equipo recuperan las cifras de CVSPORTS.",
+  "metrics": {
+    "cvsports_detector_latency_ms_median": 69.3,
+    "cvsports_detector_latency_ms_q1": 53.3,
+    "cvsports_detector_latency_ms_q3": 88.0,
+    "miami_rally1/pop_onset_minus_label_ms_median": 135.1,
+    "miami_rally1/detection_minus_label_ms_median": 166.7
+  },
+  "dataset": "CVSPORTS VIGO (latencia) + clips externos etiquetados a ciegas",
+  "method": "diagnostico: onda cruda, detector CRNN y oraculo de desplazamiento",
+  "params": {
+    "oracle": {
+      "miami_rally1": {
+        "sistema (+0 frames)": {
+          "labelled_hits": 30,
+          "detected_hits": 25,
+          "detection_precision": 0.76,
+          "detection_recall": 0.6333,
+          "detection_f1": 0.6909,
+          "player_accuracy": 0.5789,
+          "team_accuracy": 0.8421,
+          "hitter_not_detected": 0,
+          "type_accuracy": 0.5789,
+          "type_accuracy_right_player": 0.5455,
+          "end_to_end": 0.2069,
+          "in_freeze": 0,
+          "detections_in_freeze_unjudged": 2
+        },
+        "latencia_cvsports (-2 frames)": {
+          "labelled_hits": 30,
+          "detected_hits": 26,
+          "detection_precision": 0.8462,
+          "detection_recall": 0.7333,
+          "detection_f1": 0.7857,
+          "player_accuracy": 0.8182,
+          "team_accuracy": 0.8636,
+          "hitter_not_detected": 0,
+          "type_accuracy": 0.6818,
+          "type_accuracy_right_player": 0.7222,
+          "end_to_end": 0.4483,
+          "in_freeze": 0,
+          "detections_in_freeze_unjudged": 1
+        },
+        "oraculo_clip (-5 frames)": {
+          "labelled_hits": 30,
+          "detected_hits": 26,
+          "detection_precision": 0.8077,
+          "detection_recall": 0.7,
+          "detection_f1": 0.75,
+          "player_accuracy": 0.9048,
+          "team_accuracy": 0.9524,
+          "hitter_not_detected": 0,
+          "type_accuracy": 0.7143,
+          "type_accuracy_right_player": 0.7895,
+          "end_to_end": 0.5172,
+          "in_freeze": 0,
+          "detections_in_freeze_unjudged": 1
+        }
+      }
+    },
+    "collar_s": 0.25,
+    "sample_rate": 48000
+  },
+  "per_class": {},
+  "confusion": [],
+  "labels": [],
+  "notes": "El oraculo NO es un cambio del sistema: mide cuanto error explica el instante. La cifra de asignacion de CVSPORTS (89,65%) se midio con instantes anotados, no detectados, por lo que esta latencia no aparecia alli.",
+  "commit": "96a884a",
+  "timestamp": "2026-09-27T16:01:12+00:00"
+}

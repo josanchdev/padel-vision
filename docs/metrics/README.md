@@ -31,6 +31,8 @@ uv run python scripts/evidence_hit_assignment.py   # asignación de golpe a juga
 uv run python scripts/evidence_dataset_stats.py    # estadísticas del etiquetado propio
 uv run python scripts/evidence_shot_classifier.py  # clasificador de tipo (cross-torneo)
 uv run python scripts/experiment_assignment_window.py  # ancho de la ventana de voto
+uv run python scripts/evaluate_external.py        # evaluación externa (etiquetas a ciegas)
+uv run python scripts/experiment_av_offset.py     # desfase audio-imagen + oráculo
 ```
 
 Los scripts vuelven a medir desde cero y sobreescriben los JSON y las figuras de
@@ -53,6 +55,9 @@ es un recuerdo.
 | `dataset_per_tournament.json` | Golpes por torneo y clase (base del split cross-torneo) | ADR-0016 |
 | `shot_type_classifier.json` | **Clasificador de tipo**: acc 0,818, macro-F1 0,847, matriz | ADR-0016 |
 | `shot_type_per_tournament.json` | Accuracy por torneo (11 folds) | ADR-0016 |
+| `external_evaluation.json` | **Metraje externo, etiquetado a ciegas**: cuándo/quién/qué/extremo a extremo | bitácora |
+| `external_hits.csv` | Cada golpe externo: marca, detección, jugador y tipo, acierto por capa | bitácora |
+| `external_av_offset.json` | **Desfase audio-imagen**: latencia del detector, retraso del vídeo, oráculo | bitácora |
 | `method_comparison_same_data.json` | **Cara a cara**: pose+pelota 0,821 vs audio 0,956, mismos datos | ADR-0015 |
 
 ### Figuras (`figures/`)
