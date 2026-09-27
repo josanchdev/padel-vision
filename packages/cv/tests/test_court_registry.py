@@ -27,8 +27,8 @@ def test_unmarked_tournament_returns_none(tmp_path) -> None:
 def test_standalone_clip_uses_its_own_file(tmp_path) -> None:
     """An external video is not part of a tournament series, so it carries its
     own court file. Without this it would match no pattern and run maskless."""
-    (tmp_path / "gijon_rally1.json").write_text("{}")
-    assert court_file_for("gijon_rally1", tmp_path).name == "gijon_rally1.json"
+    (tmp_path / "miami_rally1.json").write_text("{}")
+    assert court_file_for("miami_rally1", tmp_path).name == "miami_rally1.json"
 
 
 def test_own_file_wins_over_the_tournament(tmp_path) -> None:

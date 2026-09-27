@@ -367,6 +367,19 @@ def main() -> int:
         help="Audio candidate sensitivity (higher = fewer, only clear pops)",
     )
 
+    blind = subparsers.add_parser(
+        "annotate-blind",
+        help="Blind ground truth for a whole rally: contact frame, hitter (click) and type",
+    )
+    blind.add_argument("video", type=Path, help="Rally video")
+    blind.add_argument(
+        "-o",
+        "--out",
+        type=Path,
+        default=None,
+        help="Output CSV (default: data/labels/external/<video>.csv)",
+    )
+
     types = subparsers.add_parser(
         "annotate-types",
         help="Label the TYPE of already-located hits (ADR-0016): jump, look, tap a key",
@@ -482,6 +495,17 @@ def main() -> int:
 
             error = _json.loads(args.out.read_text())["reprojection_error_m"]
             print(f"guardado -> {args.out}  (error de reproyeccion {error} m)")
+    elif args.command == "annotate-blind":
+        import collections
+
+        from padel_cv.blind_annotator import annotate_blind, load_hit_marks
+
+        out_csv = args.out or Path("data/labels/external") / f"{args.video.stem}.csv"
+        annotate_blind(args.video, out_csv)
+        blind_marks = load_hit_marks(out_csv)
+        counts = collections.Counter(m.shot_type for m in blind_marks.values())
+        print(f"{len(blind_marks)} golpes marcados -> {out_csv}")
+        print("por tipo:", dict(counts))
     elif args.command == "annotate-types":
         import collections
 

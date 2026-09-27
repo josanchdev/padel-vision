@@ -17,16 +17,20 @@ packages/api/src/padel_api/static/assets/
 packages/api/src/padel_api/static/index.html
 
 # Data & models — never commit videos or weights
-data/
+# `data/*` and not `data/`: git cannot re-include a file whose parent directory
+# is excluded, so with `data/` the exceptions below silently did nothing.
+data/*
 # ...except our own hand-made labels: 2,377 hits typed one by one. They are the
 # scarcest asset in the project (they cannot be regenerated) and weigh 400 KB.
 !data/labels/
+data/labels/*
 !data/labels/types/
-!data/labels/types/*.csv
-# Hand-marked courts: 12 homographies, 6 clicks each, verified to 3-12 cm.
+# Blind ground truth of the external rallies: the external evaluation's labels.
+!data/labels/external/
+# Hand-marked courts: 6 clicks each, verified to a few cm.
 !data/datasets/
+data/datasets/*
 !data/datasets/courts/
-!data/datasets/courts/*.json
 *.pt
 *.onnx
 runs/

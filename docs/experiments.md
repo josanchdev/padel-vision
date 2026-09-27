@@ -1410,10 +1410,14 @@ análisis deportivo aprovechar las restricciones del reglamento.
 
 ---
 
-## Primera prueba sobre vídeo externo (Premier Padel Gijón)
+## Primera prueba sobre vídeo externo (Miami Premier Padel P1)
 
-Clip de 48 s descargado de YouTube (1080p, audio original), pista de otro color
-y otra cámara: **el primer metraje del proyecto que ningún modelo ha visto**. El
+Clip de 48 s (1080p, audio original) de un punto del Miami Premier Padel P1
+(Coello/Tapia contra Bergamini/Navarro), recortado de la recopilación de YouTube
+*"THE BEST PADEL POINTS OF 2025... so far"* (canal Daily Padel, gFl3ADnFRtc).
+Pista de otro color y otra cámara: **el primer metraje del proyecto que ningún
+modelo ha visto**. (Se registró primero como "Gijón" por error; el rótulo de la
+red dice MIAMI P1. Fichero: `data/raw/external/miami_rally1.mp4`.) El
 split cross-torneo ya mide generalización, pero dentro de la misma producción;
 esto sale de ella. Pista marcada a mano, error de reproyección **0,053 m**.
 
@@ -1560,7 +1564,7 @@ no dice nada del código que realmente corre.
 Se extrajo a `padel_ml.rally_analysis` (`analyze_rally`, `resolve_shots`) y
 `padel_ml.rally_render`. El script queda como envoltorio fino.
 
-**Verificación**: el script anterior y el nuevo, sobre el clip de Gijón, dan los
+**Verificación**: el script anterior y el nuevo, sobre el clip de Miami, dan los
 **mismos 27 golpes** (instante, jugador, tipo y confianza idénticos, `diff`
 vacío) en el mismo tiempo (75-76 s).
 
