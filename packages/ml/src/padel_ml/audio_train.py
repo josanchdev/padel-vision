@@ -146,18 +146,20 @@ class AudioEval:
     fn: int
 
 
-def event_eval(
-    pred_frames: list[int], true_windows: list[tuple[float, float]], collar_s: float = 0.25
-) -> tuple[int, int, int]:
-    """Event-based TP/FP/FN: a predicted peak matches a real hit if its time is
-    within `collar_s` of the hit window (paper's collar = 250 ms)."""
-    true_times = [(s + e) / 2 for s, e in true_windows]
+def match_events(
+    predicted_s: list[float], truth_s: list[float], collar_s: float = 0.25
+) -> list[tuple[int, int]]:
+    """Pair predicted events with real ones: (predicted index, truth index).
+
+    Each prediction, in order, takes the nearest still-unmatched real event
+    within `collar_s` (the paper's collar is 250 ms). One-to-one: a real hit can
+    be claimed once, so two detections of the same hit count one TP and one FP.
+    """
     matched: set[int] = set()
-    tp = 0
-    for pf in pred_frames:
-        pt = frame_time(pf)
+    pairs: list[tuple[int, int]] = []
+    for p, pt in enumerate(predicted_s):
         best_i, best_d = -1, collar_s
-        for i, tt in enumerate(true_times):
+        for i, tt in enumerate(truth_s):
             if i in matched:
                 continue
             d = abs(pt - tt)
@@ -165,10 +167,18 @@ def event_eval(
                 best_d, best_i = d, i
         if best_i >= 0:
             matched.add(best_i)
-            tp += 1
-    fp = len(pred_frames) - tp
-    fn = len(true_times) - len(matched)
-    return tp, fp, fn
+            pairs.append((p, best_i))
+    return pairs
+
+
+def event_eval(
+    pred_frames: list[int], true_windows: list[tuple[float, float]], collar_s: float = 0.25
+) -> tuple[int, int, int]:
+    """Event-based TP/FP/FN: a predicted peak matches a real hit if its time is
+    within `collar_s` of the hit window (paper's collar = 250 ms)."""
+    true_times = [(s + e) / 2 for s, e in true_windows]
+    tp = len(match_events([frame_time(pf) for pf in pred_frames], true_times, collar_s))
+    return tp, len(pred_frames) - tp, len(true_times) - tp
 
 
 def fit_and_save(
