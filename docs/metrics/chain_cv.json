@@ -1,0 +1,335 @@
+{
+  "name": "chain_cv",
+  "summary": "Cadena completa en CVSPORTS, dejando fuera cada torneo: deteccion F1 0.948, tipo 83.4%, jugador (VIGO) 82.6%; detectado y bien clasificado 80.0%, todo correcto en VIGO 70.3%.",
+  "metrics": {
+    "none/real_hits": 2377,
+    "none/detection_precision": 0.9717,
+    "none/detection_recall": 0.9247,
+    "none/detection_f1": 0.9476,
+    "none/type_accuracy": 0.8369,
+    "none/player_accuracy": 0.7986,
+    "none/team_accuracy": 0.8924,
+    "none/type_accuracy_right_player": 0.8789,
+    "none/end_to_end_when_what": 0.8032,
+    "none/end_to_end_vigo": 0.6853,
+    "none/vigo_hits": 286,
+    "global/real_hits": 2377,
+    "global/detection_precision": 0.9717,
+    "global/detection_recall": 0.9247,
+    "global/detection_f1": 0.9476,
+    "global/type_accuracy": 0.8274,
+    "global/player_accuracy": 0.8368,
+    "global/team_accuracy": 0.8958,
+    "global/type_accuracy_right_player": 0.8426,
+    "global/end_to_end_when_what": 0.7941,
+    "global/end_to_end_vigo": 0.6923,
+    "global/vigo_hits": 286,
+    "video/real_hits": 2377,
+    "video/detection_precision": 0.9717,
+    "video/detection_recall": 0.9247,
+    "video/detection_f1": 0.9476,
+    "video/type_accuracy": 0.834,
+    "video/player_accuracy": 0.8264,
+    "video/team_accuracy": 0.8958,
+    "video/type_accuracy_right_player": 0.8664,
+    "video/end_to_end_when_what": 0.8005,
+    "video/end_to_end_vigo": 0.7028,
+    "video/vigo_hits": 286,
+    "video/type_macro_f1": 0.8631
+  },
+  "dataset": "CVSPORTS: 99 rallies / 11 torneos (cuando, que); VIGO con jugador anotado (quien)",
+  "method": "leave-one-tournament-out: audio CRNN + BST-0 reentrenados por ronda; pose y pelota cacheadas",
+  "params": {
+    "modes": [
+      "none",
+      "global",
+      "video"
+    ],
+    "collar_s": 0.25,
+    "funnel_vigo_percent": {
+      "none": {
+        "Golpes reales": 100.0,
+        "Detectados": 96.15384615384616,
+        "Jugador correcto": 77.97202797202797,
+        "Jugador y tipo correctos": 68.53146853146853
+      },
+      "video": {
+        "Golpes reales": 100.0,
+        "Detectados": 96.15384615384616,
+        "Jugador correcto": 81.11888111888112,
+        "Jugador y tipo correctos": 70.27972027972028
+      }
+    },
+    "per_tournament_video": {
+      "20230528_VIGO": {
+        "real_hits": 315,
+        "detection_precision": 0.9582,
+        "detection_recall": 0.946,
+        "detection_f1": 0.9521,
+        "type_accuracy": 0.8404,
+        "player_accuracy": 0.8264,
+        "team_accuracy": 0.8958,
+        "type_accuracy_right_player": 0.8664,
+        "end_to_end_when_what": 0.8061,
+        "end_to_end_vigo": 0.7028,
+        "vigo_hits": 286
+      },
+      "20230604_BRUSSEL": {
+        "real_hits": 250,
+        "detection_precision": 0.9908,
+        "detection_recall": 0.86,
+        "detection_f1": 0.9208,
+        "type_accuracy": 0.6995,
+        "player_accuracy": 0.0,
+        "team_accuracy": 0.0,
+        "type_accuracy_right_player": 0.0,
+        "end_to_end_when_what": 0.6256,
+        "end_to_end_vigo": 0.0,
+        "vigo_hits": 0
+      },
+      "20230702_VALLADOLID": {
+        "real_hits": 114,
+        "detection_precision": 0.9903,
+        "detection_recall": 0.8947,
+        "detection_f1": 0.9401,
+        "type_accuracy": 0.8515,
+        "player_accuracy": 0.0,
+        "team_accuracy": 0.0,
+        "type_accuracy_right_player": 0.0,
+        "end_to_end_when_what": 0.8037,
+        "end_to_end_vigo": 0.0,
+        "vigo_hits": 0
+      },
+      "20230709_VALENCIA": {
+        "real_hits": 104,
+        "detection_precision": 1.0,
+        "detection_recall": 0.9519,
+        "detection_f1": 0.9754,
+        "type_accuracy": 0.8404,
+        "player_accuracy": 0.0,
+        "team_accuracy": 0.0,
+        "type_accuracy_right_player": 0.0,
+        "end_to_end_when_what": 0.8061,
+        "end_to_end_vigo": 0.0,
+        "vigo_hits": 0
+      },
+      "20230806_MALAGA": {
+        "real_hits": 201,
+        "detection_precision": 0.9279,
+        "detection_recall": 0.9602,
+        "detection_f1": 0.9438,
+        "type_accuracy": 0.8457,
+        "player_accuracy": 0.0,
+        "team_accuracy": 0.0,
+        "type_accuracy_right_player": 0.0,
+        "end_to_end_when_what": 0.8457,
+        "end_to_end_vigo": 0.0,
+        "vigo_hits": 0
+      },
+      "20230903_FINLAND": {
+        "real_hits": 320,
+        "detection_precision": 0.9891,
+        "detection_recall": 0.8531,
+        "detection_f1": 0.9161,
+        "type_accuracy": 0.8502,
+        "player_accuracy": 0.0,
+        "team_accuracy": 0.0,
+        "type_accuracy_right_player": 0.0,
+        "end_to_end_when_what": 0.7882,
+        "end_to_end_vigo": 0.0,
+        "vigo_hits": 0
+      },
+      "20230927_MADRID": {
+        "real_hits": 296,
+        "detection_precision": 0.9791,
+        "detection_recall": 0.9493,
+        "detection_f1": 0.964,
+        "type_accuracy": 0.8029,
+        "player_accuracy": 0.0,
+        "team_accuracy": 0.0,
+        "type_accuracy_right_player": 0.0,
+        "end_to_end_when_what": 0.7885,
+        "end_to_end_vigo": 0.0,
+        "vigo_hits": 0
+      },
+      "20231008_DUITSLAND": {
+        "real_hits": 227,
+        "detection_precision": 1.0,
+        "detection_recall": 0.9692,
+        "detection_f1": 0.9844,
+        "type_accuracy": 0.8657,
+        "player_accuracy": 0.0,
+        "team_accuracy": 0.0,
+        "type_accuracy_right_player": 0.0,
+        "end_to_end_when_what": 0.8539,
+        "end_to_end_vigo": 0.0,
+        "vigo_hits": 0
+      },
+      "20231015_AMSTERDAM": {
+        "real_hits": 190,
+        "detection_precision": 0.9832,
+        "detection_recall": 0.9263,
+        "detection_f1": 0.9539,
+        "type_accuracy": 0.8675,
+        "player_accuracy": 0.0,
+        "team_accuracy": 0.0,
+        "type_accuracy_right_player": 0.0,
+        "end_to_end_when_what": 0.8421,
+        "end_to_end_vigo": 0.0,
+        "vigo_hits": 0
+      },
+      "20231102_MENORCA": {
+        "real_hits": 187,
+        "detection_precision": 1.0,
+        "detection_recall": 0.9519,
+        "detection_f1": 0.9754,
+        "type_accuracy": 0.8475,
+        "player_accuracy": 0.0,
+        "team_accuracy": 0.0,
+        "type_accuracy_right_player": 0.0,
+        "end_to_end_when_what": 0.8197,
+        "end_to_end_vigo": 0.0,
+        "vigo_hits": 0
+      },
+      "20231112_MALMO": {
+        "real_hits": 173,
+        "detection_precision": 0.8859,
+        "detection_recall": 0.9422,
+        "detection_f1": 0.9132,
+        "type_accuracy": 0.902,
+        "player_accuracy": 0.0,
+        "team_accuracy": 0.0,
+        "type_accuracy_right_player": 0.0,
+        "end_to_end_when_what": 0.8846,
+        "end_to_end_vigo": 0.0,
+        "vigo_hits": 0
+      }
+    },
+    "training_curve": {
+      "folds": 11.0,
+      "held_out_accuracy_final_mean": 82.07,
+      "held_out_accuracy_best_epoch_mean": 84.48,
+      "loss_first_epoch_mean": 1.4195,
+      "loss_last_epoch_mean": 0.4242
+    },
+    "audio_lag_per_fold": {
+      "20230528_VIGO": {
+        "global_lag_ms": 120.0,
+        "video_lag_ms_median": 80.0
+      },
+      "20230604_BRUSSEL": {
+        "global_lag_ms": 80.0,
+        "video_lag_ms_median": 80.0
+      },
+      "20230702_VALLADOLID": {
+        "global_lag_ms": 120.0,
+        "video_lag_ms_median": 120.0
+      },
+      "20230709_VALENCIA": {
+        "global_lag_ms": 120.0,
+        "video_lag_ms_median": 120.0
+      },
+      "20230806_MALAGA": {
+        "global_lag_ms": 120.0,
+        "video_lag_ms_median": 80.0
+      },
+      "20230903_FINLAND": {
+        "global_lag_ms": 80.0,
+        "video_lag_ms_median": 120.0
+      },
+      "20230927_MADRID": {
+        "global_lag_ms": 120.0,
+        "video_lag_ms_median": 80.0
+      },
+      "20231008_DUITSLAND": {
+        "global_lag_ms": 80.0,
+        "video_lag_ms_median": 120.0
+      },
+      "20231015_AMSTERDAM": {
+        "global_lag_ms": 80.0,
+        "video_lag_ms_median": 240.0
+      },
+      "20231102_MENORCA": {
+        "global_lag_ms": 120.0,
+        "video_lag_ms_median": 120.0
+      },
+      "20231112_MALMO": {
+        "global_lag_ms": 120.0,
+        "video_lag_ms_median": 80.0
+      }
+    }
+  },
+  "per_class": {
+    "Forehand": {
+      "precision": 0.8281,
+      "recall": 0.7863,
+      "f1": 0.8066,
+      "support": 772
+    },
+    "Backhand": {
+      "precision": 0.7929,
+      "recall": 0.8374,
+      "f1": 0.8146,
+      "support": 695
+    },
+    "Smash": {
+      "precision": 0.8869,
+      "recall": 0.8853,
+      "f1": 0.8861,
+      "support": 558
+    },
+    "Serve": {
+      "precision": 1.0,
+      "recall": 0.8958,
+      "f1": 0.9451,
+      "support": 96
+    }
+  },
+  "confusion": [
+    [
+      607,
+      125,
+      35,
+      0,
+      5
+    ],
+    [
+      84,
+      582,
+      27,
+      0,
+      2
+    ],
+    [
+      39,
+      24,
+      494,
+      0,
+      1
+    ],
+    [
+      3,
+      3,
+      1,
+      86,
+      3
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "labels": [
+    "Forehand",
+    "Backhand",
+    "Smash",
+    "Serve",
+    "Unclassified"
+  ],
+  "notes": "Primera medida de la cadena entera con los instantes que detecta el audio. Hasta aqui cada paso se media aislado: el quien con instantes anotados (89,65%) y el tipo con el golpeador ya elegido (81,84%). 'none' usa el instante del audio tal cual; 'global' el desfase medio de los torneos de entrenamiento; 'video' el desfase estimado sin etiquetas en cada video (el sistema final).",
+  "commit": "a69e01e",
+  "timestamp": "2026-09-27T21:58:27+00:00"
+}
