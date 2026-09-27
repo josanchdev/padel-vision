@@ -50,6 +50,10 @@ from padel_cv.shot_type_annotator import (
 DISPLAY_WIDTH = 1280
 """Frames are shown at this width (1080p does not fit on screen)."""
 
+WINDOW_ORIGIN = (40, 30)
+"""Top-left corner of the window on screen: a 1280x720 frame plus Qt's bars then
+ends around y=900, clear of the Windows taskbar on a 1080p screen."""
+
 TIMELINE_HEIGHT = 64
 """The bottom strip: the rally's timeline, clickable to jump."""
 
@@ -309,6 +313,10 @@ def annotate_blind(video: Path, out_csv: Path, window: str = "Etiquetado a ciega
     # AUTOSIZE + an immediate first paint: under WSLg a window left empty while
     # the first frames decode comes up blank, present in the taskbar only.
     cv2.namedWindow(window, cv2.WINDOW_AUTOSIZE)
+    # Placed explicitly: WSLg cascades each new window further down the screen,
+    # and after a few launches it put this one at y=702 — with 720 px of video,
+    # almost all of it below the bottom edge. Only the taskbar icon was visible.
+    cv2.moveWindow(window, *WINDOW_ORIGIN)
     splash = np.zeros((360, 640, 3), dtype=np.uint8)
     _text(splash, "abriendo el video...", (60, 190), 0.8, _INK, 2)
     cv2.imshow(window, splash)
@@ -332,6 +340,7 @@ def annotate_blind(video: Path, out_csv: Path, window: str = "Etiquetado a ciega
     cv2.setMouseCallback(window, on_mouse)
     next_tick = time.perf_counter()
     step = max(round(frames.fps), 1)
+    placed = False
 
     while True:
         if session.seek_to is not None:
@@ -345,6 +354,9 @@ def annotate_blind(video: Path, out_csv: Path, window: str = "Etiquetado a ciega
                 break
         _draw(image, session, book, frames)
         cv2.imshow(window, image)
+        if not placed:  # AUTOSIZE has just grown the window to full size
+            cv2.moveWindow(window, *WINDOW_ORIGIN)
+            placed = True
 
         if session.playing:
             next_tick += 1 / frames.fps
