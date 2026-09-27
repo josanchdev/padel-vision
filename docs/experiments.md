@@ -1719,3 +1719,10 @@ Lo que **sí queda**, porque no depende de la sincronización:
   con los instantes que detecta el audio.
 - La **evaluación externa de Miami** tal cual se congeló (`external_evaluation.json`).
 - La unificación del entrenamiento del clasificador y su curva de convergencia.
+
+**Addendum (28 sep 2026), decisión de Jorge:** la evaluación externa de Miami
+tampoco entra en los resultados de la memoria; las dos tablas de CVSPORTS (cada
+paso aislado y el sistema completo por torneos) bastan. Su código, etiquetas y
+evidencias (`blind_annotator`, `external_eval`, `evaluate_external.py`,
+`data/labels/external/`, `external_evaluation.json`) pasan al inventario de la
+limpieza como candidatos a eliminar.
