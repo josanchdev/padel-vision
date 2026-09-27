@@ -1686,3 +1686,36 @@ Daily Padel, gFl3ADnFRtc) con una **regla fijada antes de mirar**:
 Tres torneos distintos, ninguno de CVSPORTS; la pista roja es el dominio visual
 más alejado del entrenamiento. Se etiquetan a ciegas antes de ejecutar el sistema
 sobre ellos.
+
+---
+
+## Decisión: se retira la sincronización audio-imagen (28 sep 2026)
+
+Decisión de Jorge. La sincronización por vídeo (estimar el retraso del sonido y
+mover el instante del golpe) **se elimina del sistema y no forma parte de los
+resultados de la memoria**. Motivos:
+
+- El diagnóstico de desfase en el clip de Miami no se considera concluyente:
+  viendo el vídeo original no se aprecia desfase, y la causa puede ser otra.
+  Se comprobó que **el recorte no lo introduce** (audio e imagen del clip
+  empiezan ambos en el segundo 70,000 del original); no se verificó más allá.
+- En CVSPORTS apenas cambiaba el resultado (todo correcto en VIGO 68,5% →
+  70,3%), y complicaba el sistema y el relato.
+- Queda como **trabajo futuro**, a contar en la defensa si se pregunta.
+
+Se eliminaron `audio_sync`, sus tests, `calibrate_audio_lag.py`,
+`experiment_av_offset.py` y las evidencias asociadas (`audio_lag.json`,
+`external_av_offset.json`, `external_evaluation_v2*`); siguen en el historial
+de git (commits `7d23219`, `1db1a95`, `3808867`). Las secciones anteriores de
+esta bitácora sobre el desfase quedan como registro de lo explorado, no como
+conclusión. Los tres clips nuevos de la recopilación (`best2025_*`), cuyo único
+fin era probar la sincronización, no se etiquetan.
+
+Lo que **sí queda**, porque no depende de la sincronización:
+
+- La **cadena completa por torneos en CVSPORTS** (`chain_cv.json`): detección F1
+  0,948, jugador 79,9%, equipo 89,2%, tipo 83,7%, detectado y bien clasificado
+  80,3%, todo correcto en VIGO 68,5%. Es la primera medida del sistema entero
+  con los instantes que detecta el audio.
+- La **evaluación externa de Miami** tal cual se congeló (`external_evaluation.json`).
+- La unificación del entrenamiento del clasificador y su curva de convergencia.

@@ -8,8 +8,7 @@ the instant the audio found, the classifier decides what — and scores the end
 result against every ground truth CVSPORTS has.
 
 Per held-out tournament, everything that learns from CVSPORTS is retrained
-without it: the audio detector and the shot classifier (the global audio lag,
-used only as a fallback, is also re-estimated without it). The ball detector
+without it: the audio detector and the shot classifier. The ball detector
 never saw CVSPORTS (trained on PadelTracker100) and pose uses COCO weights, so
 they need nothing. Pose and ball come from the per-rally cache.
 
@@ -18,9 +17,7 @@ Ground truth:
     WHAT   Jorge's type labels, same hits ("Other" left out)
     WHO    the paper's per-hit player, VIGO only (16 rallies, 319 hits)
 
-A detection is paired with a real hit within 250 ms of its RAW audio instant,
-so the pairing is the same for every sync mode; the mode only changes which
-frames the vote and the classifier look at.
+A detection is paired with a real hit within 250 ms (the paper's collar).
 
 Resumable: each fold's models and results are kept under runs/chain_cv/<T>/,
 so a crash (WSL) costs one fold, not the run.
@@ -32,7 +29,6 @@ from __future__ import annotations
 
 import csv
 import json
-import statistics
 from dataclasses import asdict
 from pathlib import Path
 from typing import cast
@@ -40,9 +36,8 @@ from typing import cast
 import numpy as np
 import numpy.typing as npt
 import torch
-from padel_ml.audio_sync import choose_sync, corrected_frames, lag_samples
 from padel_ml.audio_train import detect_hits_in_audio, fit_and_save, match_events
-from padel_ml.chain_eval import MODES, Row, summarize
+from padel_ml.chain_eval import Row, summarize
 from padel_ml.hit_assignment_gt import load_hit_assignments
 from padel_ml.rally_analysis import Classifier, resolve_shots
 from padel_ml.rally_features import RallyFeatures, load_rally_features
@@ -120,53 +115,20 @@ def _train_fold(
     return fold
 
 
-def _fold_lag(fold: Path, tournament: str, rallies: list[RallyFeatures], device: str) -> float:
-    """The fallback lag, estimated on the training tournaments with this fold's audio."""
-    cached = fold / "global_lag.json"
-    if cached.exists():
-        return float(json.loads(cached.read_text())["lag_s"])
-    samples: list[float] = []
-    for rally in rallies:
-        if rally.tournament == tournament:
-            continue
-        detected = detect_hits_in_audio(
-            CVSPORTS / "rallies" / f"{rally.rally}.mp4", fold / "audio.pt", device=device
-        )
-        frames = sorted({round(t * rally.fps) for t in detected})
-        samples.extend(lag_samples(frames, rally.players, rally.ball, rally.fps))
-    lag = statistics.median(samples)
-    cached.write_text(json.dumps({"lag_s": lag, "n_hits": len(samples)}) + "\n")
-    return lag
-
-
 def _evaluate_rally(
     rally: RallyFeatures,
     audio: Path,
     classify: Classifier,
-    global_lag: float,
     windows: list[tuple[float, float]],
     who: dict[float, int],
     device: str,
-) -> tuple[list[Row], dict[str, float]]:
+) -> list[Row]:
     detected = detect_hits_in_audio(
         CVSPORTS / "rallies" / f"{rally.rally}.mp4", audio, device=device
     )
-    raw_frames = sorted({round(t * rally.fps) for t in detected})
-    samples = lag_samples(raw_frames, rally.players, rally.ball, rally.fps)
-    lags = {
-        "none": 0.0,
-        "global": global_lag,
-        "video": choose_sync(samples, global_lag).lag_s,
-    }
-    # One shot list per mode; shot i always belongs to detection i
-    shots = {}
-    for mode in MODES:
-        frames = corrected_frames(detected, rally.fps, lags[mode])
-        by_frame = {
-            s.frame_index: s
-            for s in resolve_shots(frames, rally.players, rally.ball, rally.fps, classify, SEQ_LEN)
-        }
-        shots[mode] = [by_frame[max(round((t - lags[mode]) * rally.fps), 0)] for t in detected]
+    # shot i belongs to detection i: the audio keeps hits >= 8 frames apart
+    frames = [round(t * rally.fps) for t in detected]
+    shots = resolve_shots(frames, rally.players, rally.ball, rally.fps, classify, SEQ_LEN)
 
     truth_times = [(s + e) / 2 for s, e in windows]
     types = _type_labels(rally.rally, rally.fps)
@@ -195,8 +157,8 @@ def _evaluate_rally(
                 detected[p] if p is not None else None,
                 type_of.get(t),
                 player_of.get(t),
-                {m: (shots[m][p].player_id if p is not None else None) for m in MODES},
-                {m: (shots[m][p].shot_type if p is not None else None) for m in MODES},
+                shots[p].player_id if p is not None else None,
+                shots[p].shot_type if p is not None else None,
             )
         )
     for p, d in enumerate(detected):
@@ -209,11 +171,11 @@ def _evaluate_rally(
                     d,
                     None,
                     None,
-                    {m: shots[m][p].player_id for m in MODES},
-                    {m: shots[m][p].shot_type for m in MODES},
+                    shots[p].player_id,
+                    shots[p].shot_type,
                 )
             )
-    return rows, {"video_lag_s": lags["video"], "video_samples": float(len(samples))}
+    return rows
 
 
 def main() -> None:
@@ -232,27 +194,21 @@ def main() -> None:
             rows.extend(Row(**r) for r in json.loads(result_path.read_text()))
             print(f"[{tournament}] ya evaluado", flush=True)
             continue
-        global_lag = _fold_lag(fold, tournament, rallies, device)
         classify = _classifier(fold / "bst.pt", device)
         fold_rows: list[Row] = []
-        lags: dict[str, dict[str, float]] = {}
         for rally in (r for r in rallies if r.tournament == tournament):
             who = {h.time_s: h.slot for h in who_truth.get(rally.rally, []) if h.slot}
-            rally_rows, lags[rally.rally] = _evaluate_rally(
+            rally_rows = _evaluate_rally(
                 rally,
                 fold / "audio.pt",
                 classify,
-                global_lag,
                 hit_windows.get(rally.rally, []),
                 who,
                 device,
             )
             fold_rows.extend(rally_rows)
         result_path.write_text(json.dumps([asdict(r) for r in fold_rows]) + "\n")
-        (fold / "lags.json").write_text(
-            json.dumps({"global_lag_s": global_lag, "per_rally": lags}, indent=1) + "\n"
-        )
-        numbers = summarize(fold_rows, "video")
+        numbers = summarize(fold_rows)
         print(
             f"[{tournament}] deteccion F1 {numbers['detection_f1']:.3f}  "
             f"tipo {numbers['type_accuracy']:.1%}"
@@ -261,11 +217,9 @@ def main() -> None:
         )
         rows.extend(fold_rows)
 
-    for mode in MODES:
-        numbers = summarize(rows, mode)
-        print(f"\n== sincronizacion: {mode}")
-        for key, value in numbers.items():
-            print(f"  {key:30s} {value}")
+    print()
+    for key, value in summarize(rows).items():
+        print(f"  {key:30s} {value}")
     (RUNS / "all_rows.json").write_text(json.dumps([asdict(r) for r in rows]) + "\n")
     print(
         f"\n[saved] {RUNS / 'all_rows.json'}  (evidencias y figuras: scripts/evidence_chain_cv.py)"

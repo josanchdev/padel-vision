@@ -217,6 +217,28 @@ Dos matices de honestidad:
 - El sistema asigna los 319 golpes sin abstenerse; el paper deja algunos sin
   asignar, lo que hace su cifra menos exigente que la nuestra.
 
+### El sistema completo, de una vez
+
+La tabla anterior mide cada paso aislado. Esta mide la cadena entera como
+funciona en uso real: el audio decide cuándo, el voto decide quién en el
+instante que encontró el audio, y el clasificador decide qué. Cada torneo se
+evalúa con modelos (audio y clasificador) entrenados **sin él**.
+
+| Métrica | Sistema completo |
+|---|---|
+| Detección de golpes (F1) | **0,948** |
+| Jugador (VIGO) | **79,9 %** |
+| Equipo (VIGO) | **89,2 %** |
+| Tipo de golpe (accuracy) | **83,7 %** |
+| Golpes detectados y con el tipo correcto | **80,3 %** |
+| Detectado, jugador y tipo correctos (VIGO) | **68,5 %** |
+
+Las cifras bajan respecto a los pasos aislados porque los errores se encadenan:
+un golpe no detectado no puede asignarse, y un golpe asignado al jugador
+equivocado le da al clasificador el esqueleto de otro. El jugador se mide en
+VIGO porque es el único torneo en el que el paper anotó quién golpea (16
+rallies). Evidencia: `docs/metrics/chain_cv.json` y sus figuras.
+
 ---
 
 ## Coste de procesado

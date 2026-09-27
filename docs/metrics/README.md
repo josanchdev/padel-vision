@@ -32,7 +32,8 @@ uv run python scripts/evidence_dataset_stats.py    # estadísticas del etiquetad
 uv run python scripts/evidence_shot_classifier.py  # clasificador de tipo (cross-torneo)
 uv run python scripts/experiment_assignment_window.py  # ancho de la ventana de voto
 uv run python scripts/evaluate_external.py        # evaluación externa (etiquetas a ciegas)
-uv run python scripts/experiment_av_offset.py     # desfase audio-imagen + oráculo
+uv run python scripts/evaluate_chain_cv.py        # sistema completo por torneos (reentrena por ronda)
+uv run python scripts/evidence_chain_cv.py        # evidencias y figuras del anterior
 ```
 
 Los scripts vuelven a medir desde cero y sobreescriben los JSON y las figuras de
@@ -43,7 +44,7 @@ es un recuerdo.
 
 | Fichero | Qué demuestra | Usado en |
 |---|---|---|
-| `audio_hit_detector.json` | Detector por audio F1 0,93 (paper 0,92) | ADR-0015 A |
+| `audio_hit_detector.json` | Detector por audio, **una sola ejecución** (F1 0,947). La cifra citada, 0,956, es la media de 3 (`audio_threshold_seeds.json`) | ADR-0015 A |
 | `audio_threshold_sweep.json` | Barrido de umbral (una ejecución) | ADR-0015 A |
 | `audio_threshold_seeds.json` | **Elección del umbral**: F1/P/R por umbral, media de 3 ejecuciones | ADR-0015 A |
 | `audio_training_loss.json` | Curva de entrenamiento del CRNN | ADR-0015 A |
@@ -57,7 +58,8 @@ es un recuerdo.
 | `shot_type_per_tournament.json` | Accuracy por torneo (11 folds) | ADR-0016 |
 | `external_evaluation.json` | **Metraje externo, etiquetado a ciegas**: cuándo/quién/qué/extremo a extremo | bitácora |
 | `external_hits.csv` | Cada golpe externo: marca, detección, jugador y tipo, acierto por capa | bitácora |
-| `external_av_offset.json` | **Desfase audio-imagen**: latencia del detector, retraso del vídeo, oráculo | bitácora |
+| `chain_cv.json` | **Sistema completo por torneos**: detección, jugador (VIGO), tipo y extremo a extremo, cada torneo sin verse al entrenar | bitácora |
+| `chain_cv_hits.csv` | Cada golpe de CVSPORTS en la cadena completa | bitácora |
 | `method_comparison_same_data.json` | **Cara a cara**: pose+pelota 0,821 vs audio 0,956, mismos datos | ADR-0015 |
 
 ### Figuras (`figures/`)
@@ -72,6 +74,11 @@ es un recuerdo.
 | `dataset_shot_types.png` | **El dataset propio**: clases y reparto por torneo |
 | `shot_type_confusion.png` | Matriz de confusión del clasificador de tipo |
 | `method_comparison_same_data.png` | **Por qué se cambió de método**, medido en igualdad de condiciones |
+| `chain_cv_funnel.png` | **De cada 100 golpes reales**: detectados, jugador correcto, tipo correcto (VIGO) |
+| `chain_cv_per_tournament.png` | Sistema completo por torneo |
+| `chain_cv_type_confusion.png` | Matriz de confusión del tipo en la cadena completa |
+| `shot_classifier_training_curve.png` | Convergencia del clasificador: pérdida y acierto por época, 11 rondas |
+| `external_type_confusion.png` | Tipo de golpe en el clip externo |
 
 ## Evidencias que NO se pueden regenerar (deuda documentada)
 
