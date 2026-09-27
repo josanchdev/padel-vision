@@ -130,11 +130,25 @@ def _metrics(
     return accuracy, float(np.mean(f1s)) if f1s else 0.0, per_class, matrix.tolist()
 
 
-def train_one_fold(
+EPOCHS = 60
+"""What both the cross-validation and the shipped model train for, so the model
+that is measured and the model that runs are trained the same way."""
+
+
+@dataclass
+class TrainingCurve:
+    """Per-epoch record of a training run, for the convergence figure."""
+
+    loss: list[float] = field(default_factory=list)
+    """Mean training loss."""
+    held_out_accuracy: list[float] = field(default_factory=list)
+    """Accuracy on the held-out windows (serve rule applied); empty without them."""
+
+
+def fit(
     train_windows: list[ShotWindow],
-    test_windows: list[ShotWindow],
     seq_len: int,
-    epochs: int = 120,
+    epochs: int = EPOCHS,
     batch_size: int = 64,
     lr: float = 5e-4,
     weight_decay: float = 1e-2,
@@ -142,16 +156,16 @@ def train_one_fold(
     warmup_epochs: int = 8,
     device: str | None = None,
     seed: int = 0,
-) -> FoldResult:
-    """Train on every tournament but one, score on the one held out."""
+    held_out: list[ShotWindow] | None = None,
+) -> tuple[ShotTypeBST, TrainingCurve]:
+    """Train one classifier. The single training loop of the project: the
+    cross-validation folds and the production model both come through here."""
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.manual_seed(seed)
 
     pose_tr, ball_tr, y_tr = to_tensors(train_windows)
-    pose_te, ball_te, y_te = to_tensors(test_windows)
     n_classes = len(CLASSES)
-
     model = ShotTypeBST(seq_len=seq_len, n_classes=n_classes).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     loss_fn = nn.CrossEntropyLoss(
@@ -164,31 +178,67 @@ def train_one_fold(
     # famously unstable in their first epochs without the ramp.
     scheduler = torch.optim.lr_scheduler.LambdaLR(
         optimizer,
-        lambda epoch: (epoch + 1) / warmup_epochs
-        if epoch < warmup_epochs
-        else 0.5 * (1 + np.cos(np.pi * (epoch - warmup_epochs) / max(epochs - warmup_epochs, 1))),
+        lambda epoch: (
+            (epoch + 1) / warmup_epochs
+            if epoch < warmup_epochs
+            else 0.5
+            * (1 + np.cos(np.pi * (epoch - warmup_epochs) / max(epochs - warmup_epochs, 1)))
+        ),
     )
 
+    curve = TrainingCurve()
+    truths = [w.label for w in held_out] if held_out else []
     for _ in range(epochs):
         model.train()
+        total = 0.0
         for pose_b, ball_b, y_b in loader:
             optimizer.zero_grad()
             loss = loss_fn(model(pose_b.to(device), ball_b.to(device)), y_b.to(device))
             loss.backward()
             optimizer.step()
+            total += float(loss.detach())
         scheduler.step()
+        curve.loss.append(total / max(len(loader), 1))
+        if held_out:
+            predictions = apply_serve_rule(predict(model, held_out, device), held_out)
+            right = sum(p == t for p, t in zip(predictions, truths, strict=True))
+            curve.held_out_accuracy.append(right / len(truths))
+    model.eval()
+    return model, curve
 
+
+def predict(model: ShotTypeBST, windows: list[ShotWindow], device: str) -> list[list[float]]:
+    """Class probabilities for each window (the raw output, before the serve rule)."""
+    pose, ball, _ = to_tensors(windows)
+    was_training = model.training
     model.eval()
     probabilities: list[list[float]] = []
     with torch.no_grad():
-        for start in range(0, len(pose_te), 128):
+        for start in range(0, len(pose), 128):
             logits = model(
-                pose_te[start : start + 128].to(device), ball_te[start : start + 128].to(device)
+                pose[start : start + 128].to(device), ball[start : start + 128].to(device)
             )
             probabilities.extend(torch.softmax(logits, dim=1).cpu().tolist())
+    model.train(was_training)
+    return probabilities
+
+
+def train_one_fold(
+    train_windows: list[ShotWindow],
+    test_windows: list[ShotWindow],
+    seq_len: int,
+    epochs: int = EPOCHS,
+    device: str | None = None,
+    seed: int = 0,
+) -> FoldResult:
+    """Train on every tournament but one, score on the one held out."""
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    model, _ = fit(train_windows, seq_len, epochs=epochs, device=device, seed=seed)
+    probabilities = predict(model, test_windows, device)
     predictions = apply_serve_rule(probabilities, test_windows)
-    truths = y_te.tolist()
-    accuracy, macro_f1, per_class, confusion = _metrics(truths, predictions, n_classes)
+    truths = [w.label for w in test_windows]
+    accuracy, macro_f1, per_class, confusion = _metrics(truths, predictions, len(CLASSES))
     return FoldResult(
         tournament=test_windows[0].tournament,
         accuracy=accuracy,
@@ -204,7 +254,7 @@ def train_one_fold(
 def cross_tournament_cv(
     windows: list[ShotWindow],
     seq_len: int,
-    epochs: int = 120,
+    epochs: int = EPOCHS,
     device: str | None = None,
     folds: list[str] | None = None,
 ) -> list[FoldResult]:

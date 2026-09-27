@@ -17,8 +17,7 @@ from pathlib import Path
 
 import torch
 from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, build_dataset
-from padel_ml.shot_type_model import ShotTypeBST
-from padel_ml.shot_type_train import class_weights, to_tensors
+from padel_ml.shot_type_train import EPOCHS, fit
 
 REPO = Path(__file__).resolve().parents[1]
 FEATURES = REPO / "data" / "datasets" / "rally_features"
@@ -28,9 +27,7 @@ OUT = REPO / "runs" / "shot_type" / "bst0.pt"
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--epochs", type=int, default=60)
-    parser.add_argument("--batch-size", type=int, default=64)
-    parser.add_argument("--lr", type=float, default=5e-4)
+    parser.add_argument("--epochs", type=int, default=EPOCHS)
     parser.add_argument("--out", type=Path, default=OUT)
     parser.add_argument("--device", default=None)
     args = parser.parse_args()
@@ -39,42 +36,12 @@ def main() -> None:
     windows, stats = build_dataset(FEATURES, LABELS)
     print(f"{len(windows)} ventanas de {stats['rallies']} rallies · dispositivo {device}")
 
-    pose, ball, labels = to_tensors(windows)
-    weights = class_weights(labels, len(CLASSES))
-    print("pesos de clase:", {c: round(float(w), 2) for c, w in zip(CLASSES, weights, strict=True)})
-
-    torch.manual_seed(0)
-    model = ShotTypeBST(seq_len=SEQ_LEN, n_classes=len(CLASSES)).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-2)
-    loss_fn = torch.nn.CrossEntropyLoss(weight=weights.to(device), label_smoothing=0.1)
-    loader = torch.utils.data.DataLoader(
-        torch.utils.data.TensorDataset(pose, ball, labels),
-        batch_size=args.batch_size,
-        shuffle=True,
-        drop_last=True,
-    )
-    warmup = 8
-    scheduler = torch.optim.lr_scheduler.LambdaLR(
-        optimizer,
-        lambda e: (e + 1) / warmup
-        if e < warmup
-        else 0.5 * (1 + torch.cos(torch.tensor(torch.pi * (e - warmup) / (args.epochs - warmup)))),
-    )
-
     started = time.perf_counter()
-    for epoch in range(args.epochs):
-        model.train()
-        total = 0.0
-        for pose_b, ball_b, y_b in loader:
-            optimizer.zero_grad()
-            loss = loss_fn(model(pose_b.to(device), ball_b.to(device)), y_b.to(device))
-            loss.backward()
-            optimizer.step()
-            total += float(loss.detach())
-        scheduler.step()
-        if (epoch + 1) % 10 == 0:
-            mean_loss = total / len(loader)
-            print(f"  epoca {epoch + 1:3d}/{args.epochs}  loss {mean_loss:.4f}", flush=True)
+    # The same training function as every cross-validation fold: the model that
+    # ships is trained exactly like the models that were measured.
+    model, curve = fit(windows, SEQ_LEN, epochs=args.epochs, device=device)
+    for epoch in range(9, len(curve.loss), 10):
+        print(f"  epoca {epoch + 1:3d}/{args.epochs}  loss {curve.loss[epoch]:.4f}")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
@@ -84,6 +51,7 @@ def main() -> None:
             "classes": CLASSES,
             "n_train": len(windows),
             "epochs": args.epochs,
+            "loss_curve": curve.loss,
         },
         args.out,
     )
