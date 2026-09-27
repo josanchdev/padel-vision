@@ -20,6 +20,11 @@ demo and the web) and is scored layer by layer:
 
 "Other" labels (bandeja, dejada, anything outside the four classes) count as
 hits for WHEN and WHO but are left out of WHAT.
+
+Broadcast freezes are not judged either way. A hit whose contact falls in a
+frozen stretch cannot be seen, so it is not labelled; a system detection there
+(within the collar) is then neither a hit nor a false alarm, and is counted
+apart as `detections_in_freeze_unjudged`.
 """
 
 from __future__ import annotations
@@ -219,8 +224,15 @@ def score_clip(
                 in_freeze,
             )
         )
+    # An unpaired detection near a freeze is not judged: the labels leave out
+    # hits whose contact cannot be seen, but the audio still hears them, so
+    # counting it as a false alarm would punish the system for a real hit.
+    reach = round(COLLAR_S * fps)
     for p, shot in enumerate(shots):
         if p not in paired_shots:
+            near_freeze = any(
+                f in frozen for f in range(shot.frame_index - reach, shot.frame_index + reach + 1)
+            )
             rows.append(
                 HitRow(
                     clip,
@@ -233,7 +245,7 @@ def score_clip(
                     None,
                     None,
                     None,
-                    shot.frame_index in frozen,
+                    near_freeze,
                 )
             )
     return rows
@@ -246,8 +258,13 @@ def _ratio(numerator: int, denominator: int) -> float:
 def summarize(rows: list[HitRow]) -> dict[str, float]:
     """Headline numbers for one set of rows (a clip, a group, or everything)."""
     labelled = [r for r in rows if r.truth_frame is not None]
-    detected = [r for r in rows if r.system_frame is not None]
     paired = [r for r in labelled if r.system_frame is not None]
+    unjudged = [r for r in rows if r.truth_frame is None and r.in_freeze]
+    detected = [
+        r
+        for r in rows
+        if r.system_frame is not None and not (r.truth_frame is None and r.in_freeze)
+    ]
     tp = len(paired)
     precision = _ratio(tp, len(detected))
     recall = _ratio(tp, len(labelled))
@@ -272,6 +289,7 @@ def summarize(rows: list[HitRow]) -> dict[str, float]:
             sum(1 for r in four_class if r.player_ok and r.type_ok), len(four_class)
         ),
         "in_freeze": sum(1 for r in labelled if r.in_freeze),
+        "detections_in_freeze_unjudged": len(unjudged),
     }
 
 

@@ -49,7 +49,13 @@ REPO = Path(__file__).resolve().parents[1]
 LABELS = REPO / "data" / "labels" / "external"
 VIDEOS = REPO / "data" / "raw" / "external"
 
-COUNTS = {"labelled_hits", "detected_hits", "hitter_not_detected", "in_freeze"}
+COUNTS = {
+    "labelled_hits",
+    "detected_hits",
+    "hitter_not_detected",
+    "in_freeze",
+    "detections_in_freeze_unjudged",
+}
 
 SPANISH = {
     "labelled_hits": "golpes etiquetados",
@@ -64,6 +70,7 @@ SPANISH = {
     "type_accuracy_right_player": "tipo (con el jugador correcto)",
     "end_to_end": "extremo a extremo",
     "in_freeze": "golpes en congelacion",
+    "detections_in_freeze_unjudged": "detecciones en congelacion (sin juzgar)",
 }
 
 

@@ -128,3 +128,20 @@ def test_freeze_detector_finds_a_frozen_run_but_not_single_repeats(tmp_path: Pat
     frozen = frozen_frames(path)
     assert set(range(10, 18)) <= frozen
     assert 5 not in frozen and 4 not in frozen
+
+
+def test_detection_inside_a_freeze_is_neither_hit_nor_false_alarm() -> None:
+    """The hit in the freeze was not labelled (contact invisible), but the audio
+    heard it: that detection must not count against the system."""
+    truth = [HitMark(50, 400.0, 800.0, "Forehand")]
+    analysis = _analysis([_shot(50, 1, "Forehand"), _shot(152, 3, "Smash")])
+    numbers = summarize(score_clip("c", truth, analysis, frozen=set(range(140, 150))))
+    assert numbers["detection_precision"] == 1.0
+    assert numbers["detections_in_freeze_unjudged"] == 1
+
+
+def test_a_false_alarm_away_from_any_freeze_still_counts() -> None:
+    truth = [HitMark(50, 400.0, 800.0, "Forehand")]
+    analysis = _analysis([_shot(50, 1, "Forehand"), _shot(250, 3, "Smash")])
+    numbers = summarize(score_clip("c", truth, analysis, frozen=set(range(140, 150))))
+    assert numbers["detection_precision"] == 0.5
