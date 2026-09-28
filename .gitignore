@@ -56,3 +56,6 @@ tools/cvat/.env
 
 # Local runtime state
 storage/
+# Points exported for the web viewer (scripts/export_points.py): 1080p videos,
+# regenerable from the raw rallies, far too heavy for git.
+packages/web/public/points/

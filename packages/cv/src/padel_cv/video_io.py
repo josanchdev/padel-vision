@@ -29,6 +29,9 @@ class H264VideoWriter:
             codec="libx264",
             pixelformat="yuv420p",
             output_params=["-movflags", "+faststart"],
+            # imageio's default of 16 stretches 1080p to 1088 rows; 1080 is a
+            # multiple of 8, and H.264 in yuv420p only needs even sizes.
+            macro_block_size=8,
         )
 
     def write(self, bgr_frame: ImageArray) -> None:
