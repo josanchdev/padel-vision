@@ -1,0 +1,170 @@
+.panel {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  padding: 16px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.head h2 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.seg {
+  display: inline-flex;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.seg button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg-muted);
+  padding: 5px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.2s var(--ease),
+    color 0.2s var(--ease);
+}
+
+.seg button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: 0 1px 2px rgba(16, 20, 30, 0.08);
+}
+
+.seg button:focus-visible,
+.chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.courtBox {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+
+/* Never taller than the video beside it, or the row grows and pushes the
+   timeline off screen (see PointView.module.css). */
+.courtBox svg {
+  width: 100%;
+  max-height: max(260px, calc(100dvh - 510px));
+  height: auto;
+  display: block;
+}
+
+.edge {
+  text-anchor: middle;
+  font-size: 0.55px;
+  fill: var(--fg-faint);
+  font-family: var(--font-body);
+}
+
+.player {
+  transition: opacity 0.25s;
+}
+
+.dotLabel {
+  text-anchor: middle;
+  font-size: 0.5px;
+  font-weight: 600;
+  fill: #fff;
+  font-family: var(--font-display);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--fg);
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--fg);
+  background: var(--surface-2);
+}
+
+.chip i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.now {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: var(--surface-2);
+  border-radius: 14px;
+  padding: 12px 14px;
+  min-height: 64px;
+}
+
+.now > .nowMeta:only-child {
+  grid-column: 1 / -1;
+}
+
+.nowLabel {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.nowMeta {
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.conf {
+  text-align: right;
+}
+
+.conf b {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: block;
+}
+
+.conf span {
+  font-size: 11px;
+  color: var(--fg-muted);
+}

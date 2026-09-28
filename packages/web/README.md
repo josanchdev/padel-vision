@@ -1,36 +1,36 @@
 # padel-web
 
-Dashboard de Padel Vision. React + Vite + TypeScript + Motion (ADR-0011).
+Visor de Padel Vision (ADR-0017). React + Vite + TypeScript + Motion.
 
-El producto no es el vídeo procesado (eso es verificación visual): son los datos
-estructurados para tomar decisiones. Esta web los explora — tabla de golpes
-filtrable, clip de cada golpe, KPIs — consumiendo la API (`/matches`, `/data`,
-`/clip`).
+Es una web **estática**: no procesa vídeos ni habla con ninguna API. Muestra los
+puntos que el sistema ya ha analizado, que son ficheros en `public/points/`.
+
+## Añadir puntos
+
+Se procesan desde la raíz del repo; cada vídeo tarda algo más de un minuto:
+
+```bash
+uv run python scripts/export_points.py data/raw/.../20230528_VIGO_11.mp4 [más vídeos]
+```
+
+Deja en `public/points/<id>/` el `point.json` (golpes y posiciones), el vídeo
+anotado, la miniatura y la vista previa, y actualiza `public/points/index.json`.
+Esa carpeta no va a git.
 
 ## Desarrollo
 
 ```bash
 npm install
-npm run dev      # dev server con proxy a la API en :8000
+npm run dev        # http://localhost:5173
+npm run build      # a dist/, con los puntos incluidos
 ```
-
-Necesita la API corriendo (`tools/dev.sh` o `docker compose up`) para que el
-proxy sirva `/matches`, `/data`, `/clip`.
-
-## Build
-
-```bash
-npm run build    # tsc + vite; salida a ../api/src/padel_api/static (la sirve FastAPI)
-```
-
-El bundle compilado es artefacto generado (gitignoreado); en Docker lo produce
-un stage de Node y se copia al `static/` de la API.
 
 ## Estructura
 
-- `src/api.ts` — cliente tipado de la API (la capa que sobrevive rediseños).
-- `src/theme.css` — tokens de diseño (identidad como tokens: el rojo URJC / logo
-  se cambian aquí sin tocar componentes).
-- `src/App.tsx` — layout, subida, lista de partidos, vista de detalle.
-- `src/ShotTable.tsx` — tabla de golpes con filtros.
-- `src/ClipModal.tsx` — modal de clip con marcador del golpe exacto.
+- `pages/Home` — la cuadrícula de puntos, con vista previa al pasar el ratón.
+- `pages/PointView` — la cabina de un punto: todo sigue el reloj del vídeo
+  (`useVideoTime`).
+- `components/` — `CourtPanel` (pista en vivo y mapa de calor), `ShotTimeline`
+  (un carril por jugador), `PlayerCard`, `ShotShape` (la forma de cada tipo).
+- `data.ts` — el contrato de ficheros; `court.ts` — la geometría y la
+  orientación de la pista; `heatmap.ts`; `play.ts` — colores, tipos y formatos.

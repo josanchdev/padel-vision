@@ -39,6 +39,7 @@
   /* Typefaces. */
   --font-display: "Sora Variable", system-ui, sans-serif;
   --font-body: "Geist Variable", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* Type scale. */
   --step-hero: clamp(2.75rem, 6vw, 5.5rem);
@@ -100,4 +101,10 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Times and figures that line up in columns. */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }

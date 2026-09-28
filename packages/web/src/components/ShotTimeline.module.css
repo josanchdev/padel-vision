@@ -1,0 +1,92 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  padding: 14px 16px 10px;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.head h2 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wrap {
+  position: relative;
+  overflow-x: auto;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.laneLabel {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--fg);
+  font-family: var(--font-body);
+}
+
+.tick {
+  text-anchor: middle;
+  font-size: 11px;
+  fill: var(--fg-faint);
+  font-family: var(--font-mono);
+}
+
+.shot {
+  cursor: pointer;
+  transition: opacity 0.25s;
+}
+
+.shot:focus-visible {
+  outline: none;
+}
+
+.shot:focus-visible circle:nth-child(2) {
+  opacity: 1;
+}
+
+.tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--fg);
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 10px));
+}

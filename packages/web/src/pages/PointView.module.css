@@ -1,0 +1,155 @@
+/* The cockpit (video, court, timeline) must fit the screen HEIGHT, so the
+   timeline stays in view while it drives the video. The page is as wide as that
+   allows: moderate margins on a 1080p screen, the full width on a taller one.
+   2.7 = page width per pixel of video height at the 8:4 split and 16:9;
+   330px = header, timeline and gaps. */
+.page {
+  max-width: min(100%, calc((100dvh - 330px) * 2.7));
+  margin-inline: auto;
+  padding: 12px clamp(16px, 1.8vw, 32px) 40px;
+  display: grid;
+  gap: 20px;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fg-muted);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 10px;
+}
+
+.back:hover {
+  color: var(--fg);
+  background: var(--surface-2);
+}
+
+.back:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-right: auto;
+}
+
+.title h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.45rem;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.title span {
+  color: var(--fg-muted);
+  font-size: 13px;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: grid;
+  padding: 0 18px;
+  border-left: 1px solid var(--line);
+  line-height: 1.2;
+}
+
+.stat:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.stat b {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.stat span {
+  font-size: 12px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.videoCard {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  padding: 10px;
+  min-width: 0;
+}
+
+.videoWrap {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0b0d12;
+  aspect-ratio: 16 / 9;
+  max-width: 100%;
+}
+
+.videoWrap video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.players {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.message {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  margin-top: 20vh;
+  color: var(--fg-muted);
+}
+
+.message a {
+  color: var(--accent);
+}
+
+@media (max-width: 1080px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+
+  .players {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .players {
+    grid-template-columns: 1fr;
+  }
+}
