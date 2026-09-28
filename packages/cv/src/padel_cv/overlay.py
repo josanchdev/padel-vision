@@ -29,6 +29,47 @@ INK = (245, 245, 245)
 MUTED = (170, 170, 170)
 PLATE = (24, 24, 28)
 
+PLAYER_HEX = {1: "#12a150", 2: "#f0631f", 3: "#1b7fe0", 4: "#6d28d9"}
+"""The four player colours, the same values as the web's --p1..--p4
+(packages/web/src/theme.css): a player keeps one colour in the video and in
+every chart of the viewer. J4 is violet rather than amber, which measured too
+close to J2's orange (OKLab distance 12.9, and 5.1 with deuteranopia)."""
+
+
+def bgr(hex_colour: str) -> tuple[int, int, int]:
+    """ "#12a150" -> (80, 161, 18), the channel order OpenCV draws in."""
+    red, green, blue = (int(hex_colour[i : i + 2], 16) for i in (1, 3, 5))
+    return blue, green, red
+
+
+PLAYER_COLOURS = {player: bgr(colour) for player, colour in PLAYER_HEX.items()}
+
+SHOT_SHAPES = {"Forehand": "circle", "Backhand": "diamond", "Smash": "triangle", "Serve": "square"}
+"""A stroke type is drawn as a shape, never as a colour: colour already means
+the player, and two meanings on one channel make the eye mix them up."""
+
+
+def marker(
+    image: ImageArray, shape: str, centre: tuple[int, int], size: int, colour: tuple[int, int, int]
+) -> None:
+    """A filled shape of half-width `size` centred on `centre`."""
+    x, y = centre
+    if shape == "circle":
+        cv2.circle(image, centre, size, colour, -1, cv2.LINE_AA)
+        return
+    if shape == "diamond":
+        points = [(x, y - size - 1), (x + size + 1, y), (x, y + size + 1), (x - size - 1, y)]
+    elif shape == "triangle":
+        points = [(x, y - size - 1), (x + size + 1, y + size), (x - size - 1, y + size)]
+    else:
+        points = [
+            (x - size, y - size),
+            (x + size, y - size),
+            (x + size, y + size),
+            (x - size, y + size),
+        ]
+    cv2.fillPoly(image, [np.array(points, dtype=np.int32)], colour, cv2.LINE_AA)
+
 
 def text_size(string: str, scale: float, weight: int = 1) -> tuple[int, int]:
     (width, height), _ = cv2.getTextSize(string, FONT, scale, weight)
@@ -155,20 +196,21 @@ def ball_trail(
 def panel(
     image: ImageArray,
     title: str,
-    rows: list[tuple[str, str, tuple[int, int, int]]],
+    rows: list[tuple[str, str, str]],
     origin: tuple[int, int] = (28, 28),
     width: int = 260,
 ) -> None:
-    """A titled block of coloured rows — the running tally, broadcast style."""
+    """A titled block of rows, each with a shape marker — the running tally,
+    broadcast style. Rows are (name, value, shape name from `SHOT_SHAPES`)."""
     line_height = 30
     height = 44 + line_height * len(rows) + 10
     x, y = origin
     plate(image, (x, y), (x + width, y + height), alpha=0.86)
     cv2.putText(image, title, (x + 14, y + 28), FONT, 0.52, MUTED, 1, cv2.LINE_AA)
     cv2.line(image, (x + 14, y + 38), (x + width - 14, y + 38), (70, 70, 78), 1, cv2.LINE_AA)
-    for i, (name, value, colour) in enumerate(rows):
+    for i, (name, value, shape) in enumerate(rows):
         row_y = y + 44 + line_height * i + 20
-        cv2.rectangle(image, (x + 14, row_y - 11), (x + 26, row_y + 1), colour, -1)
+        marker(image, shape, (x + 20, row_y - 5), 6, INK)
         cv2.putText(image, name, (x + 36, row_y), FONT, 0.56, INK, 1, cv2.LINE_AA)
         value_width, _ = text_size(value, 0.56, 1)
         cv2.putText(

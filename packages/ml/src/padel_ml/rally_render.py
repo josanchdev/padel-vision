@@ -26,15 +26,9 @@ from padel_ml.rally_analysis import RallyAnalysis, Shot
 from padel_ml.shot_type_dataset import CLASSES
 
 SPANISH = {"Forehand": "DERECHA", "Backhand": "REVES", "Smash": "REMATE", "Serve": "SAQUE"}
-#: BGR. Chosen to stay distinct against a blue court and from each other.
-TYPE_COLOURS = {
-    "Forehand": (60, 200, 255),  # amber
-    "Backhand": (255, 190, 90),  # cyan-blue
-    "Smash": (90, 90, 255),  # red
-    "Serve": (120, 230, 120),  # green
-}
-PLAYER_COLOURS = {1: (80, 220, 80), 2: (255, 160, 0), 3: (60, 80, 255), 4: (0, 220, 255)}
-REJECT = (150, 150, 150)
+# Colour means the player, in the video as in the web viewer (overlay.PLAYER_HEX);
+# the stroke type is carried by the label text and by shapes in the tally.
+PLAYER_COLOURS = overlay.PLAYER_COLOURS
 FLASH_FRAMES = 18
 TRAIL_FRAMES = 12
 
@@ -120,7 +114,7 @@ def _draw_frame(
             f"{name}  {active.confidence:.0%}",
             (int((x1 + x2) / 2), int(y1) - 34),
             scale=0.72,
-            accent=TYPE_COLOURS.get(active.shot_type or "", REJECT),
+            accent=player_colour,
             centred=True,
         )
         overlay.label(
@@ -133,7 +127,7 @@ def _draw_frame(
         )
 
     rows = [
-        (SPANISH[name], str(counts[name]), TYPE_COLOURS[name])
+        (SPANISH[name], str(counts[name]), overlay.SHOT_SHAPES[name])
         for name in CLASSES
         if counts.get(name)
     ]

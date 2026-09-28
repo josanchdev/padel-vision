@@ -70,7 +70,7 @@
   --p1: #12a150;
   --p2: #f0631f;
   --p3: #1b7fe0;
-  --p4: #d69a09;
+  --p4: #6d28d9; /* violet, not amber: amber was too close to --p2 (see overlay.PLAYER_HEX) */
 
   font-synthesis: none;
   color-scheme: light;
