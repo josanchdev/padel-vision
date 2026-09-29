@@ -208,8 +208,13 @@ paper; el tipo de golpe usa el etiquetado propio.
 | Asignación — equipo | **95,30 %** | 86,83 % | CVSPORTS, VIGO, 319 golpes |
 | Clasificación de tipo (accuracy) | **81,84 %** | *no lo hace* | etiquetado propio, 2.377 golpes, por torneos |
 | Clasificación de tipo (macro-F1) | **0,847** | *no lo hace* | ídem |
-| Detección de pelota (F1) | **0,94** | usa un modelo de tenis | PadelTracker100 (entrena final masculina, valida femenina) |
-| Pista (homografía) | **automática** · residual de ajuste 0,113 m | a mano | VIGO, sin ground truth (mide consistencia, no exactitud); 0,196 m frente al ground truth del benchmark WPT |
+
+Componentes propios, sin cifra equivalente en el paper (no se comparan):
+
+| Componente | Resultado | Datos |
+|---|---|---|
+| Detección de pelota (F1) | **0,94** | PadelTracker100: entrenada con la final masculina, validada con la femenina. El paper usa un modelo de tenis sin medirlo en pádel |
+| Pista (homografía) | **automática** | Residual de ajuste 0,113 m en VIGO (sin ground truth: consistencia, no exactitud); 0,196 m frente al ground truth del benchmark WPT. El paper la marca a mano |
 
 Cómo leer la comparación con el paper:
 
@@ -229,7 +234,7 @@ Cómo leer la comparación con el paper:
   golpe. Con criterios distintos, 0,956 frente a 0,92 no demuestra una mejora.
 - **Tipo de golpe, pelota y pista no se comparan con el paper**: el paper no
   clasifica golpes, no mide su detector de pelota en pádel y marca la pista a
-  mano sin dar un error.
+  mano sin dar un error. Solo se compara donde hay la misma prueba.
 
 ### El sistema completo, de una vez
 
