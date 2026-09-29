@@ -1329,8 +1329,10 @@ cae. A 768 la pelota ocupa más píxeles y deja de confundirse con distractores.
 | Equipo | 86,84 % | **93,73 %** | 86,83 % |
 
 **+6,9 puntos en ambas métricas, y se SUPERA al trabajo publicado** en 3,8 puntos
-(jugador) y 6,9 (equipo), asignando además los 319 golpes sin abstenciones
-mientras el paper deja algunos sin asignar. F1 por jugador entre 0,838 y 0,906.
+(jugador) y 6,9 (equipo), asignando además los 319 golpes sin abstenciones.
+*[Corregido el 29 sep: el paper también cuenta como fallo los golpes que no
+asigna, así que esto no hace su cifra menos exigente.]* F1 por jugador entre
+0,838 y 0,906.
 
 **Lecciones para la memoria:**
 

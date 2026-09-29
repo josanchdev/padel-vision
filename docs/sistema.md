@@ -203,20 +203,33 @@ paper; el tipo de golpe usa el etiquetado propio.
 
 | Métrica | Este trabajo | Paper de referencia | Datos |
 |---|---|---|---|
-| Detección de golpes (F1) | **0,956** | 0,92 | CVSPORTS, 99 rallies (media de 3 ejecuciones) |
+| Detección de golpes (F1) | **0,956** | 0,92 | CVSPORTS, 99 rallies (media de 3 ejecuciones); criterio de emparejamiento distinto, ver nota |
 | Asignación — jugador | **89,65 %** | 83,70 % | CVSPORTS, VIGO, 319 golpes |
 | Asignación — equipo | **95,30 %** | 86,83 % | CVSPORTS, VIGO, 319 golpes |
 | Clasificación de tipo (accuracy) | **81,84 %** | *no lo hace* | etiquetado propio, 2.377 golpes, por torneos |
 | Clasificación de tipo (macro-F1) | **0,847** | *no lo hace* | ídem |
 | Detección de pelota (F1) | **0,94** | usa un modelo de tenis | PadelTracker100 (entrena final masculina, valida femenina) |
-| Pista (error de reproyección) | **0,113 m** automático, agregado · **0,196 m** frame a frame | marcado manual | VIGO · benchmark WPT |
+| Pista (homografía) | **automática** · residual de ajuste 0,113 m | a mano | VIGO, sin ground truth (mide consistencia, no exactitud); 0,196 m frente al ground truth del benchmark WPT |
 
-Dos matices de honestidad:
+Cómo leer la comparación con el paper:
 
-- La asignación se evalúa con los instantes **anotados**, no con los detectados,
-  para medir ese paso aislado. Mezclar ambos confundiría dos fuentes de error.
-- El sistema asigna los 319 golpes sin abstenerse; el paper deja algunos sin
-  asignar, lo que hace su cifra menos exigente que la nuestra.
+- **Asignación: comparación directa.** Son los mismos 319 golpes (los 16 rallies
+  de la tabla 3 del paper, con el mismo número de golpes cada uno) y la misma
+  métrica: acierto medio ponderado por golpes, contando como fallo los golpes
+  que no se asignan, en ambos casos. Se evalúa con los instantes **anotados**,
+  no con los detectados, para medir ese paso aislado.
+- **Las mejoras de la asignación se eligieron midiendo sobre esos mismos 319
+  golpes** (normalizar la distancia por altura, la ventana de ±4 frames, la
+  resolución del detector de pelota), así que la cifra puede ser algo optimista.
+  Son pocas decisiones, y cada una tiene una explicación física, pero el sesgo
+  existe.
+- **Detección: mismo orden de magnitud, no una comparación exacta.** El paper
+  empareja eventos por su inicio y su fin (métrica event-based de sed_eval) y
+  promedia 4 particiones de los rallies; aquí se empareja por el instante del
+  golpe. Con criterios distintos, 0,956 frente a 0,92 no demuestra una mejora.
+- **Tipo de golpe, pelota y pista no se comparan con el paper**: el paper no
+  clasifica golpes, no mide su detector de pelota en pádel y marca la pista a
+  mano sin dar un error.
 
 ### El sistema completo, de una vez
 
