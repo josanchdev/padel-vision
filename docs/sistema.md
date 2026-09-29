@@ -197,18 +197,19 @@ se marca a mano con seis clics por torneo.
 
 ## Resultados
 
-Todas las cifras sobre el ground truth publicado de CVSPORTS_Padel, con el mismo
-protocolo de evaluación que el paper.
+Cada cifra se mide sobre los datos que la columna indica. Detección y asignación
+usan el ground truth publicado con CVSPORTS_Padel y el mismo protocolo que el
+paper; el tipo de golpe usa el etiquetado propio.
 
-| Métrica | Este trabajo | Paper de referencia |
-|---|---|---|
-| Detección de golpes (F1) | **0,956** | 0,92 |
-| Asignación — jugador | **89,65 %** | 83,70 % |
-| Asignación — equipo | **95,30 %** | 86,83 % |
-| Clasificación de tipo (accuracy) | **81,84 %** | *no lo hace* |
-| Clasificación de tipo (macro-F1) | **0,847** | *no lo hace* |
-| Detección de pelota (F1) | **0,94** | usa un modelo de tenis |
-| Detección de pista (error) | **0,11 m** manual · **0,196 m** automático | solo manual |
+| Métrica | Este trabajo | Paper de referencia | Datos |
+|---|---|---|---|
+| Detección de golpes (F1) | **0,956** | 0,92 | CVSPORTS, 99 rallies (media de 3 ejecuciones) |
+| Asignación — jugador | **89,65 %** | 83,70 % | CVSPORTS, VIGO, 319 golpes |
+| Asignación — equipo | **95,30 %** | 86,83 % | CVSPORTS, VIGO, 319 golpes |
+| Clasificación de tipo (accuracy) | **81,84 %** | *no lo hace* | etiquetado propio, 2.377 golpes, por torneos |
+| Clasificación de tipo (macro-F1) | **0,847** | *no lo hace* | ídem |
+| Detección de pelota (F1) | **0,94** | usa un modelo de tenis | PadelTracker100 (entrena final masculina, valida femenina) |
+| Pista (error de reproyección) | **0,113 m** automático, agregado · **0,196 m** frame a frame | marcado manual | VIGO · benchmark WPT |
 
 Dos matices de honestidad:
 
