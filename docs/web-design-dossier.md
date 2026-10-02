@@ -1,5 +1,7 @@
 # Dossier: qué hace memorable una web en 2026 + stack
 
+> **Documento histórico.** Investigación previa al diseño de la web (julio 2026). La web final es un visor estático ([ADR-0017](decisions/0017-static-web-viewer.md)), con el stack de [ADR-0011](decisions/0011-web-stack-react-vite-motion.md).
+
 Material de referencia para el rediseño "wow" de la plataforma (opción C).
 Objetivo: NO caer en el "generic AI website" (correcto pero olvidable) y montar
 la base técnica bien para expandir sin rehacer. Fuentes al final.

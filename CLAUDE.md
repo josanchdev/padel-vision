@@ -4,23 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Qué es este proyecto
 
-**Padel Vision** — TFG de Ingeniería de Computación (URJC): análisis automático de partidos de pádel con computer vision. Extiende el paper de Novillo et al. (2024) *"Padel Two-Dimensional Tracking Extraction from Monocular Video Recordings"*.
+**Padel Vision** — TFG de Ingeniería Informática (URJC): para cada golpe de un punto de pádel grabado con la cámara de retransmisión, el sistema dice cuándo (audio), quién (pose + pelota) y qué tipo de golpe es (BST-0 sobre pose + pelota). Parte de Novillo et al. (2024) *"Padel Two-Dimensional Tracking Extraction from Monocular Video Recordings"*; el cuándo y el quién reimplementan Decorte et al. (CVPRW 2024), con quien se comparan los resultados. Ficha técnica: `docs/sistema.md`.
 
 - El paper base vive como referencia en `~/reference/DS_Padel`. **NO tocar ni copiar código de ahí**; solo consulta conceptual.
-- Diferencial frente al paper original (que hace tracking 2D vía homografía): **clasificación automática del tipo de golpe a partir de pose corporal**, con plataforma web/API para el equipo de pádel de la URJC.
+- Diferencial: **clasificación automática del tipo de golpe**, con un dataset propio de 2.377 golpes etiquetados, y un visor web estático de puntos analizados.
 - Este código se defiende ante un tribunal: prioriza código limpio, testeado y modular sobre soluciones rápidas y desechables.
 
 ## Decisiones de arquitectura (ADRs)
 
 Todas las decisiones importantes se documentan en `docs/decisions/`. Antes de proponer una alternativa a algo ya decidido, consulta el ADR correspondiente y respeta la decisión salvo discusión explícita con Jorge. Si una decisión de diseño no está cubierta por un ADR existente, **propónla explícitamente en vez de decidir en silencio**.
 
-Decisiones cerradas:
-- ADR-0001 — Detección de pista: keypoints aprendidos (no K-means/contornos)
-- ADR-0002 — Alcance: pose para clasificar golpes, no solo tracking 2D
-- ADR-0003 — Detector/pose: YOLO26-pose
-- ADR-0004 — 2D vs 3D jugador: ABIERTO; empezar con 2D + suavizado temporal
+Índice y estado de cada ADR en `docs/decisions/README.md`. Las que definen el sistema final: ADR-0015 (el audio detecta el golpe; la asignación replica el paper), ADR-0016 (clasificador BST sobre pose + pelota), ADR-0017 (web estática) y ADR-0018 (pista marcada a mano).
 
-## Roadmap por niveles (incremental, "demo siempre verde")
+## Roadmap por niveles (histórico: así se construyó, "demo siempre verde")
 
 Cada nivel debe quedar demostrable end-to-end y testeado antes de empezar el siguiente. **No adelantar trabajo de un nivel superior si el actual no está cerrado.**
 
@@ -29,20 +25,19 @@ Cada nivel debe quedar demostrable end-to-end y testeado antes de empezar el sig
 - **Nivel 3 (extensiones)**: detección de botes, trayectoria aproximada de pelota, modo live preview.
 - **Nivel 4 (si todo va perfecto)**: recomendaciones tácticas, highlights.
 
-**Estado actual: Niveles 1, 2 y 3 cerrados** (pelota TrackNet V2/V3, botes, integración). El análisis de resultado (quién gana el punto, stats por jugador) NO es el siguiente paso: es la cima de una pila de robustez (cámara-en-pista, segmentación de puntos) documentada en `docs/backlog.md`; ese es el frente prioritario, a decidir en sesión futura. Historia experimental en `docs/experiments.md`.
+**Estado actual (oct 2026): sistema cerrado.** Resultados (2 tablas, `docs/metrics/`), web estática y limpieza hechos; lo siguiente es la memoria en LaTeX (carpeta `memoria/`). Fuera de alcance, declarado en `docs/sistema.md`: marcador y resultado del punto, más clases de golpe, cámaras móviles. Historia experimental en `docs/experiments.md`.
 
 ## Stack técnico
 
-- Monorepo con **uv workspace**: `packages/cv`, `packages/api`, `packages/web`
-- Python 3.11, PyTorch, OpenCV, YOLO26-pose
-- FastAPI + cola de jobs (a decidir: Celery/Redis vs Arq) para procesamiento batch
-- MLflow para tracking de experimentos; CVAT para anotación
-- Docker Compose para orquestación local
+- Monorepo con **uv workspace**: `packages/cv`, `packages/ml` (Python) y `packages/web` (React + Vite + Motion, estática)
+- Python 3.11, PyTorch, OpenCV, YOLO26-pose, TrackNetV3, BST-0
+- Evidencias en `docs/metrics/` (JSON + figuras, cada una regenerable con un script); MLflow solo registra el entrenamiento de la pelota
+- Etiquetado con herramientas propias en OpenCV (`padel-cv annotate-types`, `annotate-court`)
 - Linting: **ruff + mypy strict**
 
 ## Convenciones
 
-- Cada etapa del pipeline implementa la interfaz común `PipelineStage` (ver `docs/architecture.md` cuando exista)
+- El sistema completo es una sola función, `padel_ml.rally_analysis.analyze_rally`; demo, web y evaluación usan ese mismo código
 - Tests con pytest, en `tests/` dentro de cada package
 - Commits en formato conventional commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`)
 - **Todo el código en inglés** (nombres, docstrings, comentarios); documentación de decisiones y memoria en español
@@ -51,7 +46,7 @@ Cada nivel debe quedar demostrable end-to-end y testeado antes de empezar el sig
 
 ## Cómo trabajar con Jorge
 
-- Estudiante de 4º de Ingeniería de Computación, con experiencia profesional en CV (detección/tracking con YOLO en producción, Azure ML, MLflow), pero **sin experiencia previa en**: action recognition basado en skeleton (ST-GCN y similares), multi-object tracking avanzado, arquitecturas de APIs asíncronas con colas.
+- Estudiante de 4º de Ingeniería Informática, con experiencia profesional en CV (detección/tracking con YOLO en producción, Azure ML, MLflow), pero **sin experiencia previa en**: action recognition basado en skeleton (ST-GCN y similares), multi-object tracking avanzado, arquitecturas de APIs asíncronas con colas.
 - Al implementar algo de un área que no domina, explica brevemente el concepto antes o junto con el código.
 
 ## Comandos
@@ -60,12 +55,11 @@ Cada nivel debe quedar demostrable end-to-end y testeado antes de empezar el sig
 uv sync --all-packages              # instalar todo el workspace
 uv run pytest                       # tests (packages/*/tests)
 uv run ruff check . && uv run mypy  # lint + tipos (strict)
-uv run padel-cv process VIDEO -o OUT.mp4 [--court-model PESOS.pt | --homography GT.json]
-uv run padel-cv sample-frames DIR -o OUT_DIR --per-video N
-uv run padel-cv build-court-dataset VIDEO --homography GT.json -o DATASET_DIR --split train
-tools/cvat/cvat.sh up|down          # entorno de anotación (ver tools/cvat/README.md)
+uv run python scripts/demo_full_pipeline.py PUNTO.mp4 -o OUT.mp4   # un punto de principio a fin
+uv run python scripts/export_points.py PUNTO.mp4 [...]              # puntos para la web
+uv run padel-cv annotate-types | annotate-court VIDEO               # etiquetado propio
 ```
 
-Datos en `data/` (gitignoreado): `raw/` vídeos, `labels/` PadelTracker100, `datasets/` datasets generados. Pesos entrenados en `runs/` (gitignoreado).
+Datos en `data/` (gitignoreado salvo `labels/types/` y `datasets/courts/`): `raw/` vídeos, `labels/` PadelTracker100, `datasets/` cachés. Pesos entrenados en `runs/` (gitignoreado; no se publican). Entrenamiento y evidencias: ver `README.md` y `docs/metrics/README.md`.
 
 **Aviso entorno**: el WSL de Jorge sufre crashes esporádicos ("catastrophic failure", causa sin diagnosticar, posiblemente bajo carga GPU/IO sostenida). Consolidar trabajo con commits frecuentes; entrenamientos largos con checkpoints reanudables (`resume=True`).

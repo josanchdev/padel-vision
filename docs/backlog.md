@@ -1,5 +1,7 @@
 # Backlog de mejoras (no bloqueantes)
 
+> **Registro histórico** de lo que se aparcó durante el desarrollo, con su motivo; algunas entradas se completaron después (la bitácora lo recoge). Lo que queda fuera del alcance del sistema final está en [sistema.md](sistema.md#lo-que-queda-fuera-del-alcance).
+
 Cosas que **sabemos** que mejorarían el sistema pero que hemos aparcado
 conscientemente para no romper el flujo "demo siempre verde". No es una lista de
 bugs ni de trabajo pendiente de un nivel abierto: es el registro de decisiones de

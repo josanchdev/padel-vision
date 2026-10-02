@@ -1,5 +1,7 @@
 # Investigación: estado del arte en detección de golpes (feb 2026)
 
+> **Documento histórico.** Revisión del estado del arte que llevó a detectar el golpe por audio ([ADR-0015](decisions/0015-shot-audio-detect-rgb-classify.md)).
+
 Dossier tras dar un paso atrás: el localizer casero (por-frame sobre pose+pelota)
 da ~61 % recall / 70 % precisión (solo rallies) — insuficiente. Antes de seguir,
 revisión del estado del arte para decidir el rumbo con evidencia.

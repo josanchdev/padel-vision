@@ -113,8 +113,8 @@ usada o consultada está aquí con su fuente. Se distingue explícitamente entre
 **lo reimplementado de terceros** (detector de audio y asignación de golpe de
 Decorte et al.; arquitectura BST-0 de Chang sobre bloques de TemPose) y **la
 aportación propia**: el etiquetado de 2.377 golpes por tipo, la adaptación del
-clasificador a pádel, el detector de pista aprendido (ADR-0006), el detector de
-pelota entrenado sobre pádel, y la evaluación comparativa de todo ello. Reimplementar
+clasificador a pádel, el detector de pelota entrenado sobre pádel, y la
+evaluación comparativa de todo ello. Reimplementar
 un método publicado citándolo es práctica estándar en investigación; lo que no es
 admisible es presentarlo como propio, y por eso cada módulo lleva su fuente en el
 docstring además de esta bibliografía. Las decisiones de por qué se adoptó o

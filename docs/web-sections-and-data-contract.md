@@ -1,5 +1,7 @@
 # Secciones de la plataforma y contrato de datos
 
+> **Documento histórico.** Diseño de la plataforma con API (julio 2026). La web final es un visor estático ([ADR-0017](decisions/0017-static-web-viewer.md)); su contrato de datos vigente está en `padel_ml.web_export`.
+
 Documento puente entre la **capa de datos** (ADR-0010, lo que el pipeline
 genera) y el **diseño de la web** (que se hará en Claude Design). Sirve para dos
 cosas: (1) decidir qué secciones tiene la plataforma más allá del reproductor de
