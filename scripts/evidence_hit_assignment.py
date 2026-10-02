@@ -15,7 +15,6 @@ import collections
 import json
 from pathlib import Path
 
-import cv2
 from padel_ml.ball_infer import BallDetector
 from padel_ml.evidence import (
     FIGURES_DIR,
@@ -27,11 +26,9 @@ from padel_ml.evidence import (
     plot_confusion,
 )
 from padel_ml.hit_assignment import WINDOW_HALF, assign_hit, team_alternation_sweep
-from padel_ml.hit_assignment_eval import build_states
-from padel_ml.hit_assignment_gt import load_hit_assignments
+from padel_ml.hit_assignment_eval import annotated_rallies
 from padel_ml.rally_analysis import POSE_CONFIDENCE
 
-from padel_cv.court_registry import court_file_for, load_corners
 from padel_cv.stages.pose import PlayerPoseStage
 
 REPO = Path(__file__).resolve().parents[1]
@@ -41,33 +38,20 @@ LABELS = ["J1", "J2", "J3", "J4", "sin asignar"]
 
 
 def main() -> None:
-    truth_by_rally = load_hit_assignments(DATASET / "metadata" / "hit_assignments.xlsx")
     pose_stage = PlayerPoseStage(confidence=POSE_CONFIDENCE)  # as analyze_rally
+    ball_detector = BallDetector(REPO / "runs/ball_full/tracknetv3.pt")
 
     true_labels: list[str] = []
     predicted: list[str | None] = []
     per_rally: list[dict[str, float | int | str]] = []
 
-    for rally in sorted(truth_by_rally):
-        video = DATASET / "rallies" / f"{rally}.mp4"
-        if not video.exists():
-            continue
-        capture = cv2.VideoCapture(str(video))
-        fps = capture.get(cv2.CAP_PROP_FPS) or 25.0
-        capture.release()
-        court = court_file_for(rally, REPO / "data" / "datasets" / "courts")
-        if court is None:
-            raise SystemExit(f"{rally}: sin pista marcada")
-        states = build_states(
-            video,
-            pose_stage,
-            BallDetector(REPO / "runs/ball_full/tracknetv3.pt"),
-            load_corners(court),
-            fps,
-        )
+    for annotated in annotated_rallies(
+        DATASET, REPO / "data" / "datasets" / "courts", pose_stage, ball_detector
+    ):
+        rally, fps, states = annotated.name, annotated.fps, annotated.states
         predictions: dict[int, int | None] = {}
         hit_of: dict[int, object] = {}
-        for hit in truth_by_rally[rally]:
+        for hit in annotated.hits:
             frame = round(hit.time_s * fps)
             predictions[frame] = assign_hit(frame, states)
             hit_of[frame] = hit

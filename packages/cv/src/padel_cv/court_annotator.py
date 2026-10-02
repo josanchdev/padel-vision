@@ -32,7 +32,8 @@ import numpy as np
 import numpy.typing as npt
 
 from padel_cv.court import COURT_LENGTH_M, COURT_WIDTH_M, NET_Y_M
-from padel_cv.court_registry import COURTS_DIR, court_file_for, tournament_of
+from padel_cv.court_registry import COURTS_DIR, court_file_for
+from padel_cv.cvsports import tournament_of
 
 ImageArray = npt.NDArray[np.uint8]
 

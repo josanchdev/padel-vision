@@ -11,7 +11,6 @@ Dataset: CVSPORTS_Padel (audio + 2377 annotated hits) — see docs/bibliography.
 
 from __future__ import annotations
 
-import csv
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -76,24 +75,9 @@ class RallyAudio:
     filename: str
 
 
-def load_hits_csv(csv_path: Path) -> dict[str, list[tuple[float, float]]]:
-    """filename -> list of (start, end) hit windows in seconds."""
-    out: dict[str, list[tuple[float, float]]] = {}
-    for row in csv.DictReader(csv_path.open()):
-        out.setdefault(row["filename"], []).append((float(row["start"]), float(row["end"])))
-    return out
-
-
 def build_rally(rally_mp4: Path, hits: list[tuple[float, float]]) -> RallyAudio:
     """Decode one rally's audio → log-Mel features + per-frame hit labels."""
     samples = decode_audio(rally_mp4)
     feats = log_mel(samples)
     labels = hit_labels(len(feats), hits)
     return RallyAudio(features=feats, labels=labels, filename=rally_mp4.name)
-
-
-def tournament_of(filename: str) -> str:
-    """Group key for cross-tournament splits: DATE_LOCATION from the rally name."""
-    # e.g. "20230528_VIGO_00.mp4" -> "20230528_VIGO"
-    parts = filename.replace(".mp4", "").split("_")
-    return "_".join(parts[:2]) if len(parts) >= 2 else filename

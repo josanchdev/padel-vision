@@ -100,10 +100,9 @@ def confusion_matrix(
     return matrix
 
 
-def per_class_metrics(
-    matrix: npt.NDArray[np.int64], labels: list[str]
-) -> dict[str, dict[str, float]]:
-    """Precision, recall and F1 for each class, from a confusion matrix."""
+def class_scores(matrix: npt.NDArray[np.int64], labels: list[str]) -> dict[str, dict[str, float]]:
+    """Precision, recall, F1 and support for each class, from a confusion matrix
+    (rows = truth, columns = prediction), unrounded."""
     out: dict[str, dict[str, float]] = {}
     for i, label in enumerate(labels):
         true_positive = int(matrix[i, i])
@@ -112,13 +111,18 @@ def per_class_metrics(
         precision = true_positive / predicted if predicted else 0.0
         recall = true_positive / actual if actual else 0.0
         f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
-        out[label] = {
-            "precision": round(precision, 4),
-            "recall": round(recall, 4),
-            "f1": round(f1, 4),
-            "support": actual,
-        }
+        out[label] = {"precision": precision, "recall": recall, "f1": f1, "support": actual}
     return out
+
+
+def per_class_metrics(
+    matrix: npt.NDArray[np.int64], labels: list[str]
+) -> dict[str, dict[str, float]]:
+    """`class_scores` rounded for a report."""
+    return {
+        label: {key: value if key == "support" else round(value, 4) for key, value in row.items()}
+        for label, row in class_scores(matrix, labels).items()
+    }
 
 
 def macro_f1(per_class: dict[str, dict[str, float]]) -> float:

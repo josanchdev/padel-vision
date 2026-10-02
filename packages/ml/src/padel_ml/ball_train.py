@@ -25,18 +25,9 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from padel_ml.ball_dataset import BallClips
+from padel_ml.ball_infer import build_ball_model
 from padel_ml.ball_metrics import BallEval, evaluate_ball
 from padel_ml.ball_plots import plot_occlusion_comparison, plot_training_curves
-from padel_ml.tracknet import TrackNetV2
-from padel_ml.tracknet_v3 import TrackNetV3
-
-
-def _make_model(name: str) -> nn.Module:
-    if name == "tracknetv2":
-        return TrackNetV2()
-    if name == "tracknetv3":
-        return TrackNetV3()
-    raise ValueError(f"unknown model: {name}")
 
 
 @dataclass
@@ -87,7 +78,7 @@ def train_ball(
     val_ds = BallClips(val_dirs)
     val_loader = DataLoader(val_ds, batch_size=batch_size, num_workers=num_workers)
 
-    model = _make_model(model_name).to(device)
+    model = build_ball_model(model_name).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 

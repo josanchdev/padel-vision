@@ -54,6 +54,22 @@ class FrameState:
     ball: BallDetection | None
 
 
+def frame_states(
+    players: dict[int, list[PoseDetection]], ball: dict[int, tuple[float, float]]
+) -> dict[int, FrameState]:
+    """What the vote reads: each frame's identified players and the ball, if seen.
+
+    The one place these are put together, for the system and for every
+    measurement of it alike.
+    """
+    return {
+        frame: FrameState(
+            poses=poses, ball=BallDetection(ball[frame], 1.0) if frame in ball else None
+        )
+        for frame, poses in players.items()
+    }
+
+
 def player_distance(pose: PoseDetection, ball_xy: tuple[float, float]) -> float | None:
     """Ball→player distance in BODY HEIGHTS: min of both wrists, else bbox centre.
 

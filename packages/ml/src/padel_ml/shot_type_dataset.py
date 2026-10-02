@@ -21,13 +21,14 @@ from __future__ import annotations
 import csv
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
 
-if TYPE_CHECKING:
-    from padel_ml.hit_assignment import FrameState
+from padel_cv.cvsports import tournament_of
+from padel_cv.pipeline import PoseDetection
+from padel_ml.hit_assignment import assign_hit, frame_states
+from padel_ml.rally_features import load_rally_features
 
 FloatArray = npt.NDArray[np.float32]
 
@@ -123,16 +124,8 @@ def normalise_pose(keypoints: FloatArray) -> tuple[FloatArray, FloatArray, float
     return out, centre, scale
 
 
-def _hitter_at(poses: list[FloatArray], player_ids: list[int], hitter_id: int) -> FloatArray | None:
-    for keypoints, player_id in zip(poses, player_ids, strict=True):
-        if player_id == hitter_id:
-            return keypoints
-    return None
-
-
 def build_window(
-    keypoints_by_frame: dict[int, list[FloatArray]],
-    player_ids_by_frame: dict[int, list[int]],
+    players: dict[int, list[PoseDetection]],
     ball_by_frame: dict[int, tuple[float, float]],
     hit_frames: list[int],
     index: int,
@@ -155,9 +148,9 @@ def build_window(
     present = 0
 
     for i, frame in enumerate(frames):
-        poses = keypoints_by_frame.get(int(frame), [])
-        ids = player_ids_by_frame.get(int(frame), [])
-        hitter = _hitter_at(poses, ids, hitter_id) if poses else None
+        hitter = next(
+            (p.keypoints for p in players.get(int(frame), []) if p.player_id == hitter_id), None
+        )
         if hitter is not None:
             last_pose = hitter
             present += 1
@@ -196,62 +189,18 @@ def build_window(
     )
 
 
-def _frame_states(
-    keypoints_by_frame: dict[int, list[FloatArray]],
-    player_ids_by_frame: dict[int, list[int]],
-    ball_by_frame: dict[int, tuple[float, float]],
-    n_frames: int,
-) -> dict[int, FrameState]:
-    """Adapt the cached arrays to what `assign_hit` expects."""
-    from padel_cv.pipeline import BallDetection, PoseDetection
-    from padel_ml.hit_assignment import FrameState
-
-    states: dict[int, FrameState] = {}
-    for frame in range(n_frames):
-        poses = []
-        for keypoints, player_id in zip(
-            keypoints_by_frame.get(frame, []), player_ids_by_frame.get(frame, []), strict=True
-        ):
-            if player_id < 0:
-                continue
-            xs, ys = keypoints[:, 0], keypoints[:, 1]
-            poses.append(
-                PoseDetection(
-                    bbox_xyxy=(float(xs.min()), float(ys.min()), float(xs.max()), float(ys.max())),
-                    confidence=1.0,
-                    keypoints=keypoints,
-                    player_id=int(player_id),
-                )
-            )
-        position = ball_by_frame.get(frame)
-        states[frame] = FrameState(
-            poses=poses,
-            ball=BallDetection(position, 1.0) if position is not None else None,
-        )
-    return states
-
-
 def build_rally_windows(
     features_npz: Path,
     labels_csv: Path,
     seq_len: int = SEQ_LEN,
 ) -> tuple[list[ShotWindow], int]:
     """Windows for one rally; also returns how many hits had no hitter assigned."""
-    from padel_ml.hit_assignment import assign_hit
-
-    data = np.load(features_npz, allow_pickle=True)
-    keypoints_by_frame = data["keypoints"].item()
-    player_ids_by_frame = data["player_ids"].item()
-    ball_by_frame = data["ball"].item()
-    fps = float(data["fps"])
-    n_frames = int(data["n_frames"])
-
+    features = load_rally_features(features_npz)
     labels = load_labels(labels_csv)
     hit_frames = [frame for frame, _ in labels]
-    states = _frame_states(keypoints_by_frame, player_ids_by_frame, ball_by_frame, n_frames)
+    # The hitter is chosen exactly as the system chooses it (`resolve_shots`).
+    states = frame_states(features.players, features.ball)
 
-    rally = features_npz.stem
-    tournament = "_".join(rally.split("_")[:2])
     windows: list[ShotWindow] = []
     unassigned = 0
     for index, (frame, shot_type) in enumerate(labels):
@@ -262,16 +211,15 @@ def build_rally_windows(
             unassigned += 1
             continue
         window = build_window(
-            keypoints_by_frame,
-            player_ids_by_frame,
-            ball_by_frame,
+            features.players,
+            features.ball,
             hit_frames,
             index,
             hitter,
-            fps,
+            features.fps,
             CLASS_TO_INDEX[shot_type],
-            rally,
-            tournament,
+            features.rally,
+            tournament_of(features.rally),
             seq_len,
         )
         if window is None:

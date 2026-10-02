@@ -1,8 +1,9 @@
 """Extract pose + ball for every CVSPORTS rally, cached (ADR-0016).
 
 This is the slow, one-off step the shot-type classifier needs: running YOLO pose
-and TrackNet over all 99 rallies. Results are cached per rally, so a crash (the
-WSL box does that) only costs the rally in flight.
+and TrackNet over all 99 rallies, with the system's own per-frame pass
+(`track_rally`). Results are cached per rally, so a crash (the WSL box does that)
+only costs the rally in flight.
 
 Players are filtered with the hand-marked court mask, which is why this waits on
 the court annotation: without it the tracker follows spectators and the
@@ -18,14 +19,12 @@ import time
 from pathlib import Path
 from typing import cast
 
-import cv2
 import numpy as np
-from padel_ml.ball_infer import BallDetector, BallHit
+from padel_ml.ball_infer import BallDetector
 from padel_ml.ball_postprocess import postprocess_ball
+from padel_ml.rally_analysis import POSE_CONFIDENCE, track_rally
 
-from padel_cv.court_registry import court_file_for, load_corners
-from padel_cv.pipeline import Frame, ImageArray
-from padel_cv.player_identity import PlayerIdentityTracker, court_mask_polygon, filter_players
+from padel_cv.court_registry import court_file_for
 from padel_cv.stages.pose import PlayerPoseStage
 
 REPO = Path(__file__).resolve().parents[1]
@@ -36,54 +35,18 @@ BALL_CKPT = REPO / "runs" / "ball_full" / "tracknetv3.pt"
 
 def extract(video: Path, pose_stage: PlayerPoseStage, ball: BallDetector) -> dict[str, object]:
     """Pose (with stable player ids) + cleaned ball track for one rally."""
-    pose_stage.reset()  # the tracker must not carry the previous rally's players
     court_json = court_file_for(video.stem)
-    polygon = court_mask_polygon(load_corners(court_json)) if court_json else None
-
-    capture = cv2.VideoCapture(str(video))
-    fps = capture.get(cv2.CAP_PROP_FPS) or 25.0
-    identity = PlayerIdentityTracker(fps=fps)
-    # Keep the pose OBJECTS while scanning, not copies of their fields: the
-    # identity tracker needs its first three seconds to work out who is who and
-    # only then back-fills the ids onto those same objects. Reading player_id
-    # inside the loop would freeze the rally's first 75 frames as unidentified —
-    # and that is exactly where every serve lives.
-    poses_by_frame: dict[int, list] = {}
-    raw_ball: list[BallHit] = []
-    index = 0
-    while True:
-        ok, image = capture.read()
-        if not ok:
-            break
-        frame = pose_stage.process(
-            Frame(index=index, timestamp_s=index / fps, image=cast(ImageArray, image))
-        )
-        players = filter_players(frame.poses, polygon)
-        identity.update(index, players)
-        poses_by_frame[index] = players
-        hit = ball.detect(image, index)
-        if hit is not None:
-            raw_ball.append(hit)
-        index += 1
-    capture.release()
-
-    keypoints = {
-        i: [p.keypoints.astype(np.float32) for p in players]
-        for i, players in poses_by_frame.items()
-    }
-    player_ids = {
-        i: [p.player_id if p.player_id is not None else -1 for p in players]
-        for i, players in poses_by_frame.items()
-    }
-    boxes = {i: [p.bbox_xyxy for p in players] for i, players in poses_by_frame.items()}
-
+    tracks = track_rally(video, pose_stage, ball, court_json)
     return {
-        "keypoints": keypoints,
-        "player_ids": player_ids,
-        "boxes": boxes,
-        "ball": {b.frame_index: (b.x_px, b.y_px) for b in postprocess_ball(raw_ball)},
-        "fps": fps,
-        "n_frames": index,
+        "keypoints": {
+            i: [p.keypoints.astype(np.float32) for p in poses]
+            for i, poses in tracks.players.items()
+        },
+        "player_ids": {i: [p.player_id for p in poses] for i, poses in tracks.players.items()},
+        "boxes": {i: [p.bbox_xyxy for p in poses] for i, poses in tracks.players.items()},
+        "ball": {b.frame_index: (b.x_px, b.y_px) for b in postprocess_ball(tracks.raw_ball)},
+        "fps": tracks.fps,
+        "n_frames": tracks.n_frames,
         "court_json": str(court_json) if court_json else "",
     }
 
@@ -106,12 +69,12 @@ def main() -> None:
     if missing:
         print(f"AVISO: {len(missing)} rallies sin pista marcada: {missing[:3]}")
 
-    # conf 0.25, not the 0.4 default: measured over a full rally it finds all
-    # four players in 85% of frames instead of 80%, and the far-side pair is
-    # exactly who a higher threshold drops. yolo26n beats the larger 26m here
-    # (85% vs 55%) and is twice as fast — the bottleneck is the tiny far-side
-    # players, not model capacity.
-    pose_stage = PlayerPoseStage(device=args.device, confidence=0.25)
+    # POSE_CONFIDENCE (0.25), not the 0.4 default: measured over a full rally it
+    # finds all four players in 85% of frames instead of 80%, and the far-side
+    # pair is exactly who a higher threshold drops. yolo26n beats the larger 26m
+    # here (85% vs 55%) and is twice as fast — the bottleneck is the tiny
+    # far-side players, not model capacity.
+    pose_stage = PlayerPoseStage(device=args.device, confidence=POSE_CONFIDENCE)
     started = time.perf_counter()
     total_frames = 0
     for i, video in enumerate(pending, 1):

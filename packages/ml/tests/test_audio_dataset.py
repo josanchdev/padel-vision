@@ -5,7 +5,6 @@ from padel_ml.audio_dataset import (
     SAMPLE_RATE,
     frame_time,
     hit_labels,
-    tournament_of,
 )
 
 
@@ -33,8 +32,3 @@ def test_hit_labels_multiple_and_empty() -> None:
     # two separate positive runs
     changes = np.diff(two)
     assert (changes == 1).sum() == 2  # two rising edges
-
-
-def test_tournament_of_groups_by_date_location() -> None:
-    assert tournament_of("20230528_VIGO_00.mp4") == "20230528_VIGO"
-    assert tournament_of("20231112_MALMO_06.mp4") == "20231112_MALMO"

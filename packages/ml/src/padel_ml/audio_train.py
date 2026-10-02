@@ -17,13 +17,8 @@ import numpy.typing as npt
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from padel_ml.audio_dataset import (
-    SEQ_LEN,
-    RallyAudio,
-    build_rally,
-    frame_time,
-    load_hits_csv,
-)
+from padel_cv.cvsports import load_hits_csv
+from padel_ml.audio_dataset import SEQ_LEN, RallyAudio, build_rally, frame_time
 from padel_ml.audio_detector import AudioHitCRNN, focal_bce_loss
 
 FloatArray = npt.NDArray[np.float32]
@@ -95,16 +90,6 @@ def peaks_from_frames(
     return out
 
 
-@dataclass
-class AudioEval:
-    f1: float
-    precision: float
-    recall: float
-    tp: int
-    fp: int
-    fn: int
-
-
 def match_events(
     predicted_s: list[float], truth_s: list[float], collar_s: float = 0.25
 ) -> list[tuple[int, int]]:
@@ -140,6 +125,60 @@ def event_eval(
     return tp, len(pred_frames) - tp, len(true_times) - tp
 
 
+@dataclass
+class FittedDetector:
+    """A trained CRNN plus the standardisation it was trained with."""
+
+    model: AudioHitCRNN
+    mean: FloatArray
+    std: FloatArray
+    losses: list[float]
+    """Mean training loss per epoch."""
+
+
+def fit(
+    rallies: list[RallyAudio], epochs: int = 30, seed: int = 0, device: str | None = None
+) -> FittedDetector:
+    """The one training loop of the audio detector.
+
+    Production, every evaluation fold and the evidence all train through here,
+    so the model that is measured is trained exactly like the one that runs.
+    `seed` fixes the initial weights and the batch order (GPU kernels may still
+    differ in the last digits).
+    """
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    torch.manual_seed(seed)
+    xtr, ytr = _sequences(rallies)
+    # Standardisation stats from the RAW training features, kept to apply to
+    # whatever is scored later: computed after normalising they come out ~0/~1,
+    # mis-scale the evaluation and sink the precision.
+    mean = xtr.mean(axis=(0, 1), keepdims=True)
+    std = xtr.std(axis=(0, 1), keepdims=True) + 1e-6
+    xtr = ((xtr - mean) / std).astype(np.float32)
+
+    model = AudioHitCRNN().to(device)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    loader = DataLoader(
+        TensorDataset(torch.from_numpy(xtr), torch.from_numpy(ytr)),
+        batch_size=32,
+        shuffle=True,
+    )
+    losses: list[float] = []
+    for _ in range(epochs):
+        model.train()
+        epoch_loss = 0.0
+        for xb, yb in loader:
+            optimizer.zero_grad()
+            loss = focal_bce_loss(model(xb.to(device)), yb.to(device))
+            loss.backward()  # type: ignore[no-untyped-call]
+            optimizer.step()
+            epoch_loss += float(loss)
+        losses.append(round(epoch_loss / len(loader), 5))
+    model.eval()
+    return FittedDetector(model, mean.astype(np.float32), std.astype(np.float32), losses)
+
+
 def fit_and_save(
     dataset_dir: Path,
     out_path: Path,
@@ -151,45 +190,15 @@ def fit_and_save(
 ) -> Path:
     """Train on every rally (minus `exclude`) and save weights + norm stats.
 
-    Unlike `train_audio_detector` (which holds a val split back to report F1),
-    this trains on all available data so the saved detector is as strong as
-    possible, and persists the standardization stats needed at inference.
-    `seed` fixes the initial weights and the batch order (GPU kernels may still
-    differ in the last digits).
+    Nothing is held back, so the saved detector is as strong as the data allows;
+    the evaluations score it on rallies they excluded themselves.
     """
-    if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-    torch.manual_seed(seed)
     rallies = build_all_rallies(dataset_dir, cache)
-    exclude = exclude or set()
-    train_r = [r for r in rallies if r.filename not in exclude]
-    xtr, ytr = _sequences(train_r)
-    mean = xtr.mean(axis=(0, 1), keepdims=True)
-    std = xtr.std(axis=(0, 1), keepdims=True) + 1e-6
-    xtr = ((xtr - mean) / std).astype(np.float32)
-
-    model = AudioHitCRNN().to(device)
-    opt = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    loader = DataLoader(
-        TensorDataset(torch.from_numpy(xtr), torch.from_numpy(ytr)),
-        batch_size=32,
-        shuffle=True,
-    )
-    for _ in range(epochs):
-        model.train()
-        for xb, yb in loader:
-            opt.zero_grad()
-            loss = focal_bce_loss(model(xb.to(device)), yb.to(device))
-            loss.backward()  # type: ignore[no-untyped-call]
-            opt.step()
-
+    excluded = exclude or set()
+    fitted = fit([r for r in rallies if r.filename not in excluded], epochs, seed, device)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
-        {
-            "state_dict": model.state_dict(),
-            "mean": mean.astype(np.float32),
-            "std": std.astype(np.float32),
-        },
+        {"state_dict": fitted.model.state_dict(), "mean": fitted.mean, "std": fitted.std},
         out_path,
     )
     return out_path
@@ -225,63 +234,3 @@ def detect_hits_in_audio(
     """Run the saved detector over a video/audio file → list of hit times (s)."""
     probs = hit_probabilities(audio_source, checkpoint, device)
     return [frame_time(p) for p in peaks_from_frames(probs, threshold, min_gap_frames)]
-
-
-def train_audio_detector(
-    dataset_dir: Path,
-    cache: Path | None = None,
-    val_frac: float = 0.3,
-    epochs: int = 30,
-    seed: int = 0,
-    device: str | None = None,
-) -> AudioEval:
-    """Train on 70% of rallies, evaluate event-based on the held-out 30%."""
-    if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-    rallies = build_all_rallies(dataset_dir, cache)
-    rng = np.random.default_rng(seed)
-    idx = np.arange(len(rallies))
-    rng.shuffle(idx)
-    n_val = int(len(rallies) * val_frac)
-    val_ids, train_ids = set(idx[:n_val].tolist()), set(idx[n_val:].tolist())
-    train_r = [rallies[i] for i in train_ids]
-    val_r = [rallies[i] for i in val_ids]
-
-    xtr, ytr = _sequences(train_r)
-    # Standardization stats from RAW train features — keep them to apply to the
-    # eval rallies too (computing them after normalizing would give ~0/~1 and
-    # mis-scale the eval, tanking precision).
-    mean = xtr.mean(axis=(0, 1), keepdims=True)
-    std = xtr.std(axis=(0, 1), keepdims=True) + 1e-6
-    xtr = ((xtr - mean) / std).astype(np.float32)
-
-    model = AudioHitCRNN().to(device)
-    opt = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    loader = DataLoader(
-        TensorDataset(torch.from_numpy(xtr), torch.from_numpy(ytr)),
-        batch_size=32,
-        shuffle=True,
-    )
-    for _ in range(epochs):
-        model.train()
-        for xb, yb in loader:
-            opt.zero_grad()
-            loss = focal_bce_loss(model(xb.to(device)), yb.to(device))
-            loss.backward()  # type: ignore[no-untyped-call]
-            opt.step()
-
-    # evaluate event-based per rally on the held-out set (normalize with train stats)
-    model.eval()
-    hits = load_hits_csv(dataset_dir / "metadata" / "hits.csv")
-    tp = fp = fn = 0
-    for r in val_r:
-        feats = ((r.features - mean[0]) / std[0]).astype(np.float32)
-        with torch.no_grad():
-            probs = torch.sigmoid(model(torch.from_numpy(feats)[None].to(device)))[0].cpu().numpy()
-        peaks = peaks_from_frames(probs, threshold=DEFAULT_THRESHOLD, min_gap_frames=8)
-        t, f, n = event_eval(peaks, hits.get(r.filename, []))
-        tp, fp, fn = tp + t, fp + f, fn + n
-    precision = tp / (tp + fp) if (tp + fp) else 0.0
-    recall = tp / (tp + fn) if (tp + fn) else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
-    return AudioEval(f1=f1, precision=precision, recall=recall, tp=tp, fp=fp, fn=fn)

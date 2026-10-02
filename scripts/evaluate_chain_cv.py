@@ -46,6 +46,8 @@ from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, ShotWindow, build_datas
 from padel_ml.shot_type_model import ShotTypeBST
 from padel_ml.shot_type_train import fit
 
+from padel_cv.cvsports import load_hits_csv
+
 REPO = Path(__file__).resolve().parents[1]
 CVSPORTS = REPO / "data" / "raw" / "padel_audio_dataset" / "CVSPORTS_Padel"
 FEATURES = REPO / "data" / "datasets" / "rally_features"
@@ -56,12 +58,8 @@ COLLAR_S = 0.25
 
 
 def _windows_by_rally() -> dict[str, list[tuple[float, float]]]:
-    out: dict[str, list[tuple[float, float]]] = {}
-    for row in csv.DictReader((CVSPORTS / "metadata" / "hits.csv").open()):
-        out.setdefault(Path(row["filename"]).stem, []).append(
-            (float(row["start"]), float(row["end"]))
-        )
-    return {k: sorted(v) for k, v in out.items()}
+    hits = load_hits_csv(CVSPORTS / "metadata" / "hits.csv")
+    return {Path(name).stem: sorted(windows) for name, windows in hits.items()}
 
 
 def _type_labels(rally: str, fps: float) -> dict[float, str]:

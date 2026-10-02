@@ -1,10 +1,11 @@
 """One rally, end to end: when, who, and what kind of shot.
 
-The single code path behind the demo video and the web export; the whole-chain
-evaluation (`scripts/evaluate_chain_cv.py`) runs the same `resolve_shots` over
-cached pose and ball. Keeping them on one code path is what gives the evaluation
-its meaning: a score measured on a copy of the pipeline says nothing about the
-code that actually runs.
+The single code path behind the demo video, the web export and every
+measurement: `track_rally` is the one per-frame pass (also behind the feature
+cache and the hit-assignment evidence), and `resolve_shots` the one WHO + WHAT
+step (also behind the whole-chain evaluation). Keeping them on one code path is
+what gives the evaluation its meaning: a score measured on a copy of the
+pipeline says nothing about the code that actually runs.
 
     WHEN   audio CRNN over the soundtrack                (ADR-0015 A)
     WHO    pose + ball, weighted vote around each hit    (ADR-0015 D)
@@ -31,14 +32,14 @@ from padel_cv.bounces import BallSample, Bounce, detect_bounces
 from padel_cv.court import localize_pose
 from padel_cv.court_registry import load_corners, load_homography
 from padel_cv.match_data import BounceRecord, MatchAnalysis, PlayerFrameRecord, ShotRecord
-from padel_cv.pipeline import BallDetection, Frame, ImageArray, PoseDetection
+from padel_cv.pipeline import Frame, ImageArray, PoseDetection
 from padel_cv.player_identity import PlayerIdentityTracker, court_mask_polygon, filter_players
 from padel_cv.stages.pose import PlayerPoseStage
 from padel_ml.audio_train import detect_hits_in_audio
 from padel_ml.ball_infer import BallDetector, BallHit
 from padel_ml.ball_postprocess import postprocess_ball
 from padel_ml.ball_trajectory import clean_track
-from padel_ml.hit_assignment import FrameState, assign_hit
+from padel_ml.hit_assignment import assign_hit, frame_states
 from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, ShotWindow, build_window
 from padel_ml.shot_type_model import ShotTypeBST
 from padel_ml.shot_type_train import best_class
@@ -86,11 +87,6 @@ class RallyModels:
         self.shot_type = ShotTypeBST(seq_len=self.seq_len, n_classes=len(CLASSES))
         self.shot_type.load_state_dict(checkpoint["state_dict"])
         self.shot_type.to(self.device).eval()
-
-    def reset(self) -> None:
-        """Clear per-video state: the player tracker and the ball frame buffer."""
-        self.pose.reset()
-        self.ball.reset()
 
     def classify(self, window: ShotWindow) -> npt.NDArray[np.float32]:
         with torch.no_grad():
@@ -182,12 +178,7 @@ def resolve_shots(
     Pure — the classifier comes in as a function — so it can be tested without
     a GPU, a video or trained weights.
     """
-    states = {
-        i: FrameState(poses=poses, ball=BallDetection(ball[i], 1.0) if i in ball else None)
-        for i, poses in players.items()
-    }
-    keypoints = {i: [p.keypoints.astype(np.float32) for p in poses] for i, poses in players.items()}
-    player_ids = {i: [cast(int, p.player_id) for p in poses] for i, poses in players.items()}
+    states = frame_states(players, ball)
 
     shots: list[Shot] = []
     for position, frame in enumerate(hit_frames):
@@ -197,7 +188,7 @@ def resolve_shots(
         probabilities: tuple[float, ...] | None = None
         if hitter is not None:
             window = build_window(
-                keypoints, player_ids, ball, hit_frames, position, hitter, fps, 0, "", "", seq_len
+                players, ball, hit_frames, position, hitter, fps, 0, "", "", seq_len
             )
             if window is not None:
                 raw = classify(window)
@@ -209,6 +200,75 @@ def resolve_shots(
                     shot_type = CLASSES[best]
         shots.append(Shot(frame, frame / fps, hitter, shot_type, confidence, probabilities))
     return shots
+
+
+@dataclass
+class RallyTracks:
+    """People, who is who, and the ball over a whole rally."""
+
+    fps: float
+    width: int
+    height: int
+    n_frames: int
+    players: dict[int, list[PoseDetection]]
+    """Identified on-court players per frame, with the detector's own boxes."""
+    raw_ball: list[BallHit]
+    """Every ball detection, before post-processing."""
+
+
+def track_rally(
+    video: Path,
+    pose: PlayerPoseStage,
+    ball: BallDetector,
+    court: Path | None,
+    on_progress: Callable[[float], None] | None = None,
+) -> RallyTracks:
+    """The per-frame pass over a rally: pose, the J1-J4 identity and the ball.
+
+    The one loop behind the system, the feature cache and the hit-assignment
+    evidence. It starts from clean detectors: the pose tracker and the ball
+    buffer would otherwise carry the previous video into this one.
+    """
+    pose.reset()
+    ball.reset()
+    polygon = court_mask_polygon(load_corners(court)) if court is not None else None
+    capture = cv2.VideoCapture(str(video))
+    if not capture.isOpened():
+        raise FileNotFoundError(f"Could not open video: {video}")
+    fps = capture.get(cv2.CAP_PROP_FPS) or 25.0
+    width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    total = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    identity = PlayerIdentityTracker(fps=fps)
+    candidates: dict[int, list[PoseDetection]] = {}
+    raw_ball: list[BallHit] = []
+    index = 0
+    try:
+        while True:
+            ok, image = capture.read()
+            if not ok:
+                break
+            frame = pose.process(
+                Frame(index=index, timestamp_s=index / fps, image=cast(ImageArray, image))
+            )
+            on_court = filter_players(frame.poses, polygon)
+            identity.update(index, on_court)
+            # Keep the pose objects and read their IDs only once the video is
+            # done: the identity tracker back-fills IDs over its start-up window,
+            # which is exactly where every serve lives.
+            candidates[index] = on_court
+            hit = ball.detect(image, index)
+            if hit is not None:
+                raw_ball.append(hit)
+            index += 1
+            if on_progress is not None and total > 0 and index % 25 == 0:
+                on_progress(min(index / total, 1.0))
+    finally:
+        capture.release()
+
+    players = {i: [p for p in poses if p.player_id is not None] for i, poses in candidates.items()}
+    return RallyTracks(fps, width, height, index, players, raw_ball)
 
 
 def analyze_rally(
@@ -225,47 +285,10 @@ def analyze_rally(
     a visible decision of the caller, never a silent fallback.
     """
     hit_times = detect_hits_in_audio(video, models.audio_checkpoint, device=models.device)
-    polygon = court_mask_polygon(load_corners(court)) if court is not None else None
-    homography = load_homography(court) if court is not None else None
-
-    capture = cv2.VideoCapture(str(video))
-    if not capture.isOpened():
-        raise FileNotFoundError(f"Could not open video: {video}")
-    fps = capture.get(cv2.CAP_PROP_FPS) or 25.0
-    width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    total = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
-
-    models.reset()
-    identity = PlayerIdentityTracker(fps=fps)
-    candidates: dict[int, list[PoseDetection]] = {}
-    raw_ball: list[BallHit] = []
-    index = 0
-    try:
-        while True:
-            ok, image = capture.read()
-            if not ok:
-                break
-            frame = models.pose.process(
-                Frame(index=index, timestamp_s=index / fps, image=cast(ImageArray, image))
-            )
-            on_court = filter_players(frame.poses, polygon)
-            identity.update(index, on_court)
-            # Keep the pose objects and read their IDs only once the video is
-            # done: the identity tracker back-fills IDs over its start-up window,
-            # which is exactly where every serve lives.
-            candidates[index] = on_court
-            hit = models.ball.detect(image, index)
-            if hit is not None:
-                raw_ball.append(hit)
-            index += 1
-            if on_progress is not None and total > 0 and index % 25 == 0:
-                on_progress(min(index / total, 1.0))
-    finally:
-        capture.release()
-
-    players = {i: [p for p in poses if p.player_id is not None] for i, poses in candidates.items()}
-    if homography is not None:
+    tracks = track_rally(video, models.pose, models.ball, court, on_progress)
+    fps, players = tracks.fps, tracks.players
+    if court is not None:
+        homography = load_homography(court)
         for poses in players.values():
             for pose in poses:
                 localize_pose(homography, pose)
@@ -275,8 +298,8 @@ def analyze_rally(
     # about a point, because a fit spanning a hit rounds off the very moment the
     # vote depends on. Drawing uses the smoothed one, whose jerk drops from 23 px
     # to under 7 and reads as a trajectory rather than a scatter of dots.
-    ball = {b.frame_index: (b.x_px, b.y_px) for b in postprocess_ball(raw_ball)}
-    ball_smoothed = {p.frame_index: (p.x_px, p.y_px) for p in clean_track(raw_ball)}
+    ball = {b.frame_index: (b.x_px, b.y_px) for b in postprocess_ball(tracks.raw_ball)}
+    ball_smoothed = {p.frame_index: (p.x_px, p.y_px) for p in clean_track(tracks.raw_ball)}
 
     hit_frames = sorted({round(t * fps) for t in hit_times})
     shots = resolve_shots(
@@ -292,9 +315,9 @@ def analyze_rally(
     return RallyAnalysis(
         video=video,
         fps=fps,
-        width=width,
-        height=height,
-        n_frames=index,
+        width=tracks.width,
+        height=tracks.height,
+        n_frames=tracks.n_frames,
         court=court,
         shots=shots,
         players=players,

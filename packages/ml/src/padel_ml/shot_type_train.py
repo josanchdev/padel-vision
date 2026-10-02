@@ -22,6 +22,7 @@ import torch
 from torch import Tensor, nn
 from torch.utils.data import DataLoader, TensorDataset
 
+from padel_ml.evidence import class_scores, per_class_metrics
 from padel_ml.shot_type_dataset import CLASSES, ShotWindow
 from padel_ml.shot_type_model import ShotTypeBST
 
@@ -102,25 +103,15 @@ def _metrics(
     matrix = np.zeros((n_classes, n_classes), dtype=np.int64)
     for truth, prediction in zip(truths, predictions, strict=True):
         matrix[truth, prediction] += 1
-    per_class: dict[str, dict[str, float]] = {}
-    f1s = []
-    for i, name in enumerate(CLASSES[:n_classes]):
-        true_positive = int(matrix[i, i])
-        predicted = int(matrix[:, i].sum())
-        actual = int(matrix[i, :].sum())
-        precision = true_positive / predicted if predicted else 0.0
-        recall = true_positive / actual if actual else 0.0
-        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
-        per_class[name] = {
-            "precision": round(precision, 4),
-            "recall": round(recall, 4),
-            "f1": round(f1, 4),
-            "support": actual,
-        }
-        if actual:
-            f1s.append(f1)
+    scores = class_scores(matrix, CLASSES[:n_classes])
+    f1s = [row["f1"] for row in scores.values() if row["support"]]
     accuracy = float(np.trace(matrix) / max(matrix.sum(), 1))
-    return accuracy, float(np.mean(f1s)) if f1s else 0.0, per_class, matrix.tolist()
+    return (
+        accuracy,
+        float(np.mean(f1s)) if f1s else 0.0,
+        per_class_metrics(matrix, CLASSES[:n_classes]),
+        matrix.tolist(),
+    )
 
 
 EPOCHS = 60

@@ -17,6 +17,7 @@ from pathlib import Path
 
 from padel_ml.evidence import FIGURES_DIR, ExperimentResult
 
+from padel_cv.cvsports import tournament_of
 from padel_cv.shot_type_annotator import load_marks
 
 LABELS_DIR = Path("data/labels/types")
@@ -33,7 +34,7 @@ def main() -> None:
 
     for path in sorted(LABELS_DIR.glob("*.csv")):
         marks = load_marks(path)
-        tournament = "_".join(path.stem.split("_")[:2])
+        tournament = tournament_of(path.stem)
         counts = collections.Counter(m.shot_type for m in marks.values() if m.shot_type)
         per_tournament[tournament].update(counts)
         total.update(counts)

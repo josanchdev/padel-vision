@@ -24,16 +24,17 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from padel_ml.audio_dataset import load_hits_csv
-from padel_ml.audio_detector import AudioHitCRNN, focal_bce_loss
+from padel_ml.audio_detector import AudioHitCRNN
 from padel_ml.audio_train import (
     DEFAULT_THRESHOLD,
-    _sequences,
     build_all_rallies,
     event_eval,
+    fit,
     peaks_from_frames,
 )
 from padel_ml.evidence import FIGURES_DIR, ExperimentResult, plot_comparison
+
+from padel_cv.cvsports import load_hits_csv
 
 REPO = Path(__file__).resolve().parents[1]
 DATASET = REPO / "data" / "raw" / "padel_audio_dataset" / "CVSPORTS_Padel"
@@ -107,11 +108,12 @@ class SeedRun:
 
 
 def train_and_sweep(seed: int) -> SeedRun:
-    # Seeded so repeated runs are comparable: run-to-run spread (~0.02 F1) is as
-    # large as the gap between neighbouring thresholds, so an unseeded sweep
-    # cannot tell a real difference from luck. Not about bit-exact reproduction.
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
+    """Train on a seeded 70/30 split of the rallies and sweep the threshold.
+
+    Seeded so repeated runs are comparable: the run-to-run spread (~0.02 F1) is
+    as large as the gap between neighbouring thresholds, so an unseeded sweep
+    cannot tell a real difference from luck. Not about bit-exact reproduction.
+    """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     rallies = build_all_rallies(DATASET, CACHE)
     rng = np.random.default_rng(seed)
@@ -121,38 +123,13 @@ def train_and_sweep(seed: int) -> SeedRun:
     val_rallies = [rallies[i] for i in index[:n_val]]
     train_rallies = [rallies[i] for i in index[n_val:]]
 
-    xtr, ytr = _sequences(train_rallies)
-    mean = xtr.mean(axis=(0, 1), keepdims=True)
-    std = xtr.std(axis=(0, 1), keepdims=True) + 1e-6
-    xtr = ((xtr - mean) / std).astype(np.float32)
-
-    model = AudioHitCRNN().to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    loader = torch.utils.data.DataLoader(
-        torch.utils.data.TensorDataset(torch.from_numpy(xtr), torch.from_numpy(ytr)),
-        batch_size=32,
-        shuffle=True,
-    )
-    losses: list[float] = []
     print(f"entrenando en {device} ({len(train_rallies)} rallies train / {n_val} val)")
-    for epoch in range(30):
-        model.train()
-        epoch_loss = 0.0
-        for xb, yb in loader:
-            optimizer.zero_grad()
-            loss = focal_bce_loss(model(xb.to(device)), yb.to(device))
-            loss.backward()  # type: ignore[no-untyped-call]
-            optimizer.step()
-            epoch_loss += float(loss)
-        losses.append(round(epoch_loss / len(loader), 5))
-        if (epoch + 1) % 10 == 0:
-            print(f"  epoch {epoch + 1}: loss {losses[-1]:.4f}")
-
-    model.eval()
+    # The same training function as the production model and every chain fold.
+    fitted = fit(train_rallies, epochs=30, seed=seed, device=device)
     hits = load_hits_csv(DATASET / "metadata" / "hits.csv")
     print("barrido de umbral:")
-    sweep = sweep_thresholds(model, val_rallies, hits, mean, std, device)
-    return SeedRun(seed, len(rallies), len(train_rallies), n_val, losses, sweep)
+    sweep = sweep_thresholds(fitted.model, val_rallies, hits, fitted.mean, fitted.std, device)
+    return SeedRun(seed, len(rallies), len(train_rallies), n_val, fitted.losses, sweep)
 
 
 def report_single_run(run: SeedRun) -> None:

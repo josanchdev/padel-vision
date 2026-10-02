@@ -21,7 +21,8 @@ from padel_ml.tracknet import TrackNetV2
 from padel_ml.tracknet_v3 import TrackNetV3
 
 
-def _build_model(model_name: str) -> torch.nn.Module:
+def build_ball_model(model_name: str) -> torch.nn.Module:
+    """An untrained TrackNet by name, as stored in the checkpoints."""
     if model_name == "tracknetv2":
         return TrackNetV2()
     if model_name == "tracknetv3":
@@ -53,7 +54,7 @@ class BallDetector:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self._device = device
         ckpt = torch.load(checkpoint, map_location=device, weights_only=False)
-        self._model = _build_model(ckpt.get("model_name", "tracknetv2"))
+        self._model = build_ball_model(ckpt.get("model_name", "tracknetv2"))
         self._model.load_state_dict(ckpt["state_dict"])
         self._model.to(device).eval()
         self._min_confidence = min_confidence

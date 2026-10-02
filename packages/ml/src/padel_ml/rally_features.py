@@ -13,6 +13,7 @@ from pathlib import Path
 
 import numpy as np
 
+from padel_cv.cvsports import tournament_of
 from padel_cv.pipeline import PoseDetection
 
 
@@ -28,7 +29,7 @@ class RallyFeatures:
     @property
     def tournament(self) -> str:
         """ "20230528_VIGO_03" -> "20230528_VIGO"."""
-        return "_".join(self.rally.split("_")[:2])
+        return tournament_of(self.rally)
 
 
 def load_rally_features(path: Path) -> RallyFeatures:

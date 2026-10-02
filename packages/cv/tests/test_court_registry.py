@@ -1,9 +1,4 @@
-from padel_cv.court_registry import court_file_for, tournament_of
-
-
-def test_tournament_from_rally_name() -> None:
-    assert tournament_of("20230528_VIGO_03") == "20230528_VIGO"
-    assert tournament_of("20231015_AMSTERDAM_00") == "20231015_AMSTERDAM"
+from padel_cv.court_registry import court_file_for
 
 
 def test_uses_the_tournament_court(tmp_path) -> None:

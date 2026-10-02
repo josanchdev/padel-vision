@@ -10,20 +10,14 @@ carry per-range files (`<TOURNAMENT>@04.json` applies from rally 04 on).
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
 
+from padel_cv.cvsports import parse_rally
+
 COURTS_DIR = Path("data/datasets/courts")
-_RALLY_RE = re.compile(r"^(?P<tournament>\d{8}_[A-Z]+)_(?P<index>\d+)$")
-
-
-def tournament_of(rally_stem: str) -> str:
-    """ "20230528_VIGO_03" -> "20230528_VIGO"."""
-    match = _RALLY_RE.match(rally_stem)
-    return match.group("tournament") if match else rally_stem
 
 
 def court_file_for(rally_stem: str, courts_dir: Path = COURTS_DIR) -> Path | None:
@@ -41,10 +35,10 @@ def court_file_for(rally_stem: str, courts_dir: Path = COURTS_DIR) -> Path | Non
     if own.exists():
         return own
 
-    match = _RALLY_RE.match(rally_stem)
-    if match is None:
+    parsed = parse_rally(rally_stem)
+    if parsed is None:
         return None
-    tournament, index = match.group("tournament"), int(match.group("index"))
+    tournament, index = parsed
 
     best: tuple[int, Path] | None = None
     for path in courts_dir.glob(f"{tournament}@*.json"):

@@ -39,11 +39,9 @@ from padel_ml.hit_assignment import (
     assign_hit,
     team_alternation_sweep,
 )
-from padel_ml.hit_assignment_eval import build_states
-from padel_ml.hit_assignment_gt import load_hit_assignments
+from padel_ml.hit_assignment_eval import annotated_rallies
 from padel_ml.rally_analysis import POSE_CONFIDENCE
 
-from padel_cv.court_registry import court_file_for, load_corners
 from padel_cv.stages.pose import PlayerPoseStage
 
 REPO = Path(__file__).resolve().parents[1]
@@ -72,27 +70,17 @@ def assign_asymmetric(
 
 
 def main() -> None:
-    truth_by_rally = load_hit_assignments(DATASET / "metadata" / "hit_assignments.xlsx")
     pose_stage = PlayerPoseStage(confidence=POSE_CONFIDENCE)  # as analyze_rally
     ball_detector = BallDetector(REPO / "runs/ball_full/tracknetv3.pt")
 
-    import cv2
-
     rallies: list[tuple[dict[int, FrameState], list[tuple[int, int, int]]]] = []
-    for rally in sorted(truth_by_rally):
-        video = DATASET / "rallies" / f"{rally}.mp4"
-        if not video.exists():
-            continue
-        capture = cv2.VideoCapture(str(video))
-        fps = capture.get(cv2.CAP_PROP_FPS) or 25.0
-        capture.release()
-        court = court_file_for(rally, REPO / "data" / "datasets" / "courts")
-        if court is None:
-            raise SystemExit(f"{rally}: sin pista marcada")
-        states = build_states(video, pose_stage, ball_detector, load_corners(court), fps)
-        hits = [(round(h.time_s * fps), h.slot, h.team) for h in truth_by_rally[rally] if h.slot]
-        rallies.append((states, hits))
-        print(f"  {rally}: {len(hits)} golpes", flush=True)
+    for annotated in annotated_rallies(
+        DATASET, REPO / "data" / "datasets" / "courts", pose_stage, ball_detector
+    ):
+        fps = annotated.fps
+        hits = [(round(h.time_s * fps), h.slot, h.team) for h in annotated.hits if h.slot]
+        rallies.append((annotated.states, hits))
+        print(f"  {annotated.name}: {len(hits)} golpes", flush=True)
     print(f"\n{len(rallies)} rallies, {sum(len(h) for _, h in rallies)} golpes con verdad\n")
 
     def score(before: int, after: int, offset: int) -> tuple[float, float]:

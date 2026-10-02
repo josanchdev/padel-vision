@@ -12,11 +12,10 @@ def _dataset_progress(hits_csv: Path, out_dir: Path, skip: str = "") -> tuple[in
 
     Seeing only "3/16" hides how the session fits into the 2,377-hit whole.
     """
-    import csv as _csv
-
+    from padel_cv.cvsports import load_hits_csv
     from padel_cv.shot_type_annotator import load_marks
 
-    total = sum(1 for _ in _csv.DictReader(hits_csv.open()))
+    total = sum(len(windows) for windows in load_hits_csv(hits_csv).values())
     done = 0
     if out_dir.is_dir():
         for csv_file in out_dir.glob("*.csv"):
@@ -100,7 +99,8 @@ def main() -> int:
         import json as _json
 
         from padel_cv.court_annotator import annotate_court
-        from padel_cv.court_registry import COURTS_DIR, tournament_of
+        from padel_cv.court_registry import COURTS_DIR
+        from padel_cv.cvsports import tournament_of
 
         out = args.out or COURTS_DIR / f"{tournament_of(args.video.stem)}.json"
         homography = annotate_court(args.video, out, frame_index=args.frame)

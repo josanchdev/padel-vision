@@ -30,6 +30,8 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 
+from padel_cv.cvsports import load_hits_csv
+
 ImageArray = npt.NDArray[np.uint8]
 
 #: ADR-0016: four gesture classes; "Other" is the discard bin (not trained on,
@@ -72,12 +74,9 @@ class TypeMark:
 
 def load_hit_frames(csv_path: Path, video_name: str, fps: float) -> list[int]:
     """Hit frames for one rally from the CVSPORTS hits.csv (times in seconds)."""
-    frames: list[int] = []
-    for row in csv.DictReader(csv_path.open()):
-        if row["filename"] in (video_name, Path(video_name).stem):
-            centre = (float(row["start"]) + float(row["end"])) / 2
-            frames.append(round(centre * fps))
-    return sorted(frames)
+    hits = load_hits_csv(csv_path)
+    windows = hits.get(video_name) or hits.get(Path(video_name).stem) or []
+    return sorted(round((start + end) / 2 * fps) for start, end in windows)
 
 
 def save_marks(marks: list[TypeMark], csv_path: Path) -> None:
