@@ -49,3 +49,7 @@ output/
 # Points exported for the web viewer (scripts/export_points.py): 1080p videos,
 # regenerable from the raw rallies, far too heavy for git.
 packages/web/public/points/
+
+# Local assistant configuration: kept on this machine, not part of the project
+CLAUDE.md
+.claude/
