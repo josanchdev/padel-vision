@@ -38,6 +38,8 @@ uv run python scripts/evidence_dataset_stats.py        # el etiquetado propio
 uv run python scripts/evidence_ball_detector.py        # pelota, tal como la usa el sistema
 uv run python scripts/evaluate_chain_cv.py             # sistema completo por torneos (reentrena por ronda)
 uv run python scripts/evidence_chain_cv.py             # evidencias y figuras del anterior
+uv run python scripts/evidence_confidence_intervals.py # márgenes de error y comparación emparejada (sin GPU)
+uv run python scripts/evidence_processing_time.py      # coste de procesado por etapa
 ```
 
 ## Tabla 1: cada paso por separado
@@ -61,11 +63,18 @@ uv run python scripts/evidence_chain_cv.py             # evidencias y figuras de
 | `chain_cv.json` | **Cadena completa por torneos**: detección, jugador (VIGO), tipo y todo junto, con modelos que no vieron el torneo | `evaluate_chain_cv.py` + `evidence_chain_cv.py` |
 | `chain_cv_hits.csv` | Cada golpe de CVSPORTS en la cadena completa | `evidence_chain_cv.py` |
 
+## Márgenes de error
+
+| Fichero | Qué demuestra | Script |
+|---|---|---|
+| `confidence_intervals.json` | **Intervalos del 95%** de las cifras de las dos tablas (bootstrap por rallies) y la **diferencia con el paper** en asignación, emparejada sobre sus mismos 16 rallies | `evidence_confidence_intervals.py` |
+
 ## Componentes y datos
 
 | Fichero | Qué demuestra | Script |
 |---|---|---|
 | `ball_detector.json` | **Detector de pelota** en un partido que no vio, a 15, 30 y 60 px, con y sin limpieza | `evidence_ball_detector.py` |
+| `processing_time.json` | **Coste de procesado** por etapa (audio, pose, pelota, resto) en un rally | `evidence_processing_time.py` |
 | `dataset_shot_types.json` | **Etiquetado propio**: 2.377 golpes, reparto y desbalance | `evidence_dataset_stats.py` |
 | `dataset_per_tournament.json` | Golpes por torneo y clase (base del split por torneos) | ídem |
 
@@ -97,6 +106,7 @@ necesitaban código retirado: se regeneran desde la etiqueta git `pre-limpieza`.
 | `chain_cv_funnel.png` | De cada 100 golpes reales: detectados, jugador correcto, tipo correcto (VIGO) |
 | `chain_cv_per_tournament.png` | Sistema completo por torneo |
 | `chain_cv_type_confusion.png` | Matriz de confusión del tipo en la cadena completa |
+| `ball_training_tracknetv3.png`, `ball_training_tracknetv2.png` | Entrenamiento del detector de pelota, por época. Validación con el criterio de entrenamiento (512×288, unos 60 px); la cifra que se cita es la de `ball_detector.json`. Copiadas de `runs/`: solo se regeneran reentrenando |
 
 ## Evidencias que no se pueden regenerar
 

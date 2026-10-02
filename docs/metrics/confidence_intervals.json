@@ -1,0 +1,114 @@
+{
+  "name": "confidence_intervals",
+  "summary": "Intervalos de confianza del 95% de las cifras principales, por remuestreo de rallies (de torneos en el tipo de golpe de la tabla 1).",
+  "metrics": {
+    "tabla1_asignacion.player.valor": 0.8746,
+    "tabla1_asignacion.player.bajo": 0.7839,
+    "tabla1_asignacion.player.alto": 0.9356,
+    "tabla1_asignacion.team.valor": 0.9216,
+    "tabla1_asignacion.team.bajo": 0.8436,
+    "tabla1_asignacion.team.alto": 0.9683,
+    "tabla1_asignacion.player_minus_paper.valor": 0.0376,
+    "tabla1_asignacion.player_minus_paper.bajo": -0.054,
+    "tabla1_asignacion.player_minus_paper.alto": 0.0991,
+    "tabla1_asignacion.team_minus_paper.valor": 0.0533,
+    "tabla1_asignacion.team_minus_paper.bajo": -0.0294,
+    "tabla1_asignacion.team_minus_paper.alto": 0.102,
+    "tabla1_tipo.accuracy.valor": 0.8271,
+    "tabla1_tipo.accuracy.bajo": 0.8033,
+    "tabla1_tipo.accuracy.alto": 0.8497,
+    "tabla2_cadena.detection_f1.valor": 0.9476,
+    "tabla2_cadena.detection_f1.bajo": 0.9394,
+    "tabla2_cadena.detection_f1.alto": 0.9554,
+    "tabla2_cadena.type_accuracy.valor": 0.8345,
+    "tabla2_cadena.type_accuracy.bajo": 0.8106,
+    "tabla2_cadena.type_accuracy.alto": 0.8571,
+    "tabla2_cadena.end_to_end_when_what.valor": 0.8009,
+    "tabla2_cadena.end_to_end_when_what.bajo": 0.7743,
+    "tabla2_cadena.end_to_end_when_what.alto": 0.8262,
+    "tabla2_cadena.player_accuracy.valor": 0.8646,
+    "tabla2_cadena.player_accuracy.bajo": 0.7772,
+    "tabla2_cadena.player_accuracy.alto": 0.926,
+    "tabla2_cadena.team_accuracy.valor": 0.9201,
+    "tabla2_cadena.team_accuracy.bajo": 0.8407,
+    "tabla2_cadena.team_accuracy.alto": 0.9728,
+    "tabla2_cadena.end_to_end_vigo.valor": 0.7552,
+    "tabla2_cadena.end_to_end_vigo.bajo": 0.6685,
+    "tabla2_cadena.end_to_end_vigo.alto": 0.8223
+  },
+  "dataset": "Los ficheros de evidencia de docs/metrics y la caché de etiquetas",
+  "method": "Bootstrap por grupos, 10000 remuestreos, percentiles 2,5 y 97,5",
+  "params": {
+    "resamples": 10000,
+    "seed": 0,
+    "intervals": {
+      "tabla1_asignacion": {
+        "player": [
+          0.8746,
+          0.7839,
+          0.9356
+        ],
+        "team": [
+          0.9216,
+          0.8436,
+          0.9683
+        ],
+        "player_minus_paper": [
+          0.0376,
+          -0.054,
+          0.0991
+        ],
+        "team_minus_paper": [
+          0.0533,
+          -0.0294,
+          0.102
+        ]
+      },
+      "tabla1_tipo": {
+        "accuracy": [
+          0.8271,
+          0.8033,
+          0.8497
+        ]
+      },
+      "tabla2_cadena": {
+        "detection_f1": [
+          0.9476,
+          0.9394,
+          0.9554
+        ],
+        "type_accuracy": [
+          0.8345,
+          0.8106,
+          0.8571
+        ],
+        "end_to_end_when_what": [
+          0.8009,
+          0.7743,
+          0.8262
+        ],
+        "player_accuracy": [
+          0.8646,
+          0.7772,
+          0.926
+        ],
+        "team_accuracy": [
+          0.9201,
+          0.8407,
+          0.9728
+        ],
+        "end_to_end_vigo": [
+          0.7552,
+          0.6685,
+          0.8223
+        ]
+      }
+    }
+  },
+  "per_class": {},
+  "confusion": [],
+  "labels": [],
+  "notes": "La unidad de remuestreo es el rally porque los golpes de un mismo rally no son independientes. La comparación con el paper es emparejada: los mismos 16 rallies (su tabla 3), remuestreados a la vez para los dos métodos. Si el intervalo de la diferencia incluye el 0, la diferencia no es concluyente. El detector de audio no tiene intervalo aquí: su cifra ya es la media de 3 ejecuciones con su desviación típica (0.958 ± 0.007).",
+  "commit": "bc5bb35",
+  "timestamp": "2026-10-02T16:42:26+00:00"
+}

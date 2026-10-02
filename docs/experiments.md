@@ -1821,3 +1821,43 @@ También se reexportaron los 12 puntos de la web con el audio y el clasificador
 de producción nuevos, y se liberaron 66 GB de datos que ya no usa nada
 (PADELVIC, YouTube, cachés del enfoque viejo, datasets de pista; la caché de la
 pelota se regenera con el comando del README).
+
+### Última pasada: duplicados, márgenes de error y medidas finales (2 oct 2026)
+
+**Código duplicado.** El sistema y las medidas tenían copiados los mismos pasos
+(el fallo del tracker vino de ahí): el bucle por frames (3 copias), lo que lee
+el voto (4), el entrenamiento del audio (3), el torneo a partir del nombre (5),
+la lectura de hits.csv (4), la carga del clasificador (3) y dos formatos JSON
+para los datos de un punto. Ahora hay una sola implementación de cada uno
+(`track_rally`, `frame_states`, `fit`, `padel_cv.cvsports`, `ShotClassifier`,
+`point.json`). Comprobado en GPU antes y después: `analyze_rally` da la misma
+huella byte a byte, la caché se regenera idéntica y la tabla 2 re-puntuada da
+las mismas filas golpe a golpe. Se retiró la detección de botes, que no usaba ni
+medía nada.
+
+**Una diferencia real al unificar.** El constructor de ejemplos del clasificador
+elegía al golpeador con una caja reconstruida desde el esqueleto (de mediana el
+81% de la altura de la caja del detector), no con la caja del detector como el
+sistema: en 48 de 2.210 golpes (2,2%) cogía el esqueleto de otro jugador. En los
+4 de esos casos que caen en VIGO, la elección del sistema acierta 2 y la antigua
+ninguna. Corregido; el tipo de golpe se re-midió:
+
+| Cifra | Antes | Ahora |
+|---|---|---|
+| Tipo, tabla 1 (accuracy / macro-F1) | 81,98 % / 0,852 | 82,71 % / 0,859 |
+| Tipo, tabla 2 | 83,9 % | 83,5 % |
+| Detectado y bien clasificado | 80,5 % | 80,1 % |
+| Audio, media de 3 ejecuciones | 0,957 | 0,958 (variación de GPU) |
+
+Todo lo demás salió idéntico al re-ejecutarlo desde el commit limpio.
+
+**Márgenes de error** (`confidence_intervals.json`, bootstrap por rallies). La
+cifra que más cambia de lectura es la asignación: 87,46% en jugador, con un
+intervalo del 95% de 78,4 a 93,6. Comparada rally a rally con la tabla 3 del
+paper (mismos 16 rallies, mismos golpes), la diferencia es +3,8 puntos, con un
+intervalo de −5,4 a +9,9: **no es concluyente**. La frase correcta es que el
+método se reproduce con un acierto al menos comparable, no que lo supere.
+
+**Coste de procesado**, ahora con su script (`processing_time.json`): 67,5 s
+para 64,3 s de vídeo, 1,05× tiempo real (la tabla anterior, medida a mano en
+septiembre, daba 1,41×).

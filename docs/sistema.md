@@ -7,7 +7,7 @@ midió y cuánto tarda.
 
 ## El problema
 
-Dado el vídeo de un partido de pádel grabado desde la cámara fija habitual de
+Dado el vídeo de un punto de pádel grabado desde la cámara fija habitual de
 retransmisión, responder automáticamente tres preguntas por cada golpe:
 
 1. **¿CUÁNDO?** — el instante exacto del golpe
@@ -25,7 +25,7 @@ detección binaria y no clasifica el gesto.
 ```
 Vídeo (mp4 con audio)
    │
-   ├─1─ AUDIO ──────────► CRNN ──────────► instantes de golpe        F1 0,957
+   ├─1─ AUDIO ──────────► CRNN ──────────► instantes de golpe        F1 0,958
    │
    ├─2─ IMAGEN ─────────► YOLO26-pose ───► esqueletos + identidad J1-J4
    │                      + máscara de pista + re-identificación
@@ -36,8 +36,8 @@ Vídeo (mp4 con audio)
    ├─4─ 1+2+3 ──────────► voto ponderado ► QUIÉN golpeó       87,46% jugador
    │                                                          92,16% equipo
    │
-   └─5─ pose + pelota ──► BST-0 ─────────► TIPO de golpe      81,98% acc
-                          + regla del saque                   0,852 macro-F1
+   └─5─ pose + pelota ──► BST-0 ─────────► TIPO de golpe      82,71% acc
+                          + regla del saque                   0,859 macro-F1
 ```
 
 Las cifras de cada paso son las del sistema final ([Resultados](#resultados)).
@@ -62,10 +62,13 @@ gratis.
 
 **De dónde sale.** Reimplementado del paper de Decorte et al. (arquitectura
 SED-net adaptada). **Se probó primero el camino propio** —detectar el golpe por
-pose y trayectoria de pelota— y se descartó midiéndolo: F1 0,821 frente a 0,957
-del audio sobre los mismos datos.
+pose y trayectoria de pelota— y se descartó midiéndolo: F1 0,821 frente a 0,956
+del audio sobre los mismos datos (medida histórica,
+`method_comparison_same_data.json`).
 
-**Resultado:** F1 **0,957** (el paper reporta 0,92).
+**Resultado:** F1 **0,958** de media en 3 ejecuciones (± 0,007), con precisión
+0,972 y recall 0,945. El paper reporta 0,92 con otro criterio (ver la nota de
+Resultados).
 
 ### Paso 2 — Los jugadores
 
@@ -91,7 +94,7 @@ detector no sabe que son siempre los mismos cuatro: en cada frame encuentra
 instante, al reaparecer sería alguien nuevo. Sin resolver esto no se puede
 afirmar "J3 ha jugado 12 derechas", porque no habría forma de saber que esas 12
 son de la misma persona. El componente de identidad mantiene los números J1-J4
-estables durante todo el partido y los recupera tras las oclusiones.
+estables durante todo el punto y los recupera tras las oclusiones.
 
 **Lo propio aquí.** La numeración inicial y la re-identificación se replican del
 paper (por posiciones de aparición y desaparición, no por apariencia: los
@@ -147,8 +150,11 @@ uno solo lo hace robusto a que falte la pose o la pelota en el instante exacto.
   también desplazarla y hacerla asimétrica —por si hubiera desfase entre audio e
   imagen— y ambas salieron peores.
 
-**Resultado:** **87,46%** por jugador, **92,16%** por equipo (paper: 83,70% y
-86,83%), sobre su mismo ground truth de 319 golpes anotados.
+**Resultado:** **87,46%** por jugador (intervalo del 95%: 78,4–93,6) y
+**92,16%** por equipo (84,4–96,8), sobre los mismos 319 golpes anotados que el
+paper (83,70% y 86,83%). Quedamos por encima en la media, pero con solo 16
+rallies la diferencia no es concluyente: en la comparación emparejada, rally a
+rally, su intervalo del 95% va de −5,4 a +9,9 puntos en jugador.
 
 ### Paso 5 — QUÉ TIPO (la aportación propia)
 
@@ -172,15 +178,14 @@ está atribuido) y un indicador de presencia en la pelota.
 - **La regla del saque**: solo el primer golpe de un peloteo puede ser un saque.
   Verificado sobre las etiquetas, los 97 saques lo son sin excepción. Es una
   regla del reglamento, no algo que el modelo deba adivinar: su precisión pasa
-  de 0,761 a 1,000 sin perder ni un saque real (recall 0,905 con y sin ella).
+  de 0,861 a 1,000 sin perder ni un saque real (recall 0,916 con y sin ella).
 - **Sin pesos de clase.** El saque está 8,4:1 en desventaja y la práctica
-  habitual es compensarlo en la pérdida. Antes de la regla del saque, ponderar lo
-  empeoraba; con la regla, da lo mismo (macro-F1 0,852 sin pesos, 0,854 con
-  pesos por frecuencia inversa): es la regla, no la pérdida, lo que protege al
-  saque.
+  habitual es compensarlo en la pérdida. Con la regla del saque no hace falta:
+  macro-F1 0,859 sin pesos, 0,855 con potencia 0,5 y 0,857 con frecuencia
+  inversa. Es la regla, no la pérdida, lo que protege al saque.
 
-**Resultado:** accuracy **81,98%**, macro-F1 **0,852**, en validación cruzada
-dejando torneos enteros fuera.
+**Resultado:** accuracy **82,71%** (intervalo del 95%: 80,3–85,0), macro-F1
+**0,859**, en validación cruzada dejando torneos enteros fuera.
 
 ---
 
@@ -204,17 +209,20 @@ clics por torneo, como en el paper (ADR-0018).
 
 ## Resultados
 
-Cada cifra se mide sobre los datos que la columna indica. Detección y asignación
-usan el ground truth publicado con CVSPORTS_Padel y el mismo protocolo que el
-paper; el tipo de golpe usa el etiquetado propio.
+Cada cifra se mide con la configuración exacta del sistema que se entrega y sobre
+los datos que la columna indica. Detección y asignación usan el ground truth
+publicado con CVSPORTS_Padel y el mismo protocolo que el paper; el tipo de golpe
+usa el etiquetado propio. El intervalo del 95% se calcula remuestreando rallies
+(torneos, en el tipo de golpe), porque los golpes de un mismo rally no son
+independientes (`confidence_intervals.json`).
 
-| Métrica | Este trabajo | Paper de referencia | Datos |
-|---|---|---|---|
-| Detección de golpes (F1) | **0,957** | 0,92 | CVSPORTS, 99 rallies (media de 3 ejecuciones); criterio de emparejamiento distinto, ver nota |
-| Asignación — jugador | **87,46 %** | 83,70 % | CVSPORTS, VIGO, 319 golpes |
-| Asignación — equipo | **92,16 %** | 86,83 % | CVSPORTS, VIGO, 319 golpes |
-| Clasificación de tipo (accuracy) | **81,98 %** | *no lo hace* | etiquetado propio: 2.187 golpes de las 4 clases con jugador asignado, por torneos |
-| Clasificación de tipo (macro-F1) | **0,852** | *no lo hace* | ídem |
+| Métrica | Este trabajo | Intervalo 95% | Paper de referencia | Datos |
+|---|---|---|---|---|
+| Detección de golpes (F1) | **0,958** | ± 0,007 (3 ejecuciones) | 0,92 | CVSPORTS, 99 rallies; criterio de emparejamiento distinto, ver nota |
+| Asignación — jugador | **87,46 %** | 78,4 – 93,6 | 83,70 % | CVSPORTS, VIGO, 319 golpes |
+| Asignación — equipo | **92,16 %** | 84,4 – 96,8 | 86,83 % | CVSPORTS, VIGO, 319 golpes |
+| Clasificación de tipo (accuracy) | **82,71 %** | 80,3 – 85,0 | *no lo hace* | etiquetado propio: 2.186 golpes de las 4 clases con jugador asignado, por torneos |
+| Clasificación de tipo (macro-F1) | **0,859** | | *no lo hace* | ídem |
 
 Componente propio, sin cifra equivalente en el paper (no se compara):
 
@@ -224,13 +232,16 @@ Componente propio, sin cifra equivalente en el paper (no se compara):
 
 Cómo leer la comparación con el paper:
 
-- **Asignación: comparación directa.** Son los mismos 319 golpes (los 16 rallies
-  de la tabla 3 del paper, con el mismo número de golpes cada uno) y la misma
-  métrica: acierto medio ponderado por golpes, contando como fallo los golpes
-  que no se asignan, en ambos casos. Se evalúa con los instantes **anotados**,
-  no con los detectados, para medir ese paso aislado, y con la configuración
-  exacta del sistema (pista marcada a mano, umbral de detección de personas
-  0,25).
+- **Asignación: comparación directa, resultado comparable.** Son los mismos 319
+  golpes (los 16 rallies de la tabla 3 del paper, con el mismo número de golpes
+  cada uno) y la misma métrica: acierto medio ponderado por golpes, contando como
+  fallo los golpes que no se asignan, en ambos casos. Se evalúa con los
+  instantes **anotados**, no con los detectados, para medir ese paso aislado.
+  Quedamos +3,8 puntos por encima en jugador y +5,3 en equipo, pero comparando
+  rally a rally con su tabla 3 el intervalo del 95% de la diferencia incluye el
+  cero (jugador −5,4 a +9,9; equipo −2,9 a +10,2): con 16 rallies, la mejora no
+  es concluyente. Lo que sí se sostiene es que el método se reproduce con un
+  acierto al menos comparable.
 - **Las mejoras de la asignación se eligieron midiendo sobre esos mismos 319
   golpes** (normalizar la distancia por altura, la ventana de ±4 frames, la
   resolución del detector de pelota), así que la cifra puede ser algo optimista.
@@ -239,7 +250,8 @@ Cómo leer la comparación con el paper:
 - **Detección: mismo orden de magnitud, no una comparación exacta.** El paper
   empareja eventos por su inicio y su fin (métrica event-based de sed_eval) y
   promedia 4 particiones de los rallies; aquí se empareja por el instante del
-  golpe. Con criterios distintos, 0,957 frente a 0,92 no demuestra una mejora.
+  golpe y se promedian 3. Con criterios distintos, 0,958 frente a 0,92 no
+  demuestra una mejora.
 - **Tipo de golpe y pelota no se comparan con el paper**: el paper no
   clasifica golpes ni mide su detector de pelota en pádel. Solo se compara donde
   hay la misma prueba.
@@ -251,14 +263,14 @@ funciona en uso real: el audio decide cuándo, el voto decide quién en el
 instante que encontró el audio, y el clasificador decide qué. Cada torneo se
 evalúa con modelos (audio y clasificador) entrenados **sin él**.
 
-| Métrica | Sistema completo |
-|---|---|
-| Detección de golpes (F1) | **0,948** |
-| Jugador (VIGO) | **86,5 %** |
-| Equipo (VIGO) | **92,0 %** |
-| Tipo de golpe (accuracy) | **83,9 %** |
-| Golpes detectados y con el tipo correcto | **80,5 %** |
-| Detectado, jugador y tipo correctos (VIGO) | **75,5 %** |
+| Métrica | Sistema completo | Intervalo 95% |
+|---|---|---|
+| Detección de golpes (F1) | **0,948** | 0,939 – 0,955 |
+| Jugador (VIGO) | **86,5 %** | 77,7 – 92,6 |
+| Equipo (VIGO) | **92,0 %** | 84,1 – 97,3 |
+| Tipo de golpe (accuracy) | **83,5 %** | 81,1 – 85,7 |
+| Golpes detectados y con el tipo correcto | **80,1 %** | 77,4 – 82,6 |
+| Detectado, jugador y tipo correctos (VIGO) | **75,5 %** | 66,9 – 82,2 |
 
 Las cifras bajan respecto a los pasos aislados porque los errores se encadenan:
 un golpe no detectado no puede asignarse, y un golpe asignado al jugador
@@ -270,25 +282,46 @@ rallies). Evidencia: `docs/metrics/chain_cv.json` y sus figuras.
 
 ## Coste de procesado
 
-Medido sobre un peloteo real (1.608 frames, 1080p, 25 fps) en una RTX 3090:
+Medido con `analyze_rally` sobre un rally real (VIGO_11: 1.608 frames, 64 s,
+1080p, 25 fps) en una RTX 3090, sin contar la primera pasada de calentamiento
+(`processing_time.json`):
 
 | Etapa | Tiempo | % |
 |---|---|---|
-| Audio (CRNN) | 1,0 s | 1,1 % |
-| Pose (YOLO26n) | 52,4 s | 57,8 % |
-| Pelota (TrackNetV3) | 37,3 s | 41,1 % |
-| **Total** | **90,7 s** | |
+| Audio (CRNN) | 0,2 s | 0,2 % |
+| Pose (YOLO26n) | 27,1 s | 40,2 % |
+| Pelota (TrackNetV3) | 26,3 s | 39,1 % |
+| Resto (decodificar el vídeo, identidad, voto, clasificador) | 13,8 s | 20,5 % |
+| **Total** | **67,5 s** | |
 
-**Factor: 1,41× tiempo real.**
+**Factor: 1,05× tiempo real**: un minuto de vídeo se procesa en algo más de un
+minuto. El vídeo anotado es una segunda pasada opcional y no se cuenta.
 
-| Duración del vídeo | Tiempo de proceso |
-|---|---|
-| 1 minuto | 1,4 min |
-| 5 minutos | 7 min |
-| Partido de 60 min | ~85 min |
+El audio, que resuelve la pregunta más difícil, cuesta el 0,2% del total. El
+gasto está en la visión, repartido casi a partes iguales entre pose y pelota.
 
-El audio, que resuelve la pregunta más difícil, cuesta el 1% del total. El gasto
-está en la visión, y dentro de ella la pose domina sobre la pelota.
+---
+
+## Limitaciones
+
+Lo que un lector tiene que saber para interpretar las cifras:
+
+- **El quién se mide en un solo torneo.** Solo los 16 rallies de VIGO traen el
+  jugador anotado (319 golpes), así que sus intervalos son anchos (unos ±8
+  puntos) y la comparación con el paper no es concluyente.
+- **Los ajustes de la asignación se eligieron sobre esos mismos golpes**
+  (distancia en alturas de cuerpo, ventana de ±4 frames, resolución de la
+  pelota), lo que puede hacer la cifra algo optimista.
+- **Un único etiquetador.** Los 2.377 tipos los etiquetó una persona; no hay
+  medida de acuerdo entre anotadores.
+- **El jugador de cada ejemplo de entrenamiento lo elige el propio voto**
+  (87,5% de acierto en VIGO), no una etiqueta: una parte de los ejemplos lleva
+  el esqueleto de otro jugador. El clasificador se entrena así con la misma
+  elección que verá en uso.
+- **La pelota se mide en otro partido de la misma pista y la misma cámara**
+  (las dos finales de Barcelona 2022): no mide la generalización a otras pistas.
+- **Todo son retransmisiones del World Padel Tour** (11 torneos), con la cámara
+  fija elevada habitual.
 
 ---
 

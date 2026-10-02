@@ -1,0 +1,25 @@
+{
+  "name": "processing_time",
+  "summary": "Coste de procesado: 67.5 s para 64.3 s de vídeo (1.05x tiempo real) en una NVIDIA GeForce RTX 3090.",
+  "metrics": {
+    "total_s": 67.46,
+    "video_s": 64.32,
+    "realtime_factor": 1.049,
+    "audio_s": 0.17,
+    "pose_s": 27.13,
+    "pelota_s": 26.34,
+    "resto_s": 13.82
+  },
+  "dataset": "20230528_VIGO_11: 1608 frames, 1920x1080, 25 fps",
+  "method": "analyze_rally completo, una pasada de calentamiento previa sin contar",
+  "params": {
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "rally": "20230528_VIGO_11"
+  },
+  "per_class": {},
+  "confusion": [],
+  "labels": [],
+  "notes": "«resto» es decodificar el vídeo, la identidad J1-J4, la limpieza de la pelota, el voto y el clasificador. El vídeo anotado no se cuenta: es una segunda pasada opcional (rally_render).",
+  "commit": "baec97a",
+  "timestamp": "2026-10-02T16:48:24+00:00"
+}
