@@ -1,5 +1,8 @@
+import numpy as np
 import torch
+from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, ShotWindow
 from padel_ml.shot_type_model import TCN, ShotTypeBST, sinusoidal_encoding
+from padel_ml.shot_type_train import ShotClassifier
 
 
 def test_output_shape_is_one_logit_per_class() -> None:
@@ -37,3 +40,20 @@ def test_the_ball_changes_the_prediction() -> None:
         a = model(pose, torch.zeros(1, 30, 3))
         b = model(pose, torch.randn(1, 30, 3))
     assert not torch.allclose(a, b, atol=1e-5)
+
+
+def test_a_saved_classifier_gives_one_distribution_per_window(tmp_path) -> None:
+    model = ShotTypeBST(seq_len=SEQ_LEN, n_classes=len(CLASSES))
+    torch.save({"state_dict": model.state_dict(), "seq_len": SEQ_LEN}, tmp_path / "bst.pt")
+    classify = ShotClassifier(tmp_path / "bst.pt", device="cpu")
+    window = ShotWindow(
+        pose=np.zeros((SEQ_LEN, 17, 3), np.float32),
+        ball=np.zeros((SEQ_LEN, 3), np.float32),
+        label=0,
+        rally="r",
+        tournament="t",
+        hit_frame=0,
+    )
+    probabilities = classify(window)
+    assert probabilities.shape == (len(CLASSES),)
+    assert abs(float(probabilities.sum()) - 1.0) < 1e-5

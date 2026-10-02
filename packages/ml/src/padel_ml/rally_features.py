@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 
 from padel_cv.cvsports import tournament_of
-from padel_cv.pipeline import PoseDetection
+from padel_cv.detections import PoseDetection
 
 
 @dataclass

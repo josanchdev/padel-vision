@@ -14,7 +14,7 @@ from types import TracebackType
 import cv2
 import imageio.v2 as imageio
 
-from padel_cv.pipeline import ImageArray
+from padel_cv.arrays import ImageArray
 
 
 class H264VideoWriter:

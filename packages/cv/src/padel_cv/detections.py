@@ -1,20 +1,12 @@
-"""Core per-frame data types.
-
-A ``Frame`` carries one video frame and what has been found in it. A step that
-works frame by frame implements ``PipelineStage``: it receives a ``Frame``,
-enriches it with its own results, and returns it; if it needs temporal context
-it keeps that state internally (see ``stages.pose.PlayerPoseStage``).
-"""
+"""What the detectors find in a frame: people with their skeletons, and the ball."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Protocol, runtime_checkable
+from dataclasses import dataclass
 
 import numpy as np
 import numpy.typing as npt
 
-ImageArray = npt.NDArray[np.uint8]
 KeypointArray = npt.NDArray[np.float32]
 """Array of shape (17, 3): COCO keypoints as (x, y, confidence) rows."""
 
@@ -44,22 +36,3 @@ class BallDetection:
 
     image_xy: tuple[float, float]
     confidence: float
-
-
-@dataclass
-class Frame:
-    """A single video frame plus everything the pipeline has learned about it."""
-
-    index: int
-    timestamp_s: float
-    image: ImageArray
-    poses: list[PoseDetection] = field(default_factory=list)
-
-
-@runtime_checkable
-class PipelineStage(Protocol):
-    """Common interface for every step of the analysis pipeline."""
-
-    def process(self, frame: Frame) -> Frame:
-        """Enrich ``frame`` with this stage's results and return it."""
-        ...

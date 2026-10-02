@@ -13,8 +13,8 @@ conservan: el camino recorrido también explica el sistema final.
 | [0006](0006-court-two-track.md) | Pista en dos vías: detector y calibración estática | superada por 0018 |
 | [0007](0007-job-queue-arq.md) | Cola de trabajos Arq sobre Redis | superada por 0017 |
 | [0008](0008-shot-classifier-design.md) | Clasificador de golpes ST-GCN / PoseConv3D | superada por 0016 |
-| [0009](0009-ball-detection-tracknet.md) | Pelota con TrackNet y botes | vigente |
-| [0010](0010-structured-data-layer.md) | Datos estructurados como producto | vigente en parte |
+| [0009](0009-ball-detection-tracknet.md) | Pelota con TrackNet y botes | vigente la pelota; botes retirados |
+| [0010](0010-structured-data-layer.md) | Datos estructurados como producto | vigente, con `point.json` como único formato |
 | [0011](0011-web-stack-react-vite-motion.md) | Web con React, Vite y Motion | vigente; el despliegue lo cambia 0017 |
 | [0012](0012-shot-detection-by-ball.md) | Detectar golpes por la pelota | superada por 0013 |
 | [0013](0013-shot-two-stage-learned.md) | Golpes con dos modelos aprendidos | superada por 0015 |

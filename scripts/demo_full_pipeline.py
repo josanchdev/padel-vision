@@ -14,11 +14,13 @@ measurements are the cross-tournament evaluations in docs/metrics
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import torch
 from padel_ml.rally_analysis import ModelPaths, RallyModels, analyze_rally
 from padel_ml.rally_render import SPANISH, render_rally
+from padel_ml.web_export import describe, point_record
 
 from padel_cv.court_annotator import court_or_mark
 from padel_cv.paths import RUNS
@@ -37,7 +39,9 @@ def main() -> None:
     parser.add_argument(
         "--court", type=Path, help="Court JSON (default: resolved from the video name)"
     )
-    parser.add_argument("--data", type=Path, help="Also write the web's JSON here")
+    parser.add_argument(
+        "--data", type=Path, help="Also write the point's data (the web's point.json)"
+    )
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
 
@@ -62,7 +66,9 @@ def main() -> None:
         )
 
     if args.data is not None:
-        analysis.to_match_data().write_json(args.data)
+        args.data.write_text(
+            json.dumps(point_record(args.rally.stem, describe(args.rally.stem), analysis), indent=1)
+        )
     render_rally(analysis, args.out)
     print(f"\n[done] {args.out}")
 

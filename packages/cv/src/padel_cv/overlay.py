@@ -20,7 +20,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 
-ImageArray = npt.NDArray[np.uint8]
+from padel_cv.arrays import ImageArray
 
 FONT = cv2.FONT_HERSHEY_DUPLEX
 """Duplex over SIMPLEX: same metrics, noticeably cleaner strokes."""

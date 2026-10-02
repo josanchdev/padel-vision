@@ -28,11 +28,9 @@ from typing import cast
 
 import cv2
 import numpy as np
-import numpy.typing as npt
 
+from padel_cv.arrays import ImageArray
 from padel_cv.cvsports import load_hits_csv
-
-ImageArray = npt.NDArray[np.uint8]
 
 #: ADR-0016: four gesture classes; "Other" is the discard bin (not trained on,
 #: used to calibrate the rejection threshold).

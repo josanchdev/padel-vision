@@ -24,9 +24,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
-import numpy.typing as npt
 
-FloatArray = npt.NDArray[np.float32]
+from padel_cv.arrays import FloatArray
 
 BALL_CATEGORY_ID = 1  # "Ball" in PadelTracker100 COCO categories
 

@@ -32,19 +32,15 @@ import csv
 import json
 from dataclasses import asdict
 from pathlib import Path
-from typing import cast
 
-import numpy as np
-import numpy.typing as npt
 import torch
 from padel_ml.audio_train import detect_hits_in_audio, fit_and_save, match_events
 from padel_ml.chain_eval import Row, summarize
 from padel_ml.hit_assignment_gt import load_hit_assignments
 from padel_ml.rally_analysis import Classifier, resolve_shots
 from padel_ml.rally_features import RallyFeatures, load_rally_features
-from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, ShotWindow, build_dataset
-from padel_ml.shot_type_model import ShotTypeBST
-from padel_ml.shot_type_train import fit
+from padel_ml.shot_type_dataset import SEQ_LEN, ShotWindow, build_dataset
+from padel_ml.shot_type_train import ShotClassifier, fit
 
 from padel_cv.cvsports import load_hits_csv
 from padel_cv.paths import (
@@ -75,23 +71,6 @@ def _type_labels(rally: str, fps: float) -> dict[float, str]:
         for r in csv.DictReader(path.open(), delimiter=";")
         if r["type"]
     }
-
-
-def _classifier(path: Path, device: str) -> Classifier:
-    checkpoint = torch.load(path, map_location=device, weights_only=False)
-    model = ShotTypeBST(seq_len=SEQ_LEN, n_classes=len(CLASSES)).to(device)
-    model.load_state_dict(checkpoint["state_dict"])
-    model.eval()
-
-    def classify(window: ShotWindow) -> npt.NDArray[np.float32]:
-        with torch.no_grad():
-            logits = model(
-                torch.from_numpy(window.pose)[None].to(device),
-                torch.from_numpy(window.ball)[None].to(device),
-            )
-        return cast(npt.NDArray[np.float32], torch.softmax(logits, dim=1)[0].cpu().numpy())
-
-    return classify
 
 
 def _train_fold(
@@ -195,7 +174,7 @@ def main() -> None:
             rows.extend(Row(**r) for r in json.loads(result_path.read_text()))
             print(f"[{tournament}] ya evaluado", flush=True)
             continue
-        classify = _classifier(fold / "bst.pt", device)
+        classify = ShotClassifier(fold / "bst.pt", device)
         fold_rows: list[Row] = []
         for rally in (r for r in rallies if r.tournament == tournament):
             who = {h.time_s: h.slot for h in who_truth.get(rally.rally, []) if h.slot}

@@ -27,7 +27,6 @@ FRAME_H = 288
 SHARD_SIZE = 1000
 
 UInt8Array = npt.NDArray[np.uint8]
-FloatArray = npt.NDArray[np.float32]
 
 
 def _shard_path(cache_dir: Path, start: int) -> Path:

@@ -29,7 +29,6 @@ COURTS = DATA / "labels" / "courts"
 CACHE = DATA / "cache"
 RALLY_FEATURES = CACHE / "rally_features"
 AUDIO_FEATURES = CACHE / "audio_features.npz"
-BALL_FRAMES = CACHE / "ball_frames"
 
 RUNS = REPO / "runs"
 METRICS = REPO / "docs" / "metrics"

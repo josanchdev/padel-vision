@@ -1,5 +1,1 @@
-"""Padel Vision computer vision: players, court and the labelling tools."""
-
-from padel_cv.pipeline import Frame, PipelineStage, PoseDetection
-
-__all__ = ["Frame", "PipelineStage", "PoseDetection"]
+"""Padel Vision computer vision: people, the court and the labelling tools."""

@@ -1,7 +1,7 @@
 import numpy as np
 
 from padel_cv.court import ankle_midpoint, is_on_court, localize_pose, project_point
-from padel_cv.pipeline import PoseDetection
+from padel_cv.detections import PoseDetection
 
 
 def make_pose(ankle_confidence: float = 0.9) -> PoseDetection:

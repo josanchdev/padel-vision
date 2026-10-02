@@ -26,7 +26,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 
-from padel_cv.pipeline import PoseDetection
+from padel_cv.detections import PoseDetection
 
 INITIAL_WINDOW_S = 3.0
 """Paper: players are numbered from their average position over the rally's

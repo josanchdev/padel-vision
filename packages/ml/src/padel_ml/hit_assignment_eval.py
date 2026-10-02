@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from padel_cv.court_registry import court_file_for
-from padel_cv.stages.pose import PlayerPoseStage
+from padel_cv.pose import PoseDetector
 from padel_ml.ball_infer import BallDetector
 from padel_ml.ball_postprocess import postprocess_ball
 from padel_ml.hit_assignment import FrameState, frame_states
@@ -33,7 +33,7 @@ class AnnotatedRally:
 
 
 def annotated_rallies(
-    dataset_dir: Path, courts_dir: Path, pose: PlayerPoseStage, ball: BallDetector
+    dataset_dir: Path, courts_dir: Path, pose: PoseDetector, ball: BallDetector
 ) -> Iterator[AnnotatedRally]:
     """Every rally with a per-hit player annotation, in order, ready to vote on."""
     truth = load_hit_assignments(dataset_dir / "metadata" / "hit_assignments.xlsx")

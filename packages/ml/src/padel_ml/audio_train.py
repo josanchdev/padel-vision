@@ -13,15 +13,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
-import numpy.typing as npt
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
+from padel_cv.arrays import FloatArray
 from padel_cv.cvsports import load_hits_csv
 from padel_ml.audio_dataset import SEQ_LEN, RallyAudio, build_rally, frame_time
 from padel_ml.audio_detector import AudioHitCRNN, focal_bce_loss
-
-FloatArray = npt.NDArray[np.float32]
 
 DEFAULT_THRESHOLD = 0.5
 """Detection threshold, measured rather than assumed.

@@ -26,12 +26,12 @@ from padel_ml.rally_analysis import POSE_CONFIDENCE, track_rally
 
 from padel_cv.court_registry import court_file_for
 from padel_cv.paths import CVSPORTS_RALLIES, RALLY_FEATURES, RUNS
-from padel_cv.stages.pose import PlayerPoseStage
+from padel_cv.pose import PoseDetector
 
 BALL_CKPT = RUNS / "ball_full" / "tracknetv3.pt"
 
 
-def extract(video: Path, pose_stage: PlayerPoseStage, ball: BallDetector) -> dict[str, object]:
+def extract(video: Path, pose_stage: PoseDetector, ball: BallDetector) -> dict[str, object]:
     """Pose (with stable player ids) + cleaned ball track for one rally."""
     court_json = court_file_for(video.stem)
     tracks = track_rally(video, pose_stage, ball, court_json)
@@ -72,7 +72,7 @@ def main() -> None:
     # pair is exactly who a higher threshold drops. yolo26n beats the larger 26m
     # here (85% vs 55%) and is twice as fast — the bottleneck is the tiny
     # far-side players, not model capacity.
-    pose_stage = PlayerPoseStage(device=args.device, confidence=POSE_CONFIDENCE)
+    pose_stage = PoseDetector(device=args.device, confidence=POSE_CONFIDENCE)
     started = time.perf_counter()
     total_frames = 0
     for i, video in enumerate(pending, 1):

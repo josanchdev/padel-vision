@@ -25,12 +25,11 @@ from pathlib import Path
 import numpy as np
 import numpy.typing as npt
 
+from padel_cv.arrays import FloatArray
 from padel_cv.cvsports import tournament_of
-from padel_cv.pipeline import PoseDetection
+from padel_cv.detections import PoseDetection
 from padel_ml.hit_assignment import assign_hit, frame_states
 from padel_ml.rally_features import load_rally_features
-
-FloatArray = npt.NDArray[np.float32]
 
 CLASSES = ["Forehand", "Backhand", "Smash", "Serve"]
 CLASS_TO_INDEX = {name: i for i, name in enumerate(CLASSES)}

@@ -23,8 +23,6 @@ import numpy as np
 import numpy.typing as npt
 import torch
 
-FloatArray = npt.NDArray[np.float32]
-
 
 def peak_xy(heatmap: torch.Tensor) -> tuple[int, int]:
     """(H, W) heatmap -> (x, y) of its argmax cell."""

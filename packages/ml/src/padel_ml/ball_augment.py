@@ -14,9 +14,8 @@ Two rules specific to this task:
 from __future__ import annotations
 
 import numpy as np
-import numpy.typing as npt
 
-FloatArray = npt.NDArray[np.float32]
+from padel_cv.arrays import FloatArray
 
 
 def augment_window(window: FloatArray, rng: np.random.Generator) -> FloatArray:

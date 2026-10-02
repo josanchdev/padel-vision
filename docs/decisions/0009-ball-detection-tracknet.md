@@ -1,6 +1,8 @@
 # ADR-0009: Detección de pelota y botes (Nivel 3)
 
-**Estado:** aceptada · 2026-07-26
+**Estado:** aceptada en parte · 2026-10-02 — la pelota (TrackNetV3) sigue; la detección de botes se retiró en la limpieza: no la usaba ni la medía nada
+
+**Estado original:** aceptada · 2026-07-26
 
 ## Contexto
 

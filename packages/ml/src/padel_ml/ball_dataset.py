@@ -25,11 +25,10 @@ import numpy.typing as npt
 import torch
 from torch.utils.data import Dataset
 
+from padel_cv.arrays import FloatArray
 from padel_cv.ball_cache import FRAME_H, FRAME_W
 from padel_cv.ball_data import INPUT_FRAMES, render_heatmap
 from padel_ml.ball_augment import augment_window
-
-FloatArray = npt.NDArray[np.float32]
 
 # Heatmap output grid. Quarter of the input resolution keeps the ball blob a few
 # cells wide while making the target cheap to learn (TrackNetV2 uses this ratio).

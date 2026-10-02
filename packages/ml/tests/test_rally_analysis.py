@@ -1,11 +1,9 @@
-from pathlib import Path
-
 import numpy as np
-from padel_ml.rally_analysis import UNKNOWN_PLAYER, RallyAnalysis, Shot, resolve_shots
+from padel_ml.rally_analysis import resolve_shots
 from padel_ml.shot_type_dataset import CLASSES
 from padel_ml.shot_type_train import best_class
 
-from padel_cv.pipeline import PoseDetection
+from padel_cv.detections import PoseDetection
 
 FPS = 25.0
 SERVE = CLASSES.index("Serve")
@@ -100,30 +98,3 @@ def test_hit_with_nobody_around_is_reported_not_dropped() -> None:
     assert shots[0].player_id is None
     assert shots[0].shot_type is None
     assert shots[0].probabilities is None
-
-
-def test_match_data_marks_unknown_players_and_unclassified_shots() -> None:
-    pose = _player(2, 500, 500)
-    pose.court_position_m = (4.0, 12.0)
-    pose.on_court = True
-    analysis = RallyAnalysis(
-        video=Path("rally.mp4"),
-        fps=FPS,
-        width=1920,
-        height=1080,
-        n_frames=1,
-        court=None,
-        shots=[
-            Shot(0, 0.0, None, None, 0.0, None),
-            Shot(10, 0.4, 2, "Forehand", 0.9, (0.9, 0.05, 0.03, 0.02)),
-        ],
-        players={0: [pose]},
-        ball={},
-        ball_smoothed={},
-        bounces=[],
-    )
-    data = analysis.to_match_data().to_dict()
-    assert [s["player_id"] for s in data["shots"]] == [UNKNOWN_PLAYER, 2]
-    assert [s["label"] for s in data["shots"]] == ["Unclassified", "Forehand"]
-    assert data["players"][0]["court_x_m"] == 4.0
-    assert data["players"][0]["court_y_m"] == 12.0

@@ -29,14 +29,14 @@ from padel_ml.hit_assignment_eval import annotated_rallies
 from padel_ml.rally_analysis import POSE_CONFIDENCE
 
 from padel_cv.paths import COURTS, CVSPORTS, METRICS, RUNS
-from padel_cv.stages.pose import PlayerPoseStage
+from padel_cv.pose import PoseDetector
 
 PAPER_PLAYER, PAPER_TEAM = 0.8370, 0.8683
 LABELS = ["J1", "J2", "J3", "J4", "sin asignar"]
 
 
 def main() -> None:
-    pose_stage = PlayerPoseStage(confidence=POSE_CONFIDENCE)  # as analyze_rally
+    pose_stage = PoseDetector(confidence=POSE_CONFIDENCE)  # as analyze_rally
     ball_detector = BallDetector(RUNS / "ball_full" / "tracknetv3.pt")
 
     true_labels: list[str] = []

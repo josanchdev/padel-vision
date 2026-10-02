@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import collections
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
@@ -23,7 +24,7 @@ from torch import Tensor, nn
 from torch.utils.data import DataLoader, TensorDataset
 
 from padel_ml.evidence import class_scores, per_class_metrics
-from padel_ml.shot_type_dataset import CLASSES, ShotWindow
+from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, ShotWindow
 from padel_ml.shot_type_model import ShotTypeBST
 
 SERVE_INDEX = CLASSES.index("Serve")
@@ -207,6 +208,26 @@ def predict(model: ShotTypeBST, windows: list[ShotWindow], device: str) -> list[
             probabilities.extend(torch.softmax(logits, dim=1).cpu().tolist())
     model.train(was_training)
     return probabilities
+
+
+class ShotClassifier:
+    """A trained BST, applied one window at a time (`rally_analysis.Classifier`).
+
+    The one way a saved classifier is loaded and run: the system, the web export
+    and the whole-chain evaluation all go through here, and through `predict`.
+    """
+
+    def __init__(self, checkpoint: Path, device: str) -> None:
+        saved = torch.load(checkpoint, map_location=device, weights_only=False)
+        self.seq_len = int(saved.get("seq_len", SEQ_LEN))
+        self.device = device
+        self.model = ShotTypeBST(seq_len=self.seq_len, n_classes=len(CLASSES))
+        self.model.load_state_dict(saved["state_dict"])
+        self.model.to(device).eval()
+
+    def __call__(self, window: ShotWindow) -> npt.NDArray[np.float32]:
+        """Class probabilities for one window, in the order of `CLASSES`."""
+        return np.asarray(predict(self.model, [window], self.device)[0], dtype=np.float32)
 
 
 def train_one_fold(

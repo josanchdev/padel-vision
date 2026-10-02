@@ -1,6 +1,6 @@
 # ADR-0010: Capa de datos estructurados (el producto real)
 
-**Estado:** aceptada en parte · 2026-07-27 — el JSON canónico sigue (`match_data`, `web_export`); la API y el export CSV se retiraron con ADR-0017
+**Estado:** aceptada en parte · 2026-07-27 — los datos estructurados siguen siendo el producto, en un solo formato: el `point.json` de `web_export`, que escriben la web y el demo. `match_data`, la API y el export CSV se retiraron
 
 ## Contexto
 

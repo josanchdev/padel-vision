@@ -5,7 +5,7 @@ import numpy as np
 from padel_ml.rally_analysis import RallyAnalysis, Shot
 from padel_ml.web_export import SCHEMA_VERSION, PointMeta, describe, point_record, write_index
 
-from padel_cv.pipeline import PoseDetection
+from padel_cv.detections import PoseDetection
 
 
 def test_cvsports_names_become_readable_titles() -> None:
@@ -41,7 +41,6 @@ def test_point_record_follows_the_contract() -> None:
         players={0: [_pose(1, 2.345, 15.678), _pose(3, 4.0, 4.0)], 1: [_pose(1, 2.4, 15.7)]},
         ball={},
         ball_smoothed={},
-        bounces=[],
     )
     record = point_record("20230528_VIGO_01", describe("20230528_VIGO_01"), analysis)
     assert record["schema_version"] == SCHEMA_VERSION

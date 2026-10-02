@@ -28,29 +28,24 @@ import numpy as np
 import numpy.typing as npt
 import torch
 
-from padel_cv.bounces import BallSample, Bounce, detect_bounces
+from padel_cv.arrays import ImageArray
 from padel_cv.court import localize_pose
 from padel_cv.court_registry import load_corners, load_homography
-from padel_cv.match_data import BounceRecord, MatchAnalysis, PlayerFrameRecord, ShotRecord
-from padel_cv.pipeline import Frame, ImageArray, PoseDetection
+from padel_cv.detections import PoseDetection
 from padel_cv.player_identity import PlayerIdentityTracker, court_mask_polygon, filter_players
-from padel_cv.stages.pose import PlayerPoseStage
+from padel_cv.pose import PoseDetector
 from padel_ml.audio_train import detect_hits_in_audio
 from padel_ml.ball_infer import BallDetector, BallHit
 from padel_ml.ball_postprocess import postprocess_ball
 from padel_ml.ball_trajectory import clean_track
 from padel_ml.hit_assignment import assign_hit, frame_states
 from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, ShotWindow, build_window
-from padel_ml.shot_type_model import ShotTypeBST
-from padel_ml.shot_type_train import best_class
+from padel_ml.shot_type_train import ShotClassifier, best_class
 
 POSE_CONFIDENCE = 0.25
 """Detection threshold for people. The same value the training features were
 extracted with (scripts/extract_rally_features.py): the classifier learned from
 poses produced this way, so inference must produce them the same way."""
-
-UNKNOWN_PLAYER = 0
-"""`player_id` written to the web's JSON when no player could be tied to a hit."""
 
 Classifier = Callable[[ShotWindow], npt.NDArray[np.float32]]
 """Window -> class probabilities, in the order of `CLASSES`."""
@@ -80,21 +75,10 @@ class RallyModels:
     def __init__(self, paths: ModelPaths, device: str | None = None) -> None:
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.audio_checkpoint = paths.audio
-        self.pose = PlayerPoseStage(device=self.device, confidence=POSE_CONFIDENCE)
+        self.pose = PoseDetector(device=self.device, confidence=POSE_CONFIDENCE)
         self.ball = BallDetector(paths.ball, device=self.device)
-        checkpoint = torch.load(paths.shot_type, map_location=self.device, weights_only=False)
-        self.seq_len = int(checkpoint["seq_len"])
-        self.shot_type = ShotTypeBST(seq_len=self.seq_len, n_classes=len(CLASSES))
-        self.shot_type.load_state_dict(checkpoint["state_dict"])
-        self.shot_type.to(self.device).eval()
-
-    def classify(self, window: ShotWindow) -> npt.NDArray[np.float32]:
-        with torch.no_grad():
-            logits = self.shot_type(
-                torch.from_numpy(window.pose)[None].to(self.device),
-                torch.from_numpy(window.ball)[None].to(self.device),
-            )
-        return cast(npt.NDArray[np.float32], torch.softmax(logits, dim=1)[0].cpu().numpy())
+        self.shot_type = ShotClassifier(paths.shot_type, self.device)
+        self.seq_len = self.shot_type.seq_len
 
 
 @dataclass(frozen=True)
@@ -131,37 +115,6 @@ class RallyAnalysis:
     """Post-processed ball track: what the vote and the classifier read."""
     ball_smoothed: dict[int, tuple[float, float]]
     """Physics-cleaned ball track: what gets drawn."""
-    bounces: list[Bounce]
-
-    def to_match_data(self) -> MatchAnalysis:
-        """The versioned JSON contract the web consumes (ADR-0010)."""
-        data = MatchAnalysis(source_video=str(self.video), fps=self.fps)
-        for frame in sorted(self.players):
-            for pose in self.players[frame]:
-                x_m, y_m = pose.court_position_m or (None, None)
-                data.players.append(
-                    PlayerFrameRecord(
-                        frame_index=frame,
-                        timestamp_s=frame / self.fps,
-                        player_id=cast(int, pose.player_id),
-                        track_id=pose.track_id,
-                        court_x_m=x_m,
-                        court_y_m=y_m,
-                        on_court=pose.on_court,
-                    )
-                )
-        data.shots = [
-            ShotRecord(
-                frame_index=shot.frame_index,
-                timestamp_s=shot.timestamp_s,
-                player_id=shot.player_id or UNKNOWN_PLAYER,
-                label=shot.shot_type or "Unclassified",
-                confidence=shot.confidence,
-            )
-            for shot in self.shots
-        ]
-        data.bounces = [BounceRecord(b.frame_index, b.x_px, b.y_px) for b in self.bounces]
-        return data
 
 
 def resolve_shots(
@@ -218,7 +171,7 @@ class RallyTracks:
 
 def track_rally(
     video: Path,
-    pose: PlayerPoseStage,
+    pose: PoseDetector,
     ball: BallDetector,
     court: Path | None,
     on_progress: Callable[[float], None] | None = None,
@@ -249,10 +202,7 @@ def track_rally(
             ok, image = capture.read()
             if not ok:
                 break
-            frame = pose.process(
-                Frame(index=index, timestamp_s=index / fps, image=cast(ImageArray, image))
-            )
-            on_court = filter_players(frame.poses, polygon)
+            on_court = filter_players(pose.detect(cast(ImageArray, image)), polygon)
             identity.update(index, on_court)
             # Keep the pose objects and read their IDs only once the video is
             # done: the identity tracker back-fills IDs over its start-up window,
@@ -303,12 +253,7 @@ def analyze_rally(
 
     hit_frames = sorted({round(t * fps) for t in hit_times})
     shots = resolve_shots(
-        hit_frames, players, ball, fps, models.classify, models.seq_len, min_confidence
-    )
-    # Bounces on the plain track too, for the same reason as the vote: a fit
-    # across the bounce rounds off the valley the detector looks for.
-    bounces = detect_bounces(
-        [BallSample(f, x, y) for f, (x, y) in sorted(ball.items())], set(hit_frames)
+        hit_frames, players, ball, fps, models.shot_type, models.seq_len, min_confidence
     )
     if on_progress is not None:
         on_progress(1.0)
@@ -323,5 +268,4 @@ def analyze_rally(
         players=players,
         ball=ball,
         ball_smoothed=ball_smoothed,
-        bounces=bounces,
     )

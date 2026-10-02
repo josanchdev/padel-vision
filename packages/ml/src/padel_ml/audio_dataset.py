@@ -16,10 +16,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
-import numpy.typing as npt
 import torch
 
-FloatArray = npt.NDArray[np.float32]
+from padel_cv.arrays import FloatArray
 
 # Paper's feature settings.
 SAMPLE_RATE = 48000  # the dataset audio is 48 kHz (Nyquist 24 kHz)

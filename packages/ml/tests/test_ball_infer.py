@@ -1,7 +1,9 @@
 import numpy as np
+import pytest
 import torch
-from padel_ml.ball_infer import BallDetector
+from padel_ml.ball_infer import BallDetector, build_ball_model
 from padel_ml.tracknet import TrackNetV2
+from padel_ml.tracknet_v3 import TrackNetV3
 
 
 def _save_ckpt(path) -> None:
@@ -33,3 +35,10 @@ def test_reset_empties_the_buffer_between_videos(tmp_path) -> None:
     assert det.detect(img, 0) is None
     assert det.detect(img, 1) is None
     assert det.detect(img, 2) is not None
+
+
+def test_ball_models_are_built_by_the_name_in_the_checkpoint() -> None:
+    assert isinstance(build_ball_model("tracknetv2"), TrackNetV2)
+    assert isinstance(build_ball_model("tracknetv3"), TrackNetV3)
+    with pytest.raises(ValueError):
+        build_ball_model("yolo")

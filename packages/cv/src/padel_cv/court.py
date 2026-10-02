@@ -12,7 +12,7 @@ from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 
-from padel_cv.pipeline import PoseDetection
+from padel_cv.detections import PoseDetection
 
 HomographyArray = npt.NDArray[np.float64]
 """3x3 projective matrix mapping image pixels to court meters."""

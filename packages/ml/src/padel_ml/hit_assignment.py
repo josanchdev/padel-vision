@@ -20,7 +20,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from padel_cv.pipeline import BallDetection, PoseDetection
+from padel_cv.detections import BallDetection, PoseDetection
 
 _L_WRIST, _R_WRIST = 9, 10
 _MIN_CONF = 0.3

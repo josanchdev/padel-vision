@@ -19,7 +19,7 @@ from typing import cast
 import cv2
 
 from padel_cv import overlay
-from padel_cv.pipeline import ImageArray
+from padel_cv.arrays import ImageArray
 from padel_cv.video_io import H264VideoWriter
 from padel_ml.rally_analysis import RallyAnalysis, Shot
 from padel_ml.shot_type_dataset import CLASSES

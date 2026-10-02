@@ -1,6 +1,6 @@
 import numpy as np
 
-from padel_cv.pipeline import PoseDetection
+from padel_cv.detections import PoseDetection
 from padel_cv.player_identity import (
     PlayerIdentityTracker,
     assign_initial_slots,
