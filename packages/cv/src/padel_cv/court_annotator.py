@@ -32,6 +32,7 @@ import numpy as np
 import numpy.typing as npt
 
 from padel_cv.court import COURT_LENGTH_M, COURT_WIDTH_M, NET_Y_M
+from padel_cv.court_registry import COURTS_DIR, court_file_for, tournament_of
 
 ImageArray = npt.NDArray[np.uint8]
 
@@ -210,3 +211,19 @@ def annotate_court(
 def load_corners(path: Path) -> npt.NDArray[np.float64]:
     """The four court corners in pixels, for the player mask."""
     return np.array(json.loads(path.read_text())["corners_px"], dtype=np.float64)
+
+
+def court_or_mark(video_path: Path, courts_dir: Path = COURTS_DIR) -> Path | None:
+    """The court that applies to this video; if none is marked yet, mark it now.
+
+    Opens the 6-click tool on the video and saves the result as the court of its
+    whole tournament (`<TOURNAMENT>.json`), so the other rallies of that
+    tournament reuse it. A video outside the CVSPORTS naming gets a file named
+    after itself. Returns None only if the marking is cancelled.
+    """
+    marked = court_file_for(video_path.stem, courts_dir)
+    if marked is not None:
+        return marked
+    out_json = courts_dir / f"{tournament_of(video_path.stem)}.json"
+    print(f"[pista] {video_path.stem} no tiene pista marcada: marca los 6 puntos en la ventana")
+    return out_json if annotate_court(video_path, out_json) is not None else None

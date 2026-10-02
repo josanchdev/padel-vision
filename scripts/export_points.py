@@ -1,8 +1,9 @@
 """Process rallies and export them for the web viewer (ADR-0017).
 
-Runs the whole system on each video (`analyze_rally`, the same code as every
-evaluation) and writes what the viewer reads: see `padel_ml.web_export`. The
-viewer has no backend, so this is how a point gets into it.
+Runs the whole system on each video (`analyze_rally`, the same code as the demo)
+and writes what the viewer reads: see `padel_ml.web_export`. The viewer has no
+backend, so this is how a point gets into it. A video whose tournament has no
+court marked yet opens the marking tool first (ADR-0018).
 
     uv run python scripts/export_points.py data/raw/.../20230528_VIGO_01.mp4 [more.mp4 ...]
     uv run python scripts/export_points.py VIDEO --court COURT.json --title "Final Menorca"
@@ -21,7 +22,7 @@ import torch
 from padel_ml.rally_analysis import ModelPaths, RallyModels, analyze_rally
 from padel_ml.web_export import describe, export_point, write_index
 
-from padel_cv.court_registry import court_file_for
+from padel_cv.court_annotator import court_or_mark
 
 REPO = Path(__file__).resolve().parents[1]
 POINTS = REPO / "packages" / "web" / "public" / "points"
@@ -45,10 +46,10 @@ def main() -> None:
         if (args.out / video.stem / "video.mp4").exists() and not args.force:
             print(f"[{video.stem}] ya exportado")
             continue
-        court = args.court or court_file_for(video.stem)
+        court = args.court or court_or_mark(video)
         if court is None:
             # The viewer's court panel and heatmaps need positions in metres.
-            parser.error(f"{video.stem}: no court marked (padel-cv annotate-court)")
+            parser.error(f"{video.stem}: sin pista marcada (marcado cancelado)")
         started = time.perf_counter()
         analysis = analyze_rally(video, models, court)
         folder = export_point(analysis, args.out, describe(video.stem, args.title))

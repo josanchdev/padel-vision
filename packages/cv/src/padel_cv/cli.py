@@ -80,7 +80,13 @@ def main() -> int:
         help="Mark the court by hand for a tournament (6 clicks, ADR-0015 D2)",
     )
     court.add_argument("video", type=Path, help="One rally of the tournament (camera is fixed)")
-    court.add_argument("-o", "--out", type=Path, required=True, help="Output court JSON")
+    court.add_argument(
+        "-o",
+        "--out",
+        type=Path,
+        default=None,
+        help="Output court JSON (default: the tournament's file in data/datasets/courts/)",
+    )
     court.add_argument("--frame", type=int, default=30, help="Frame to show")
 
     args = parser.parse_args()
@@ -91,16 +97,18 @@ def main() -> int:
             args.video, args.ball, args.cache_dir, max_frames=args.max_frames
         )
     elif args.command == "annotate-court":
-        from padel_cv.court_annotator import annotate_court
+        import json as _json
 
-        homography = annotate_court(args.video, args.out, frame_index=args.frame)
+        from padel_cv.court_annotator import annotate_court
+        from padel_cv.court_registry import COURTS_DIR, tournament_of
+
+        out = args.out or COURTS_DIR / f"{tournament_of(args.video.stem)}.json"
+        homography = annotate_court(args.video, out, frame_index=args.frame)
         if homography is None:
             print("cancelado")
         else:
-            import json as _json
-
-            error = _json.loads(args.out.read_text())["reprojection_error_m"]
-            print(f"guardado -> {args.out}  (error de reproyeccion {error} m)")
+            error = _json.loads(out.read_text())["reprojection_error_m"]
+            print(f"guardado -> {out}  (error de reproyeccion {error} m)")
     elif args.command == "annotate-types":
         import collections
 

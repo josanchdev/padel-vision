@@ -20,7 +20,7 @@ import torch
 from padel_ml.rally_analysis import ModelPaths, RallyModels, analyze_rally
 from padel_ml.rally_render import SPANISH, render_rally
 
-from padel_cv.court_registry import court_file_for
+from padel_cv.court_annotator import court_or_mark
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -42,15 +42,11 @@ def main() -> None:
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
 
-    court = args.court or court_file_for(args.rally.stem)
+    court = args.court or court_or_mark(args.rally)
     if court is None:
-        # Loud on purpose: without the mask the crowd counts as players, and a
-        # spectator can win the vote for a hit. Easy to miss in a silent run.
-        print(
-            f"[aviso] sin pista marcada para '{args.rally.stem}' — el publico NO se filtra.\n"
-            f"        marcala con: uv run padel-cv annotate-court {args.rally} "
-            f"-o data/datasets/courts/{args.rally.stem}.json"
-        )
+        # Without the mask the crowd counts as players, and a spectator can win
+        # the vote for a hit: better no demo than a silently wrong one.
+        parser.error(f"{args.rally.stem}: sin pista marcada (marcado cancelado)")
 
     device = args.device if torch.cuda.is_available() else "cpu"
     models = RallyModels(ModelPaths.under(REPO / "runs"), device=device)
