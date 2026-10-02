@@ -1,0 +1,74 @@
+{
+  "name": "ball_detector",
+  "summary": "Detector de pelota (TrackNetV3 propio) tal como lo usa el sistema, en un partido no visto: F1 0.915 a 15 px en 1080p (precisión 0.871, recall 0.964).",
+  "metrics": {
+    "f1": 0.915,
+    "precision": 0.8706,
+    "recall": 0.9642,
+    "median_error_px": 8.13,
+    "tolerance_px": 15
+  },
+  "dataset": "PadelTracker100, final femenina 2022 (45934 frames, 37904 con pelota). El modelo se entrenó con la final masculina.",
+  "method": "TrackNetV3 entrenado en pádel, inferencia a 768x432, umbral 0,5",
+  "params": {
+    "checkpoint": "runs/ball_full/tracknetv3.pt",
+    "input_size": [
+      768,
+      432
+    ],
+    "threshold": 0.5,
+    "tolerances_px": [
+      15,
+      30,
+      60
+    ],
+    "by_tolerance": {
+      "detector": {
+        "15px": {
+          "f1": 0.915,
+          "precision": 0.8706,
+          "recall": 0.9642,
+          "median_error_px": 8.13
+        },
+        "30px": {
+          "f1": 0.9323,
+          "precision": 0.9013,
+          "recall": 0.9654,
+          "median_error_px": 8.27
+        },
+        "60px": {
+          "f1": 0.9334,
+          "precision": 0.9033,
+          "recall": 0.9655,
+          "median_error_px": 8.28
+        }
+      },
+      "detector + limpieza": {
+        "15px": {
+          "f1": 0.9018,
+          "precision": 0.8385,
+          "recall": 0.9753,
+          "median_error_px": 8.23
+        },
+        "30px": {
+          "f1": 0.9243,
+          "precision": 0.8775,
+          "recall": 0.9764,
+          "median_error_px": 8.42
+        },
+        "60px": {
+          "f1": 0.9272,
+          "precision": 0.8826,
+          "recall": 0.9765,
+          "median_error_px": 8.45
+        }
+      }
+    }
+  },
+  "per_class": {},
+  "confusion": [],
+  "labels": [],
+  "notes": "Se mide el detector tal como corre en el sistema, no como se validó al entrenar (frames precortados a 512x288 y 4 celdas de tolerancia, unos 60 px en 1080p, que dio F1 0,942). La limpieza de trayectoria es la que usa el voto de quién golpea.",
+  "commit": "b7e6f73",
+  "timestamp": "2026-10-02T13:45:51+00:00"
+}

@@ -30,15 +30,20 @@ Vídeo (mp4 con audio)
    ├─2─ IMAGEN ─────────► YOLO26-pose ───► esqueletos + identidad J1-J4
    │                      + máscara de pista + re-identificación
    │
-   ├─3─ IMAGEN ─────────► TrackNetV3 ────► trayectoria de la pelota  F1 0,94
+   ├─3─ IMAGEN ─────────► TrackNetV3 ────► trayectoria de la pelota  F1 0,915
    │                      + limpieza física (parábola local)
    │
    ├─4─ 1+2+3 ──────────► voto ponderado ► QUIÉN golpeó       87,46% jugador
    │                                                          92,16% equipo
    │
-   └─5─ pose + pelota ──► BST-0 ─────────► TIPO de golpe      81,84% acc
-                          + regla del saque                   0,847 macro-F1
+   └─5─ pose + pelota ──► BST-0 ─────────► TIPO de golpe      81,98% acc
+                          + regla del saque                   0,852 macro-F1
 ```
+
+Las cifras de cada paso son las del sistema final ([Resultados](#resultados)).
+Las mejoras que se citan dentro de cada paso («+6,9 puntos», «de 60,5% a
+73,7%») miden cuánto aportó cada cambio cuando se introdujo, con la
+configuración de entonces; su detalle está en `docs/experiments.md`.
 
 ### Paso 1 — CUÁNDO: detección por audio
 
@@ -109,8 +114,9 @@ trayectoria con un modelo físico (entre golpe y bote la pelota es un proyectil,
 así que su recorrido en imagen es casi parabólico).
 
 **Lo propio aquí.** Tres cosas:
-- El detector está **entrenado sobre pádel** (F1 0,94). El paper usa un TrackNet
-  preentrenado en tenis.
+- El detector está **entrenado sobre pádel**: F1 0,915 en un partido que no vio,
+  contando como acierto una detección a menos de 15 px en 1080p (error mediano
+  8 px). El paper usa un TrackNet preentrenado en tenis.
 - **Resolución de inferencia a 768×432** en vez de 512×288. La red es totalmente
   convolucional, así que admite un frame mayor sin reentrenar: las detecciones
   "congeladas" (el detector enganchado a un objeto estático) bajan del 14,3% al
@@ -163,15 +169,17 @@ está atribuido) y un indicador de presencia en la pelota.
 **Lo propio aquí.**
 - **El dataset**: 2.377 golpes etiquetados a mano, uno a uno. El dataset público
   trae el instante de cada golpe pero no su tipo.
-- **Sin pesos de clase**, contra la práctica habitual. El saque está 8,4:1 en
-  desventaja y la intuición dice compensarlo; medido, ponderar empeoraba incluso
-  al propio saque (macro-F1 0,786 con pesos frente a 0,812 sin ellos).
 - **La regla del saque**: solo el primer golpe de un peloteo puede ser un saque.
   Verificado sobre las etiquetas, los 97 saques lo son sin excepción. Es una
   regla del reglamento, no algo que el modelo deba adivinar: su precisión pasa
-  de 0,722 a 1,000 sin perder ni un saque real.
+  de 0,761 a 1,000 sin perder ni un saque real (recall 0,905 con y sin ella).
+- **Sin pesos de clase.** El saque está 8,4:1 en desventaja y la práctica
+  habitual es compensarlo en la pérdida. Antes de la regla del saque, ponderar lo
+  empeoraba; con la regla, da lo mismo (macro-F1 0,852 sin pesos, 0,854 con
+  pesos por frecuencia inversa): es la regla, no la pérdida, lo que protege al
+  saque.
 
-**Resultado:** accuracy **81,84%**, macro-F1 **0,847**, en validación cruzada
+**Resultado:** accuracy **81,98%**, macro-F1 **0,852**, en validación cruzada
 dejando torneos enteros fuera.
 
 ---
@@ -205,14 +213,14 @@ paper; el tipo de golpe usa el etiquetado propio.
 | Detección de golpes (F1) | **0,956** | 0,92 | CVSPORTS, 99 rallies (media de 3 ejecuciones); criterio de emparejamiento distinto, ver nota |
 | Asignación — jugador | **87,46 %** | 83,70 % | CVSPORTS, VIGO, 319 golpes |
 | Asignación — equipo | **92,16 %** | 86,83 % | CVSPORTS, VIGO, 319 golpes |
-| Clasificación de tipo (accuracy) | **81,84 %** | *no lo hace* | etiquetado propio, 2.377 golpes, por torneos |
-| Clasificación de tipo (macro-F1) | **0,847** | *no lo hace* | ídem |
+| Clasificación de tipo (accuracy) | **81,98 %** | *no lo hace* | etiquetado propio: 2.187 golpes de las 4 clases con jugador asignado, por torneos |
+| Clasificación de tipo (macro-F1) | **0,852** | *no lo hace* | ídem |
 
 Componente propio, sin cifra equivalente en el paper (no se compara):
 
 | Componente | Resultado | Datos |
 |---|---|---|
-| Detección de pelota (F1) | **0,94** | PadelTracker100: entrenada con la final masculina, validada con la femenina. El paper usa un modelo de tenis sin medirlo en pádel |
+| Detección de pelota (F1) | **0,915** | PadelTracker100: entrenada con la final masculina, medida en la femenina (45.934 frames), a menos de 15 px en 1080p y a la resolución del sistema. El paper usa un modelo de tenis sin medirlo en pádel |
 
 Cómo leer la comparación con el paper:
 
@@ -246,11 +254,11 @@ evalúa con modelos (audio y clasificador) entrenados **sin él**.
 | Métrica | Sistema completo |
 |---|---|
 | Detección de golpes (F1) | **0,948** |
-| Jugador (VIGO) | **79,9 %** |
-| Equipo (VIGO) | **89,2 %** |
-| Tipo de golpe (accuracy) | **83,7 %** |
-| Golpes detectados y con el tipo correcto | **80,3 %** |
-| Detectado, jugador y tipo correctos (VIGO) | **68,5 %** |
+| Jugador (VIGO) | **86,5 %** |
+| Equipo (VIGO) | **92,0 %** |
+| Tipo de golpe (accuracy) | **83,9 %** |
+| Golpes detectados y con el tipo correcto | **80,5 %** |
+| Detectado, jugador y tipo correctos (VIGO) | **75,5 %** |
 
 Las cifras bajan respecto a los pasos aislados porque los errores se encadenan:
 un golpe no detectado no puede asignarse, y un golpe asignado al jugador
