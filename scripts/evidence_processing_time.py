@@ -2,8 +2,9 @@
 
 Runs `analyze_rally` — the code the demo and the web export run — over one
 CVSPORTS rally and adds up the time spent in each stage: the audio detector, the
-pose model, the ball model, and everything else (identity, ball clean-up, the
-vote, the classifier). A first pass warms the GPU up and is not counted.
+pose model, the ball model, and everything else (decoding the video, identity,
+ball clean-up, the vote, the classifier). A first pass warms the GPU up and is
+not counted.
 
     uv run python scripts/evidence_processing_time.py [--rally 20230528_VIGO_11]
 """
@@ -98,8 +99,8 @@ def main() -> None:
         method="analyze_rally completo, una pasada de calentamiento previa sin contar",
         params={"gpu": torch.cuda.get_device_name(), "rally": args.rally},
         notes=(
-            "«resto» incluye la identidad J1-J4, la limpieza de la pelota, el voto, el "
-            "clasificador y los botes. El vídeo anotado no se cuenta: es una segunda pasada "
+            "«resto» es decodificar el vídeo, la identidad J1-J4, la limpieza de la pelota, "
+            "el voto y el clasificador. El vídeo anotado no se cuenta: es una segunda pasada "
             "opcional (rally_render)."
         ),
     )
