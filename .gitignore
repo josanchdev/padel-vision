@@ -13,19 +13,14 @@ build/
 node_modules/
 *.tsbuildinfo
 
-# Data & models — never commit videos or weights
+# Data & models — never commit videos or weights (see data/README.md).
 # `data/*` and not `data/`: git cannot re-include a file whose parent directory
 # is excluded, so with `data/` the exceptions below silently did nothing.
 data/*
-# ...except our own hand-made labels: 2,377 hits typed one by one. They are the
-# scarcest asset in the project (they cannot be regenerated) and weigh 400 KB.
+!data/README.md
+# Our own labelling: the type of 2,377 hits, typed one by one, and the courts
+# marked by hand. The scarcest asset of the project: it cannot be regenerated.
 !data/labels/
-data/labels/*
-!data/labels/types/
-# Hand-marked courts: 6 clicks each, verified to a few cm.
-!data/datasets/
-data/datasets/*
-!data/datasets/courts/
 *.pt
 *.onnx
 runs/

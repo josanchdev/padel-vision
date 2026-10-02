@@ -47,23 +47,27 @@ from padel_ml.shot_type_model import ShotTypeBST
 from padel_ml.shot_type_train import fit
 
 from padel_cv.cvsports import load_hits_csv
+from padel_cv.paths import (
+    AUDIO_FEATURES,
+    CVSPORTS,
+    CVSPORTS_HITS,
+    CVSPORTS_RALLIES,
+    RALLY_FEATURES,
+    RUNS,
+    SHOT_TYPE_LABELS,
+)
 
-REPO = Path(__file__).resolve().parents[1]
-CVSPORTS = REPO / "data" / "raw" / "padel_audio_dataset" / "CVSPORTS_Padel"
-FEATURES = REPO / "data" / "datasets" / "rally_features"
-TYPE_LABELS = REPO / "data" / "labels" / "types"
-AUDIO_CACHE = REPO / "data" / "datasets" / "audio_cache.npz"
-RUNS = REPO / "runs" / "chain_cv"
+FOLDS = RUNS / "chain_cv"
 COLLAR_S = 0.25
 
 
 def _windows_by_rally() -> dict[str, list[tuple[float, float]]]:
-    hits = load_hits_csv(CVSPORTS / "metadata" / "hits.csv")
+    hits = load_hits_csv(CVSPORTS_HITS)
     return {Path(name).stem: sorted(windows) for name, windows in hits.items()}
 
 
 def _type_labels(rally: str, fps: float) -> dict[float, str]:
-    path = TYPE_LABELS / f"{rally}.csv"
+    path = SHOT_TYPE_LABELS / f"{rally}.csv"
     if not path.exists():
         return {}
     return {
@@ -94,13 +98,13 @@ def _train_fold(
     tournament: str, rallies: list[RallyFeatures], windows: list[ShotWindow], device: str
 ) -> Path:
     """Audio + classifier without this tournament; returns the fold directory."""
-    fold = RUNS / tournament
+    fold = FOLDS / tournament
     fold.mkdir(parents=True, exist_ok=True)
     held_out_files = {f"{r.rally}.mp4" for r in rallies if r.tournament == tournament}
     if not (fold / "audio.pt").exists():
         print(f"  [{tournament}] entrenando audio...", flush=True)
         fit_and_save(
-            CVSPORTS, fold / "audio.pt", cache=AUDIO_CACHE, exclude=held_out_files, device=device
+            CVSPORTS, fold / "audio.pt", cache=AUDIO_FEATURES, exclude=held_out_files, device=device
         )
     if not (fold / "bst.pt").exists():
         print(f"  [{tournament}] entrenando clasificador...", flush=True)
@@ -122,9 +126,7 @@ def _evaluate_rally(
     who: dict[float, int],
     device: str,
 ) -> list[Row]:
-    detected = detect_hits_in_audio(
-        CVSPORTS / "rallies" / f"{rally.rally}.mp4", audio, device=device
-    )
+    detected = detect_hits_in_audio(CVSPORTS_RALLIES / f"{rally.rally}.mp4", audio, device=device)
     # shot i belongs to detection i: the audio keeps hits >= 8 frames apart
     frames = [round(t * rally.fps) for t in detected]
     shots = resolve_shots(frames, rally.players, rally.ball, rally.fps, classify, SEQ_LEN)
@@ -179,8 +181,8 @@ def _evaluate_rally(
 
 def main() -> None:
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    rallies = [load_rally_features(p) for p in sorted(FEATURES.glob("*.npz"))]
-    windows, _ = build_dataset(FEATURES, TYPE_LABELS)
+    rallies = [load_rally_features(p) for p in sorted(RALLY_FEATURES.glob("*.npz"))]
+    windows, _ = build_dataset(RALLY_FEATURES, SHOT_TYPE_LABELS)
     hit_windows = _windows_by_rally()
     who_truth = load_hit_assignments(CVSPORTS / "metadata" / "hit_assignments.xlsx")
     tournaments = sorted({r.tournament for r in rallies})
@@ -219,9 +221,9 @@ def main() -> None:
     print()
     for key, value in summarize(rows).items():
         print(f"  {key:30s} {value}")
-    (RUNS / "all_rows.json").write_text(json.dumps([asdict(r) for r in rows]) + "\n")
+    (FOLDS / "all_rows.json").write_text(json.dumps([asdict(r) for r in rows]) + "\n")
     print(
-        f"\n[saved] {RUNS / 'all_rows.json'}  (evidencias y figuras: scripts/evidence_chain_cv.py)"
+        f"\n[saved] {FOLDS / 'all_rows.json'}  (evidencias y figuras: scripts/evidence_chain_cv.py)"
     )
 
 

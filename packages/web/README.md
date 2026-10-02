@@ -10,7 +10,7 @@ puntos que el sistema ya ha analizado, que son ficheros en `public/points/`.
 Se procesan desde la raíz del repo; cada vídeo tarda algo más de un minuto:
 
 ```bash
-uv run python scripts/export_points.py data/raw/.../20230528_VIGO_11.mp4 [más vídeos]
+uv run python scripts/export_points.py data/raw/cvsports_padel/rallies/20230528_VIGO_11.mp4 [más vídeos]
 ```
 
 Deja en `public/points/<id>/` el `point.json` (golpes y posiciones), el vídeo

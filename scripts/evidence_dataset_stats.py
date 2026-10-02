@@ -13,14 +13,14 @@ import argparse
 import collections
 import json
 import statistics
-from pathlib import Path
 
 from padel_ml.evidence import FIGURES_DIR, ExperimentResult
 
 from padel_cv.cvsports import tournament_of
+from padel_cv.paths import METRICS, SHOT_TYPE_LABELS
 from padel_cv.shot_type_annotator import load_marks
 
-LABELS_DIR = Path("data/labels/types")
+LABELS_DIR = SHOT_TYPE_LABELS
 TRAINABLE = ["Forehand", "Backhand", "Smash", "Serve"]
 
 
@@ -132,7 +132,7 @@ def main() -> None:
         ),
     )
     path = result.save()
-    (Path("docs/metrics") / "dataset_per_tournament.json").write_text(
+    (METRICS / "dataset_per_tournament.json").write_text(
         json.dumps({t: dict(c) for t, c in sorted(per_tournament.items())}, indent=2) + "\n"
     )
     print(f"{labelled} golpes · {trainable} entrenables · {len(per_tournament)} torneos")

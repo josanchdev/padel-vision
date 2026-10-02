@@ -5,7 +5,7 @@ and writes what the viewer reads: see `padel_ml.web_export`. The viewer has no
 backend, so this is how a point gets into it. A video whose tournament has no
 court marked yet opens the marking tool first (ADR-0018).
 
-    uv run python scripts/export_points.py data/raw/.../20230528_VIGO_01.mp4 [more.mp4 ...]
+    uv run python scripts/export_points.py RALLY.mp4 [MORE.mp4 ...]
     uv run python scripts/export_points.py VIDEO --court COURT.json --title "Final Menorca"
 
 Points already exported are skipped unless --force, so a crash (WSL) resumes
@@ -23,9 +23,7 @@ from padel_ml.rally_analysis import ModelPaths, RallyModels, analyze_rally
 from padel_ml.web_export import describe, export_point, write_index
 
 from padel_cv.court_annotator import court_or_mark
-
-REPO = Path(__file__).resolve().parents[1]
-POINTS = REPO / "packages" / "web" / "public" / "points"
+from padel_cv.paths import RUNS, WEB_POINTS
 
 
 def main() -> None:
@@ -33,7 +31,7 @@ def main() -> None:
     parser.add_argument("videos", nargs="+", type=Path)
     parser.add_argument("--court", type=Path, help="Court JSON (only with a single video)")
     parser.add_argument("--title", help="Name shown in the viewer (only with a single video)")
-    parser.add_argument("--out", type=Path, default=POINTS)
+    parser.add_argument("--out", type=Path, default=WEB_POINTS)
     parser.add_argument("--force", action="store_true", help="Re-export points already there")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
@@ -41,7 +39,7 @@ def main() -> None:
         parser.error("--court and --title apply to a single video")
 
     device = args.device if torch.cuda.is_available() else "cpu"
-    models = RallyModels(ModelPaths.under(REPO / "runs"), device=device)
+    models = RallyModels(ModelPaths.under(RUNS), device=device)
     for video in args.videos:
         if (args.out / video.stem / "video.mp4").exists() and not args.force:
             print(f"[{video.stem}] ya exportado")

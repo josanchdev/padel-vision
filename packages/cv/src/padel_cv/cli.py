@@ -84,7 +84,7 @@ def main() -> int:
         "--out",
         type=Path,
         default=None,
-        help="Output court JSON (default: the tournament's file in data/datasets/courts/)",
+        help="Output court JSON (default: the tournament's file in data/labels/courts/)",
     )
     court.add_argument("--frame", type=int, default=30, help="Frame to show")
 
@@ -114,11 +114,10 @@ def main() -> int:
 
         import cv2
 
+        from padel_cv.paths import CVSPORTS_HITS
         from padel_cv.shot_type_annotator import annotate_types, load_hit_frames, load_marks
 
-        hits_csv = args.hits or (
-            Path("data/raw/padel_audio_dataset/CVSPORTS_Padel/metadata/hits.csv")
-        )
+        hits_csv = args.hits or CVSPORTS_HITS
         video = args.video
         if args.next:  # pick up where the last session stopped
             video = _next_unlabelled_rally(args.video, hits_csv, args.out)

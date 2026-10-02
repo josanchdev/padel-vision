@@ -19,10 +19,9 @@ from pathlib import Path
 import torch
 from padel_ml.audio_train import fit_and_save
 
-REPO = Path(__file__).resolve().parents[1]
-CVSPORTS = REPO / "data" / "raw" / "padel_audio_dataset" / "CVSPORTS_Padel"
-CACHE = REPO / "data" / "datasets" / "audio_cache.npz"
-OUT = REPO / "runs" / "audio" / "audio_crnn.pt"
+from padel_cv.paths import AUDIO_FEATURES, CVSPORTS, CVSPORTS_RALLIES, RUNS
+
+OUT = RUNS / "audio" / "audio_crnn.pt"
 
 
 def main() -> None:
@@ -35,11 +34,11 @@ def main() -> None:
     args = parser.parse_args()
 
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
-    rallies = sorted(CVSPORTS.glob("rallies/*.mp4"))
+    rallies = sorted(CVSPORTS_RALLIES.glob("*.mp4"))
     print(f"{len(rallies)} rallies de CVSPORTS · dispositivo {device}")
 
     started = time.perf_counter()
-    fit_and_save(CVSPORTS, args.out, cache=CACHE, seed=args.seed, device=device)
+    fit_and_save(CVSPORTS, args.out, cache=AUDIO_FEATURES, seed=args.seed, device=device)
     print(f"entrenado en {time.perf_counter() - started:.0f}s")
     print(f"guardado -> {args.out}")
 

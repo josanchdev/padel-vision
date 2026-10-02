@@ -25,12 +25,10 @@ from padel_ml.ball_postprocess import postprocess_ball
 from padel_ml.rally_analysis import POSE_CONFIDENCE, track_rally
 
 from padel_cv.court_registry import court_file_for
+from padel_cv.paths import CVSPORTS_RALLIES, RALLY_FEATURES, RUNS
 from padel_cv.stages.pose import PlayerPoseStage
 
-REPO = Path(__file__).resolve().parents[1]
-RALLIES = REPO / "data" / "raw" / "padel_audio_dataset" / "CVSPORTS_Padel" / "rallies"
-CACHE = REPO / "data" / "datasets" / "rally_features"
-BALL_CKPT = REPO / "runs" / "ball_full" / "tracknetv3.pt"
+BALL_CKPT = RUNS / "ball_full" / "tracknetv3.pt"
 
 
 def extract(video: Path, pose_stage: PlayerPoseStage, ball: BallDetector) -> dict[str, object]:
@@ -57,9 +55,9 @@ def main() -> None:
     parser.add_argument("--device", default="cuda", help="cuda (default) or cpu")
     args = parser.parse_args()
 
-    CACHE.mkdir(parents=True, exist_ok=True)
-    videos = sorted(RALLIES.glob("*.mp4"))[: args.limit]
-    pending = [v for v in videos if not (CACHE / f"{v.stem}.npz").exists()]
+    RALLY_FEATURES.mkdir(parents=True, exist_ok=True)
+    videos = sorted(CVSPORTS_RALLIES.glob("*.mp4"))[: args.limit]
+    pending = [v for v in videos if not (RALLY_FEATURES / f"{v.stem}.npz").exists()]
     cached = len(videos) - len(pending)
     print(f"{len(videos)} rallies · {cached} ya en cache · {len(pending)} por hacer")
     if not pending:
@@ -82,7 +80,7 @@ def main() -> None:
         # A fresh detector per rally: its frame buffer must not span two videos.
         data = extract(video, pose_stage, BallDetector(BALL_CKPT, device=args.device))
         np.savez_compressed(
-            CACHE / f"{video.stem}.npz",
+            RALLY_FEATURES / f"{video.stem}.npz",
             keypoints=np.array(data["keypoints"], dtype=object),
             player_ids=np.array(data["player_ids"], dtype=object),
             boxes=np.array(data["boxes"], dtype=object),

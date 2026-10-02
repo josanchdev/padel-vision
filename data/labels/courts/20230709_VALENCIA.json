@@ -1,5 +1,5 @@
 {
-  "source_video": "data/raw/padel_audio_dataset/CVSPORTS_Padel/rallies/20230709_VALENCIA_00.mp4",
+  "source_video": "data/raw/cvsports_padel/rallies/20230709_VALENCIA_00.mp4",
   "frame_index": 30,
   "points_px": [
     [

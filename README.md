@@ -25,7 +25,7 @@ dataset de 2.377 golpes etiquetados a mano.
 | `packages/web` | Visor web estático de puntos analizados (React + Vite + Motion) |
 | `scripts/` | Procesar puntos, entrenar los modelos y regenerar cada evidencia |
 | `docs/` | Ficha técnica, [decisiones](docs/decisions/README.md), [evidencias](docs/metrics/README.md) y bitácora de experimentos |
-| `data/` | Fuera de git salvo el etiquetado propio (`data/labels/types/`) y las pistas marcadas (`data/datasets/courts/`) |
+| `data/` | Datos de terceros, etiquetado propio y cachés; solo el etiquetado va a git ([data/README.md](data/README.md)) |
 
 ## Instalación
 
@@ -43,10 +43,11 @@ uv run ruff check . && uv run mypy  # lint y tipos (strict)
 Ni los vídeos ni los modelos entrenados se distribuyen. Datos de partida:
 
 - **CVSPORTS_Padel** (Decorte et al.): 99 puntos con audio, el instante de cada
-  golpe y, en el torneo de Vigo, quién golpea. Va en
-  `data/raw/padel_audio_dataset/CVSPORTS_Padel/`.
-- **PadelTracker100**: dos finales con la pelota anotada, para entrenar el
-  detector de pelota. Va en `data/raw/` (vídeos) y `data/labels/` (anotaciones).
+  golpe y, en el torneo de Vigo, quién golpea. Va en `data/raw/cvsports_padel/`.
+- **PadelTracker100**: dos finales con la pelota anotada, para entrenar y medir
+  el detector de pelota. Va en `data/raw/padeltracker100/`.
+
+Dónde descargarlos y qué es cada carpeta: [data/README.md](data/README.md).
 
 Los modelos se entrenan con:
 
@@ -55,12 +56,13 @@ Los modelos se entrenan con:
 uv run python scripts/train_audio_detector.py
 
 # Pelota: caché de frames de cada final y entrenamiento de TrackNetV3
-uv run padel-cv extract-ball-frames data/raw/2022_BCN_FinalM_1.mp4 \
-    --ball data/labels/2022_BCN_FinalM_1_ball.json -o data/datasets/ball_cache/finalM
-uv run padel-cv extract-ball-frames data/raw/2022_BCN_FinalF_1.mp4 \
-    --ball data/labels/2022_BCN_FinalF_1_ball.json -o data/datasets/ball_cache/finalF
+PT=data/raw/padeltracker100
+uv run padel-cv extract-ball-frames $PT/2022_BCN_FinalM_1.mp4 \
+    --ball $PT/2022_BCN_FinalM_1_ball.json -o data/cache/ball_frames/finalM
+uv run padel-cv extract-ball-frames $PT/2022_BCN_FinalF_1.mp4 \
+    --ball $PT/2022_BCN_FinalF_1_ball.json -o data/cache/ball_frames/finalF
 uv run padel-ball-train --model tracknetv3 --epochs 40 --augment \
-    --train-dir data/datasets/ball_cache/finalM --val-dir data/datasets/ball_cache/finalF \
+    --train-dir data/cache/ball_frames/finalM --val-dir data/cache/ball_frames/finalF \
     --out runs/ball_full/tracknetv3.pt --mlflow-uri sqlite:///runs/mlruns.db --resume
 
 # Qué tipo: pose y pelota de los 99 puntos, y el clasificador
@@ -85,8 +87,8 @@ marcarla con 6 clics; se guarda una vez por torneo (ADR-0018).
 ## Etiquetado
 
 ```bash
-uv run padel-cv annotate-types RALLY.mp4 -o data/labels/types/   # tipo de cada golpe
-uv run padel-cv annotate-court RALLY.mp4                         # pista de un torneo
+uv run padel-cv annotate-types RALLY.mp4 -o data/labels/shot_types/   # tipo de cada golpe
+uv run padel-cv annotate-court RALLY.mp4                              # pista de un torneo
 ```
 
 ## Reproducir los resultados

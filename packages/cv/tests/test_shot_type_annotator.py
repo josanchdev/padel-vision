@@ -1,5 +1,6 @@
 import csv
 
+from padel_cv.paths import CVSPORTS_RALLIES
 from padel_cv.shot_type_annotator import (
     SHOT_TYPES,
     TypeMark,
@@ -48,7 +49,7 @@ def test_clip_is_centred_on_the_hit() -> None:
 
     from padel_cv.shot_type_annotator import _load_clip
 
-    video = "data/raw/padel_audio_dataset/CVSPORTS_Padel/rallies/20230528_VIGO_00.mp4"
+    video = str(CVSPORTS_RALLIES / "20230528_VIGO_00.mp4")
     cap = cv2.VideoCapture(video)
     if not cap.isOpened():
         import pytest
@@ -65,7 +66,7 @@ def test_clip_near_the_start_is_clamped() -> None:
 
     from padel_cv.shot_type_annotator import _load_clip
 
-    video = "data/raw/padel_audio_dataset/CVSPORTS_Padel/rallies/20230528_VIGO_00.mp4"
+    video = str(CVSPORTS_RALLIES / "20230528_VIGO_00.mp4")
     cap = cv2.VideoCapture(video)
     if not cap.isOpened():
         import pytest

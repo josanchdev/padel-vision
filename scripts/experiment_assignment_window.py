@@ -29,7 +29,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 
 from padel_ml.ball_infer import BallDetector
 from padel_ml.hit_assignment import (
@@ -42,10 +41,8 @@ from padel_ml.hit_assignment import (
 from padel_ml.hit_assignment_eval import annotated_rallies
 from padel_ml.rally_analysis import POSE_CONFIDENCE
 
+from padel_cv.paths import COURTS, CVSPORTS, METRICS, RUNS
 from padel_cv.stages.pose import PlayerPoseStage
-
-REPO = Path(__file__).resolve().parents[1]
-DATASET = REPO / "data" / "raw" / "padel_audio_dataset" / "CVSPORTS_Padel"
 
 
 def assign_asymmetric(
@@ -71,12 +68,10 @@ def assign_asymmetric(
 
 def main() -> None:
     pose_stage = PlayerPoseStage(confidence=POSE_CONFIDENCE)  # as analyze_rally
-    ball_detector = BallDetector(REPO / "runs/ball_full/tracknetv3.pt")
+    ball_detector = BallDetector(RUNS / "ball_full" / "tracknetv3.pt")
 
     rallies: list[tuple[dict[int, FrameState], list[tuple[int, int, int]]]] = []
-    for annotated in annotated_rallies(
-        DATASET, REPO / "data" / "datasets" / "courts", pose_stage, ball_detector
-    ):
+    for annotated in annotated_rallies(CVSPORTS, COURTS, pose_stage, ball_detector):
         fps = annotated.fps
         hits = [(round(h.time_s * fps), h.slot, h.team) for h in annotated.hits if h.slot]
         rallies.append((annotated.states, hits))
@@ -148,7 +143,7 @@ def main() -> None:
     ]:
         row("window", before, after, 0)
 
-    out = REPO / "docs" / "metrics" / "assignment_window_sweep.json"
+    out = METRICS / "assignment_window_sweep.json"
     out.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
     print(f"\n[saved] {out}")
 

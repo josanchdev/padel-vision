@@ -16,8 +16,9 @@ import numpy as np
 import numpy.typing as npt
 
 from padel_cv.cvsports import parse_rally
+from padel_cv.paths import COURTS
 
-COURTS_DIR = Path("data/datasets/courts")
+COURTS_DIR = COURTS
 
 
 def court_file_for(rally_stem: str, courts_dir: Path = COURTS_DIR) -> Path | None:

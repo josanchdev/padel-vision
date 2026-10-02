@@ -19,10 +19,9 @@ import torch
 from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, build_dataset
 from padel_ml.shot_type_train import EPOCHS, fit
 
-REPO = Path(__file__).resolve().parents[1]
-FEATURES = REPO / "data" / "datasets" / "rally_features"
-LABELS = REPO / "data" / "labels" / "types"
-OUT = REPO / "runs" / "shot_type" / "bst0.pt"
+from padel_cv.paths import RALLY_FEATURES, RUNS, SHOT_TYPE_LABELS
+
+OUT = RUNS / "shot_type" / "bst0.pt"
 
 
 def main() -> None:
@@ -33,7 +32,7 @@ def main() -> None:
     args = parser.parse_args()
 
     device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
-    windows, stats = build_dataset(FEATURES, LABELS)
+    windows, stats = build_dataset(RALLY_FEATURES, SHOT_TYPE_LABELS)
     print(f"{len(windows)} ventanas de {stats['rallies']} rallies · dispositivo {device}")
 
     started = time.perf_counter()

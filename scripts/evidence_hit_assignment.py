@@ -13,7 +13,6 @@ from __future__ import annotations
 import argparse
 import collections
 import json
-from pathlib import Path
 
 from padel_ml.ball_infer import BallDetector
 from padel_ml.evidence import (
@@ -29,25 +28,22 @@ from padel_ml.hit_assignment import WINDOW_HALF, assign_hit, team_alternation_sw
 from padel_ml.hit_assignment_eval import annotated_rallies
 from padel_ml.rally_analysis import POSE_CONFIDENCE
 
+from padel_cv.paths import COURTS, CVSPORTS, METRICS, RUNS
 from padel_cv.stages.pose import PlayerPoseStage
 
-REPO = Path(__file__).resolve().parents[1]
-DATASET = REPO / "data" / "raw" / "padel_audio_dataset" / "CVSPORTS_Padel"
 PAPER_PLAYER, PAPER_TEAM = 0.8370, 0.8683
 LABELS = ["J1", "J2", "J3", "J4", "sin asignar"]
 
 
 def main() -> None:
     pose_stage = PlayerPoseStage(confidence=POSE_CONFIDENCE)  # as analyze_rally
-    ball_detector = BallDetector(REPO / "runs/ball_full/tracknetv3.pt")
+    ball_detector = BallDetector(RUNS / "ball_full" / "tracknetv3.pt")
 
     true_labels: list[str] = []
     predicted: list[str | None] = []
     per_rally: list[dict[str, float | int | str]] = []
 
-    for annotated in annotated_rallies(
-        DATASET, REPO / "data" / "datasets" / "courts", pose_stage, ball_detector
-    ):
+    for annotated in annotated_rallies(CVSPORTS, COURTS, pose_stage, ball_detector):
         rally, fps, states = annotated.name, annotated.fps, annotated.states
         predictions: dict[int, int | None] = {}
         hit_of: dict[int, object] = {}
@@ -147,9 +143,7 @@ def main() -> None:
         ),
     )
     path = result.save()
-    (Path("docs/metrics") / "hit_assignment_per_rally.json").write_text(
-        json.dumps(per_rally, indent=2) + "\n"
-    )
+    (METRICS / "hit_assignment_per_rally.json").write_text(json.dumps(per_rally, indent=2) + "\n")
     print(f"\nGLOBAL jugador {player_acc:.2%} equipo {team_acc:.2%}")
     print("errores mas frecuentes:")
     for (truth, prediction), count in errors.most_common(6):

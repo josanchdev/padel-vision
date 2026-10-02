@@ -34,6 +34,7 @@ import numpy.typing as npt
 from padel_cv.court import COURT_LENGTH_M, COURT_WIDTH_M, NET_Y_M
 from padel_cv.court_registry import COURTS_DIR, court_file_for
 from padel_cv.cvsports import tournament_of
+from padel_cv.paths import REPO
 
 ImageArray = npt.NDArray[np.uint8]
 
@@ -138,6 +139,12 @@ def _draw(base: ImageArray, points: list[tuple[int, int]], scale: float) -> Imag
     return canvas
 
 
+def _repo_relative(path: Path) -> str:
+    """The path as the repo sees it, so the saved file does not depend on the machine."""
+    resolved = path.resolve()
+    return str(resolved.relative_to(REPO)) if resolved.is_relative_to(REPO) else str(path)
+
+
 def annotate_court(
     video_path: Path, out_json: Path, frame_index: int = 30
 ) -> npt.NDArray[np.float64] | None:
@@ -194,7 +201,7 @@ def annotate_court(
     out_json.write_text(
         json.dumps(
             {
-                "source_video": str(video_path),
+                "source_video": _repo_relative(video_path),
                 "frame_index": frame_index,
                 "points_px": points_px.tolist(),
                 "points_m": POINTS_M.tolist(),

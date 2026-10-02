@@ -12,14 +12,14 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 
 import numpy as np
 from padel_ml.evidence import FIGURES_DIR, ExperimentResult, plot_confusion
 from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, ShotWindow, build_dataset
 from padel_ml.shot_type_train import FoldResult, _metrics, apply_serve_rule, cross_tournament_cv
 
-REPO = Path(__file__).resolve().parents[1]
+from padel_cv.paths import METRICS, RALLY_FEATURES, SHOT_TYPE_LABELS
+
 SPANISH = {"Forehand": "Derecha", "Backhand": "Revés", "Smash": "Remate", "Serve": "Saque"}
 
 
@@ -51,9 +51,7 @@ def _pool(
 
 
 def main() -> None:
-    windows, _ = build_dataset(
-        REPO / "data" / "datasets" / "rally_features", REPO / "data" / "labels" / "types"
-    )
+    windows, _ = build_dataset(RALLY_FEATURES, SHOT_TYPE_LABELS)
     by_tournament: dict[str, list] = {}
     for window in windows:
         by_tournament.setdefault(window.tournament, []).append(window)
@@ -133,9 +131,7 @@ def main() -> None:
         ),
     )
     path = result.save()
-    (REPO / "docs" / "metrics" / "shot_type_per_tournament.json").write_text(
-        json.dumps(per_fold, indent=2) + "\n"
-    )
+    (METRICS / "shot_type_per_tournament.json").write_text(json.dumps(per_fold, indent=2) + "\n")
     print(f"\naccuracy {accuracy:.4f}  macro-F1 {macro_f1:.4f}  (sin regla: {macro_plain:.4f})")
     for power, row in ablation.items():
         print(f"  pesos {power}: {row}")

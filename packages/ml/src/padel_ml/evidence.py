@@ -21,8 +21,10 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 
-METRICS_DIR = Path("docs/metrics")
-FIGURES_DIR = METRICS_DIR / "figures"
+from padel_cv.paths import FIGURES, METRICS
+
+METRICS_DIR = METRICS
+FIGURES_DIR = FIGURES
 
 
 def _git_commit() -> str | None:

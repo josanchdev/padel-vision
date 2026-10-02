@@ -21,8 +21,7 @@ from padel_ml.rally_analysis import ModelPaths, RallyModels, analyze_rally
 from padel_ml.rally_render import SPANISH, render_rally
 
 from padel_cv.court_annotator import court_or_mark
-
-REPO = Path(__file__).resolve().parents[1]
+from padel_cv.paths import RUNS
 
 
 def main() -> None:
@@ -49,7 +48,7 @@ def main() -> None:
         parser.error(f"{args.rally.stem}: sin pista marcada (marcado cancelado)")
 
     device = args.device if torch.cuda.is_available() else "cpu"
-    models = RallyModels(ModelPaths.under(REPO / "runs"), device=device)
+    models = RallyModels(ModelPaths.under(RUNS), device=device)
     analysis = analyze_rally(args.rally, models, court, min_confidence=args.threshold)
 
     coverage = 100 * len(analysis.ball) / max(analysis.n_frames, 1)

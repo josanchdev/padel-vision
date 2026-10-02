@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import argparse
 import statistics
-from pathlib import Path
 
 import cv2
 from padel_ml.ball_infer import BallDetector, BallHit
@@ -30,11 +29,11 @@ from padel_ml.ball_postprocess import postprocess_ball
 from padel_ml.evidence import ExperimentResult
 
 from padel_cv.ball_data import load_ball_centers
+from padel_cv.paths import PADELTRACKER, REPO, RUNS
 
-REPO = Path(__file__).resolve().parents[1]
-VIDEO = REPO / "data" / "raw" / "2022_BCN_FinalF_1.mp4"
-LABELS = REPO / "data" / "labels" / "2022_BCN_FinalF_1_ball.json"
-CHECKPOINT = REPO / "runs" / "ball_full" / "tracknetv3.pt"
+VIDEO = PADELTRACKER / "2022_BCN_FinalF_1.mp4"
+LABELS = PADELTRACKER / "2022_BCN_FinalF_1_ball.json"
+CHECKPOINT = RUNS / "ball_full" / "tracknetv3.pt"
 TOLERANCES_PX = (15, 30, 60)
 HEADLINE_PX = 15
 

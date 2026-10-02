@@ -24,6 +24,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
+from padel_cv.paths import RUNS
 from padel_ml.ball_dataset import BallClips
 from padel_ml.ball_infer import build_ball_model
 from padel_ml.ball_metrics import BallEval, evaluate_ball
@@ -309,7 +310,7 @@ def main() -> None:
     )
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--out", type=Path, default=None)
-    parser.add_argument("--plots", type=Path, default=Path("runs/ball_plots"))
+    parser.add_argument("--plots", type=Path, default=RUNS / "ball_plots")
     parser.add_argument(
         "--augment", action="store_true", help="Colour jitter on train (generalise to courts)"
     )

@@ -40,8 +40,9 @@ from padel_ml.evidence import (
 )
 from padel_ml.shot_type_dataset import CLASSES
 
-REPO = Path(__file__).resolve().parents[1]
-RUNS = REPO / "runs" / "chain_cv"
+from padel_cv.paths import RUNS
+
+FOLDS = RUNS / "chain_cv"
 
 # Reference palette (dataviz skill, light mode): categorical slot 1, ink, grid.
 SERIES_1 = "#2a78d6"
@@ -146,7 +147,7 @@ def _per_tournament(rows: list[Row], out: Path) -> dict[str, dict[str, float]]:
 
 def _training_curves(out: Path) -> dict[str, float]:
     curves = []
-    for fold in sorted(p for p in RUNS.iterdir() if (p / "bst.pt").exists()):
+    for fold in sorted(p for p in FOLDS.iterdir() if (p / "bst.pt").exists()):
         checkpoint = torch.load(fold / "bst.pt", map_location="cpu", weights_only=False)
         curves.append(checkpoint["curve"])
     loss = np.array([c["loss"] for c in curves])
@@ -195,7 +196,7 @@ def _training_curves(out: Path) -> dict[str, float]:
 
 
 def main() -> None:
-    rows = [Row(**r) for r in json.loads((RUNS / "all_rows.json").read_text())]
+    rows = [Row(**r) for r in json.loads((FOLDS / "all_rows.json").read_text())]
 
     metrics: dict[str, float] = dict(summarize(rows))
 

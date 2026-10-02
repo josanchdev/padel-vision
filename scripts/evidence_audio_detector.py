@@ -20,7 +20,6 @@ import argparse
 import json
 import statistics
 from dataclasses import dataclass
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -35,10 +34,8 @@ from padel_ml.audio_train import (
 from padel_ml.evidence import FIGURES_DIR, ExperimentResult, plot_comparison
 
 from padel_cv.cvsports import load_hits_csv
+from padel_cv.paths import AUDIO_FEATURES, CVSPORTS, CVSPORTS_HITS, METRICS
 
-REPO = Path(__file__).resolve().parents[1]
-DATASET = REPO / "data" / "raw" / "padel_audio_dataset" / "CVSPORTS_Padel"
-CACHE = REPO / "data" / "datasets" / "audio_cache.npz"
 PAPER_F1 = 0.92
 
 #: What we measured BEFORE the audio pivot, so the report can show why it changed.
@@ -115,7 +112,7 @@ def train_and_sweep(seed: int) -> SeedRun:
     cannot tell a real difference from luck. Not about bit-exact reproduction.
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    rallies = build_all_rallies(DATASET, CACHE)
+    rallies = build_all_rallies(CVSPORTS, AUDIO_FEATURES)
     rng = np.random.default_rng(seed)
     index = np.arange(len(rallies))
     rng.shuffle(index)
@@ -126,7 +123,7 @@ def train_and_sweep(seed: int) -> SeedRun:
     print(f"entrenando en {device} ({len(train_rallies)} rallies train / {n_val} val)")
     # The same training function as the production model and every chain fold.
     fitted = fit(train_rallies, epochs=30, seed=seed, device=device)
-    hits = load_hits_csv(DATASET / "metadata" / "hits.csv")
+    hits = load_hits_csv(CVSPORTS_HITS)
     print("barrido de umbral:")
     sweep = sweep_thresholds(fitted.model, val_rallies, hits, fitted.mean, fitted.std, device)
     return SeedRun(seed, len(rallies), len(train_rallies), n_val, fitted.losses, sweep)
@@ -220,8 +217,8 @@ def report_single_run(run: SeedRun) -> None:
         ),
     )
     path = result.save()
-    Path("docs/metrics/audio_threshold_sweep.json").write_text(json.dumps(sweep, indent=2) + "\n")
-    Path("docs/metrics/audio_training_loss.json").write_text(json.dumps(losses, indent=2) + "\n")
+    (METRICS / "audio_threshold_sweep.json").write_text(json.dumps(sweep, indent=2) + "\n")
+    (METRICS / "audio_training_loss.json").write_text(json.dumps(losses, indent=2) + "\n")
     print(f"\nguardado -> {path}")
 
 
