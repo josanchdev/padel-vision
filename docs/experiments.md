@@ -1786,3 +1786,38 @@ validación del clasificador y el modelo de producción.
   demo que dejaba fuera un rally. Las tablas no cambian: usan modelos por torneo.
 - Los scripts de evidencias ejecutaban el experimento entero al pedirles
   `--help`; ahora todos leen sus argumentos.
+
+### Resultado: la caché regenerada y todo re-medido
+
+Caché regenerada con el reinicio (99 rallies, 54 min): 78 rallies idénticos, 17
+con diferencias de unos pocos frames y 3 con la numeración de jugadores rota
+(VIGO_11 95% de los frames, BRUSSEL_01 83%, MADRID_10 96%). Con ella, y desde
+commits limpios:
+
+| Cifra | Antes | Ahora | Causa |
+|---|---|---|---|
+| Detección por audio, F1 (media de 3) | 0,956 | 0,957 | la media se calculaba a mano; ahora la escribe el script |
+| Asignación, jugador / equipo | 89,65 / 95,30 % | 87,46 / 92,16 % | configuración del sistema (ver arriba) |
+| Tipo de golpe, accuracy / macro-F1 | 81,84 % / 0,847 | 81,98 % / 0,852 | se midió el 21 sep con la ventana de voto ±6; ahora ±4 y caché corregida |
+| Cadena: jugador / equipo (VIGO) | 79,9 / 89,2 % | 86,5 / 92,0 % | VIGO_11: 20/43 → 39/43; ningún otro rally de VIGO cambia |
+| Cadena: tipo / detectado y bien tipo | 83,7 / 80,3 % | 83,9 / 80,5 % | caché corregida |
+| Cadena: todo correcto (VIGO) | 68,5 % | 75,5 % | VIGO_11 |
+| Pelota, F1 | 0,94 | 0,915 | antes a ~60 px y 512×288; ahora a 15 px en 1080p y a la resolución del sistema (error mediano 8 px) |
+
+El clasificador, la asignación y la pelota se ejecutaron dos o tres veces con
+resultados idénticos: son reproducibles. El audio no lo es bit a bit en GPU (una
+ejecución suelta varía ~0,005), por eso se cita la media de 3.
+
+**Los pesos de clase, revisados.** La justificación de entrenar sin pesos
+(«ponderar empeora incluso el saque», macro-F1 0,786 frente a 0,812) se midió
+antes de la regla del saque. Con la regla, las tres variantes quedan dentro del
+ruido: macro-F1 0,852 sin pesos, 0,846 con potencia 0,5 y 0,854 con frecuencia
+inversa. El sistema sigue sin pesos (cambiarlo por 0,002 sería elegir por
+ruido); lo que protege al saque es la regla: su precisión pasa de 0,761 a 1,000
+con el mismo recall (0,905). `evidence_shot_classifier.py` mide las tres
+variantes en cada ejecución.
+
+También se reexportaron los 12 puntos de la web con el audio y el clasificador
+de producción nuevos, y se liberaron 66 GB de datos que ya no usa nada
+(PADELVIC, YouTube, cachés del enfoque viejo, datasets de pista; la caché de la
+pelota se regenera con el comando del README).

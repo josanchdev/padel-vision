@@ -1,32 +1,78 @@
 {
-  "0.3": {
-    "f1_mean": 0.9296,
-    "f1_std": 0.0196,
-    "precision_mean": 0.8932,
-    "recall_mean": 0.9709
+  "name": "audio_threshold_seeds",
+  "summary": "Detector de golpes por audio, media de 3 ejecuciones: F1 0.957 ± 0.009 con umbral 0.5 (precisión 0.969, recall 0.945; paper 0.92).",
+  "metrics": {
+    "f1": 0.9566,
+    "f1_std": 0.0092,
+    "precision": 0.9692,
+    "recall": 0.9445,
+    "runs": 3,
+    "paper_f1": 0.92
   },
-  "0.4": {
-    "f1_mean": 0.9471,
-    "f1_std": 0.0114,
-    "precision_mean": 0.9358,
-    "recall_mean": 0.9596
+  "dataset": "CVSPORTS_Padel — 99 rallies; cada ejecución con su propio split cross-rally 70/29",
+  "method": "CRNN log-Mel + focal BCE; evaluación event-based con collar de 250 ms",
+  "params": {
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "threshold": 0.5,
+    "by_threshold": {
+      "0.2": {
+        "f1_mean": 0.8983,
+        "f1_std": 0.0312,
+        "precision_mean": 0.8264,
+        "recall_mean": 0.986
+      },
+      "0.3": {
+        "f1_mean": 0.9315,
+        "f1_std": 0.0235,
+        "precision_mean": 0.8966,
+        "recall_mean": 0.9709
+      },
+      "0.4": {
+        "f1_mean": 0.9473,
+        "f1_std": 0.0145,
+        "precision_mean": 0.9376,
+        "recall_mean": 0.9582
+      },
+      "0.5": {
+        "f1_mean": 0.9566,
+        "f1_std": 0.0092,
+        "precision_mean": 0.9692,
+        "recall_mean": 0.9445
+      },
+      "0.6": {
+        "f1_mean": 0.9534,
+        "f1_std": 0.007,
+        "precision_mean": 0.9825,
+        "recall_mean": 0.926
+      },
+      "0.7": {
+        "f1_mean": 0.9417,
+        "f1_std": 0.0095,
+        "precision_mean": 0.9937,
+        "recall_mean": 0.8949
+      },
+      "0.8": {
+        "f1_mean": 0.8929,
+        "f1_std": 0.0205,
+        "precision_mean": 0.9982,
+        "recall_mean": 0.808
+      },
+      "0.9": {
+        "f1_mean": 0.0,
+        "f1_std": 0.0,
+        "precision_mean": 0.0,
+        "recall_mean": 0.0
+      }
+    }
   },
-  "0.5": {
-    "f1_mean": 0.9564,
-    "f1_std": 0.0078,
-    "precision_mean": 0.9687,
-    "recall_mean": 0.9445
-  },
-  "0.6": {
-    "f1_mean": 0.9542,
-    "f1_std": 0.0065,
-    "precision_mean": 0.9825,
-    "recall_mean": 0.9275
-  },
-  "0.7": {
-    "f1_mean": 0.9426,
-    "f1_std": 0.0054,
-    "precision_mean": 0.9921,
-    "recall_mean": 0.8977
-  }
+  "per_class": {},
+  "confusion": [],
+  "labels": [],
+  "notes": "Mejor umbral por F1 medio: 0.5; el sistema usa 0.5. Cada semilla cambia el reparto de rallies entre entrenamiento y validación y los pesos iniciales, así que la media equivale a promediar particiones, como hace el paper con 4. Las ejecuciones individuales no son idénticas bit a bit en GPU.",
+  "commit": "155350e",
+  "timestamp": "2026-10-02T13:47:37+00:00"
 }

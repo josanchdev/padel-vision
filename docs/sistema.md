@@ -25,7 +25,7 @@ detección binaria y no clasifica el gesto.
 ```
 Vídeo (mp4 con audio)
    │
-   ├─1─ AUDIO ──────────► CRNN ──────────► instantes de golpe        F1 0,956
+   ├─1─ AUDIO ──────────► CRNN ──────────► instantes de golpe        F1 0,957
    │
    ├─2─ IMAGEN ─────────► YOLO26-pose ───► esqueletos + identidad J1-J4
    │                      + máscara de pista + re-identificación
@@ -62,10 +62,10 @@ gratis.
 
 **De dónde sale.** Reimplementado del paper de Decorte et al. (arquitectura
 SED-net adaptada). **Se probó primero el camino propio** —detectar el golpe por
-pose y trayectoria de pelota— y se descartó midiéndolo: F1 0,821 frente a 0,956
+pose y trayectoria de pelota— y se descartó midiéndolo: F1 0,821 frente a 0,957
 del audio sobre los mismos datos.
 
-**Resultado:** F1 **0,956** (el paper reporta 0,92).
+**Resultado:** F1 **0,957** (el paper reporta 0,92).
 
 ### Paso 2 — Los jugadores
 
@@ -210,7 +210,7 @@ paper; el tipo de golpe usa el etiquetado propio.
 
 | Métrica | Este trabajo | Paper de referencia | Datos |
 |---|---|---|---|
-| Detección de golpes (F1) | **0,956** | 0,92 | CVSPORTS, 99 rallies (media de 3 ejecuciones); criterio de emparejamiento distinto, ver nota |
+| Detección de golpes (F1) | **0,957** | 0,92 | CVSPORTS, 99 rallies (media de 3 ejecuciones); criterio de emparejamiento distinto, ver nota |
 | Asignación — jugador | **87,46 %** | 83,70 % | CVSPORTS, VIGO, 319 golpes |
 | Asignación — equipo | **92,16 %** | 86,83 % | CVSPORTS, VIGO, 319 golpes |
 | Clasificación de tipo (accuracy) | **81,98 %** | *no lo hace* | etiquetado propio: 2.187 golpes de las 4 clases con jugador asignado, por torneos |
@@ -239,7 +239,7 @@ Cómo leer la comparación con el paper:
 - **Detección: mismo orden de magnitud, no una comparación exacta.** El paper
   empareja eventos por su inicio y su fin (métrica event-based de sed_eval) y
   promedia 4 particiones de los rallies; aquí se empareja por el instante del
-  golpe. Con criterios distintos, 0,956 frente a 0,92 no demuestra una mejora.
+  golpe. Con criterios distintos, 0,957 frente a 0,92 no demuestra una mejora.
 - **Tipo de golpe y pelota no se comparan con el paper**: el paper no
   clasifica golpes ni mide su detector de pelota en pádel. Solo se compara donde
   hay la misma prueba.
