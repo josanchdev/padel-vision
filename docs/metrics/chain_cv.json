@@ -1,19 +1,19 @@
 {
   "name": "chain_cv",
-  "summary": "Cadena completa en CVSPORTS, dejando fuera cada torneo: deteccion F1 0.948, tipo 83.7%, jugador (VIGO) 79.9%; detectado y bien clasificado 80.3%, todo correcto en VIGO 68.5%.",
+  "summary": "Cadena completa en CVSPORTS, dejando fuera cada torneo: deteccion F1 0.948, tipo 83.9%, jugador (VIGO) 86.5%; detectado y bien clasificado 80.5%, todo correcto en VIGO 75.5%.",
   "metrics": {
     "real_hits": 2377,
     "detection_precision": 0.9717,
     "detection_recall": 0.9247,
     "detection_f1": 0.9476,
-    "type_accuracy": 0.8369,
-    "player_accuracy": 0.7986,
-    "team_accuracy": 0.8924,
-    "type_accuracy_right_player": 0.8789,
-    "end_to_end_when_what": 0.8032,
-    "end_to_end_vigo": 0.6853,
+    "type_accuracy": 0.8388,
+    "player_accuracy": 0.8646,
+    "team_accuracy": 0.9201,
+    "type_accuracy_right_player": 0.8926,
+    "end_to_end_when_what": 0.805,
+    "end_to_end_vigo": 0.7552,
     "vigo_hits": 286,
-    "type_macro_f1": 0.8679
+    "type_macro_f1": 0.8706
   },
   "dataset": "CVSPORTS: 99 rallies / 11 torneos (cuando, que); VIGO con jugador anotado (quien)",
   "method": "leave-one-tournament-out: audio CRNN + BST-0 reentrenados por ronda; pose y pelota cacheadas",
@@ -22,8 +22,8 @@
     "funnel_vigo_percent": {
       "Golpes reales": 100.0,
       "Detectados": 96.15384615384616,
-      "Jugador correcto": 77.97202797202797,
-      "Jugador y tipo correctos": 68.53146853146853
+      "Jugador correcto": 84.61538461538461,
+      "Jugador y tipo correctos": 75.52447552447552
     },
     "per_tournament_video": {
       "20230528_VIGO": {
@@ -31,12 +31,12 @@
         "detection_precision": 0.9582,
         "detection_recall": 0.946,
         "detection_f1": 0.9521,
-        "type_accuracy": 0.8475,
-        "player_accuracy": 0.7986,
-        "team_accuracy": 0.8924,
-        "type_accuracy_right_player": 0.8789,
-        "end_to_end_when_what": 0.8129,
-        "end_to_end_vigo": 0.6853,
+        "type_accuracy": 0.8511,
+        "player_accuracy": 0.8646,
+        "team_accuracy": 0.9201,
+        "type_accuracy_right_player": 0.8926,
+        "end_to_end_when_what": 0.8163,
+        "end_to_end_vigo": 0.7552,
         "vigo_hits": 286
       },
       "20230604_BRUSSEL": {
@@ -44,11 +44,11 @@
         "detection_precision": 0.9908,
         "detection_recall": 0.86,
         "detection_f1": 0.9208,
-        "type_accuracy": 0.7438,
+        "type_accuracy": 0.7488,
         "player_accuracy": 0.0,
         "team_accuracy": 0.0,
         "type_accuracy_right_player": 0.0,
-        "end_to_end_when_what": 0.6652,
+        "end_to_end_when_what": 0.6696,
         "end_to_end_vigo": 0.0,
         "vigo_hits": 0
       },
@@ -57,11 +57,11 @@
         "detection_precision": 0.9903,
         "detection_recall": 0.8947,
         "detection_f1": 0.9401,
-        "type_accuracy": 0.8614,
+        "type_accuracy": 0.8515,
         "player_accuracy": 0.0,
         "team_accuracy": 0.0,
         "type_accuracy_right_player": 0.0,
-        "end_to_end_when_what": 0.8131,
+        "end_to_end_when_what": 0.8037,
         "end_to_end_vigo": 0.0,
         "vigo_hits": 0
       },
@@ -70,11 +70,11 @@
         "detection_precision": 1.0,
         "detection_recall": 0.9519,
         "detection_f1": 0.9754,
-        "type_accuracy": 0.8723,
+        "type_accuracy": 0.8617,
         "player_accuracy": 0.0,
         "team_accuracy": 0.0,
         "type_accuracy_right_player": 0.0,
-        "end_to_end_when_what": 0.8367,
+        "end_to_end_when_what": 0.8265,
         "end_to_end_vigo": 0.0,
         "vigo_hits": 0
       },
@@ -83,11 +83,11 @@
         "detection_precision": 0.9279,
         "detection_recall": 0.9602,
         "detection_f1": 0.9438,
-        "type_accuracy": 0.8617,
+        "type_accuracy": 0.8564,
         "player_accuracy": 0.0,
         "team_accuracy": 0.0,
         "type_accuracy_right_player": 0.0,
-        "end_to_end_when_what": 0.8617,
+        "end_to_end_when_what": 0.8564,
         "end_to_end_vigo": 0.0,
         "vigo_hits": 0
       },
@@ -96,11 +96,11 @@
         "detection_precision": 0.9891,
         "detection_recall": 0.8531,
         "detection_f1": 0.9161,
-        "type_accuracy": 0.8202,
+        "type_accuracy": 0.8015,
         "player_accuracy": 0.0,
         "team_accuracy": 0.0,
         "type_accuracy_right_player": 0.0,
-        "end_to_end_when_what": 0.7604,
+        "end_to_end_when_what": 0.7431,
         "end_to_end_vigo": 0.0,
         "vigo_hits": 0
       },
@@ -109,11 +109,11 @@
         "detection_precision": 0.9791,
         "detection_recall": 0.9493,
         "detection_f1": 0.964,
-        "type_accuracy": 0.8029,
+        "type_accuracy": 0.8175,
         "player_accuracy": 0.0,
         "team_accuracy": 0.0,
         "type_accuracy_right_player": 0.0,
-        "end_to_end_when_what": 0.7885,
+        "end_to_end_when_what": 0.8029,
         "end_to_end_vigo": 0.0,
         "vigo_hits": 0
       },
@@ -122,11 +122,11 @@
         "detection_precision": 1.0,
         "detection_recall": 0.9692,
         "detection_f1": 0.9844,
-        "type_accuracy": 0.875,
+        "type_accuracy": 0.8796,
         "player_accuracy": 0.0,
         "team_accuracy": 0.0,
         "type_accuracy_right_player": 0.0,
-        "end_to_end_when_what": 0.863,
+        "end_to_end_when_what": 0.8676,
         "end_to_end_vigo": 0.0,
         "vigo_hits": 0
       },
@@ -135,11 +135,11 @@
         "detection_precision": 0.9832,
         "detection_recall": 0.9263,
         "detection_f1": 0.9539,
-        "type_accuracy": 0.7952,
+        "type_accuracy": 0.8133,
         "player_accuracy": 0.0,
         "team_accuracy": 0.0,
         "type_accuracy_right_player": 0.0,
-        "end_to_end_when_what": 0.7719,
+        "end_to_end_when_what": 0.7895,
         "end_to_end_vigo": 0.0,
         "vigo_hits": 0
       },
@@ -148,11 +148,11 @@
         "detection_precision": 1.0,
         "detection_recall": 0.9519,
         "detection_f1": 0.9754,
-        "type_accuracy": 0.8644,
+        "type_accuracy": 0.8531,
         "player_accuracy": 0.0,
         "team_accuracy": 0.0,
         "type_accuracy_right_player": 0.0,
-        "end_to_end_when_what": 0.8361,
+        "end_to_end_when_what": 0.8251,
         "end_to_end_vigo": 0.0,
         "vigo_hits": 0
       },
@@ -161,76 +161,76 @@
         "detection_precision": 0.8859,
         "detection_recall": 0.9422,
         "detection_f1": 0.9132,
-        "type_accuracy": 0.9216,
+        "type_accuracy": 0.9477,
         "player_accuracy": 0.0,
         "team_accuracy": 0.0,
         "type_accuracy_right_player": 0.0,
-        "end_to_end_when_what": 0.9038,
+        "end_to_end_when_what": 0.9295,
         "end_to_end_vigo": 0.0,
         "vigo_hits": 0
       }
     },
     "training_curve": {
       "folds": 11.0,
-      "held_out_accuracy_final_mean": 82.07,
-      "held_out_accuracy_best_epoch_mean": 84.48,
-      "loss_first_epoch_mean": 1.4195,
-      "loss_last_epoch_mean": 0.4242
+      "held_out_accuracy_final_mean": 81.88,
+      "held_out_accuracy_best_epoch_mean": 84.71,
+      "loss_first_epoch_mean": 1.4184,
+      "loss_last_epoch_mean": 0.4248
     }
   },
   "per_class": {
     "Forehand": {
-      "precision": 0.8222,
-      "recall": 0.8148,
-      "f1": 0.8185,
+      "precision": 0.8261,
+      "recall": 0.8122,
+      "f1": 0.8191,
       "support": 772
     },
     "Backhand": {
-      "precision": 0.8074,
-      "recall": 0.8144,
-      "f1": 0.8109,
+      "precision": 0.8065,
+      "recall": 0.8273,
+      "f1": 0.8168,
       "support": 695
     },
     "Smash": {
-      "precision": 0.8996,
-      "recall": 0.8835,
-      "f1": 0.8915,
+      "precision": 0.9039,
+      "recall": 0.8763,
+      "f1": 0.8899,
       "support": 558
     },
     "Serve": {
       "precision": 1.0,
-      "recall": 0.9062,
-      "f1": 0.9508,
+      "recall": 0.9167,
+      "f1": 0.9565,
       "support": 96
     }
   },
   "confusion": [
     [
-      629,
-      105,
-      27,
+      627,
+      110,
+      24,
       0,
       11
     ],
     [
-      100,
-      566,
-      26,
+      90,
+      575,
+      27,
       0,
       3
     ],
     [
-      33,
-      28,
-      493,
+      40,
+      25,
+      489,
       0,
       4
     ],
     [
+      2,
       3,
-      2,
-      2,
-      87,
+      1,
+      88,
       2
     ],
     [
@@ -249,6 +249,6 @@
     "Unclassified"
   ],
   "notes": "Primera medida de la cadena entera con los instantes que detecta el audio. Hasta aqui cada paso se media aislado: el quien con instantes anotados (87,46%) y el tipo con el golpeador ya elegido (81,84%).",
-  "commit": "37f2f86",
-  "timestamp": "2026-10-02T09:10:57+00:00"
+  "commit": "bc57664",
+  "timestamp": "2026-10-02T11:40:10+00:00"
 }
