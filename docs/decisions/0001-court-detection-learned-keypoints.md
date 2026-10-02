@@ -1,6 +1,8 @@
 # ADR-0001: Detección de pista mediante keypoints aprendidos
 
-**Estado:** aceptada · 2026-07-12
+**Estado:** SUPERADA por [ADR-0018](0018-court-manual-only.md) · 2026-09-30
+
+**Estado original:** aceptada · 2026-07-12
 
 ## Contexto
 

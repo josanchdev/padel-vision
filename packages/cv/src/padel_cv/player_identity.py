@@ -220,9 +220,11 @@ class PlayerIdentityTracker:
             centre = _bbox_centre(pose)
             slot = min(
                 missing,
-                key=lambda s: float(np.hypot(*(np.array(centre) - self.last_position[s])))
-                if s in self.last_position
-                else float("inf"),
+                key=lambda s: (
+                    float(np.hypot(*(np.array(centre) - self.last_position[s])))
+                    if s in self.last_position
+                    else float("inf")
+                ),
             )
             missing.remove(slot)
             assert pose.track_id is not None

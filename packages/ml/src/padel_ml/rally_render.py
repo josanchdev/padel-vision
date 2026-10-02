@@ -21,7 +21,6 @@ import cv2
 from padel_cv import overlay
 from padel_cv.pipeline import ImageArray
 from padel_cv.video_io import H264VideoWriter
-from padel_cv.visualize import COCO_SKELETON
 from padel_ml.rally_analysis import RallyAnalysis, Shot
 from padel_ml.shot_type_dataset import CLASSES
 
@@ -77,7 +76,9 @@ def _draw_frame(
         if hitter is not None and pose.player_id == hitter:
             hitter_pose = pose
             continue  # drawn last, so it sits on top of the others
-        overlay.skeleton(image, pose.keypoints, COCO_SKELETON, PLAYER_COLOURS[pose.player_id])
+        overlay.skeleton(
+            image, pose.keypoints, overlay.COCO_SKELETON, PLAYER_COLOURS[pose.player_id]
+        )
         overlay.label(
             image,
             f"J{pose.player_id}",
@@ -99,7 +100,7 @@ def _draw_frame(
         overlay.skeleton(
             image,
             hitter_pose.keypoints,
-            COCO_SKELETON,
+            overlay.COCO_SKELETON,
             player_colour,
             thickness=3,
             joint_radius=4,

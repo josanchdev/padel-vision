@@ -9,7 +9,7 @@ dependencies = []
 package = false
 
 [tool.uv.workspace]
-members = ["packages/cv", "packages/api", "packages/ml"]
+members = ["packages/cv", "packages/ml"]
 
 [dependency-groups]
 dev = [
@@ -17,7 +17,6 @@ dev = [
     "mypy>=1.14",
     "pytest>=8.3",
     "pre-commit>=4.0",
-    "httpx>=0.28",  # required by fastapi.testclient
 ]
 
 [tool.ruff]
@@ -25,7 +24,7 @@ line-length = 100
 target-version = "py311"
 
 [tool.ruff.lint.isort]
-known-first-party = ["padel_cv", "padel_api"]
+known-first-party = ["padel_cv"]
 
 [tool.ruff.lint]
 select = [
@@ -40,28 +39,17 @@ select = [
     "RUF", # ruff-specific
 ]
 
-[tool.ruff.lint.per-file-ignores]
-# FastAPI's dependency-injection idiom is `arg = Depends(...)` in signatures.
-"packages/api/src/padel_api/main.py" = ["B008"]
-
 [tool.mypy]
 strict = true
 python_version = "3.11"
-mypy_path = ["packages/cv/src", "packages/api/src", "packages/ml/src"]
-packages = ["padel_cv", "padel_api", "padel_ml"]
+mypy_path = ["packages/cv/src", "packages/ml/src"]
+packages = ["padel_cv", "padel_ml"]
 
 [[tool.mypy.overrides]]
-module = ["cv2", "cv2.*", "ultralytics", "ultralytics.*", "imageio", "imageio.*", "imageio_ffmpeg", "scipy", "scipy.*", "torchaudio", "torchaudio.*"]
+module = ["cv2", "cv2.*", "ultralytics", "ultralytics.*", "imageio", "imageio.*", "imageio_ffmpeg", "torchaudio", "torchaudio.*"]
 ignore_missing_imports = true
 implicit_reexport = true
 
-[[tool.mypy.overrides]]
-# redis/arq/aiofiles ship partial or no type info; their untyped calls would
-# otherwise fail strict mode across the API package.
-module = ["aiofiles", "aiofiles.*", "arq", "arq.*", "redis", "redis.*", "sklearn", "sklearn.*"]
-ignore_missing_imports = true
-disallow_untyped_calls = false
-
 [tool.pytest.ini_options]
-testpaths = ["packages/cv/tests", "packages/api/tests", "packages/ml/tests"]
+testpaths = ["packages/cv/tests", "packages/ml/tests"]
 addopts = "-q"

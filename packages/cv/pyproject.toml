@@ -5,6 +5,7 @@ description = "Computer vision pipeline: court, players, pose, shot classificati
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "ultralytics>=8.4",
+    "lap>=0.5",  # ByteTrack assignment; ultralytics only installs it at runtime
     "opencv-python>=4.10",
     "numpy>=1.26",
     "imageio>=2.36",

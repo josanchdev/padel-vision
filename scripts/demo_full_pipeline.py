@@ -1,12 +1,12 @@
 """Render the whole pipeline over one rally: when, who, and what kind of shot.
 
-A thin wrapper over `padel_ml.rally_analysis` — the same code the external
-evaluation and the web worker run — plus the overlay from `padel_ml.rally_render`.
+A thin wrapper over `padel_ml.rally_analysis` — the same code the web export
+runs — plus the overlay from `padel_ml.rally_render`.
 
-Note on honesty: with a CVSPORTS rally the classifier has seen these hits during
-training, so that is a "watch it work" demo, not a measurement. The measurement
-is the cross-tournament evaluation in docs/metrics (accuracy 81.84%, macro-F1
-0.847); on footage from outside CVSPORTS it is the external evaluation.
+Note on honesty: the production models were trained on all of CVSPORTS, so on a
+CVSPORTS rally this is a "watch it work" demo, not a measurement. The
+measurements are the cross-tournament evaluations in docs/metrics
+(`shot_type_classifier.json`, `chain_cv.json`).
 
     uv run python scripts/demo_full_pipeline.py RALLY.mp4 -o out.mp4
 """

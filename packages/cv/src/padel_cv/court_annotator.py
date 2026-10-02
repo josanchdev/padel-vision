@@ -1,11 +1,10 @@
-"""Mark the court by hand, once per tournament (ADR-0015 D2).
+"""Mark the court by hand, once per tournament (ADR-0018).
 
-The learned detector (court v6, ADR-0006) stays the default — measured over
-CVSPORTS it reprojects to 0.11-0.15 m on six of the eleven tournaments, better
-than the colour-based method the reference paper discarded. But it drifts to
-1-5 m on three and fails outright on two, so those need the manual route the
-paper itself uses: the camera is fixed within a tournament, so a handful of
-clicks gives an exact homography that serves every rally of that tournament.
+The broadcast camera is fixed within a tournament, so a handful of clicks gives
+an exact homography that serves every rally of that tournament — the route the
+reference paper takes too. A learned court detector was tried and dropped: over
+CVSPORTS it drifted 1-5 m on three of the eleven tournaments and found no court
+on two, and a wrong court silently corrupts everything built on it.
 
 Six points rather than four: four corners are enough in theory (a homography has
 eight degrees of freedom), but the far corners are often hidden behind the glass,

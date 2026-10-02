@@ -1,6 +1,8 @@
 # ADR-0006: Detección de pista en dos vías — detector aprendido + calibración estática
 
-**Estado:** aceptada · 2026-07-17
+**Estado:** SUPERADA por [ADR-0018](0018-court-manual-only.md) · 2026-09-30
+
+**Estado original:** aceptada · 2026-07-17
 
 ## Contexto
 

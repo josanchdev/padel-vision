@@ -1,6 +1,8 @@
 # ADR-0007: Cola de trabajos — Arq sobre Redis
 
-**Estado:** aceptada · 2026-07-17
+**Estado:** SUPERADA por [ADR-0017](0017-static-web-viewer.md) · 2026-09-28
+
+**Estado original:** aceptada · 2026-07-17
 
 ## Contexto
 

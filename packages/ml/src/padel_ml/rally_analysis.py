@@ -1,9 +1,10 @@
 """One rally, end to end: when, who, and what kind of shot.
 
-The single code path behind the demo video, the external evaluation and the web
-worker. Keeping all three on one function is what gives the evaluation its
-meaning: a score measured on a copy of the pipeline says nothing about the code
-that actually runs.
+The single code path behind the demo video and the web export; the whole-chain
+evaluation (`scripts/evaluate_chain_cv.py`) runs the same `resolve_shots` over
+cached pose and ball. Keeping them on one code path is what gives the evaluation
+its meaning: a score measured on a copy of the pipeline says nothing about the
+code that actually runs.
 
     WHEN   audio CRNN over the soundtrack                (ADR-0015 A)
     WHO    pose + ball, weighted vote around each hit    (ADR-0015 D)

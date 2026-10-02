@@ -48,6 +48,22 @@ SHOT_SHAPES = {"Forehand": "circle", "Backhand": "diamond", "Smash": "triangle",
 """A stroke type is drawn as a shape, never as a colour: colour already means
 the player, and two meanings on one channel make the eye mix them up."""
 
+COCO_SKELETON: list[tuple[int, int]] = [
+    (5, 7),
+    (7, 9),  # left arm
+    (6, 8),
+    (8, 10),  # right arm
+    (5, 6),  # shoulders
+    (5, 11),
+    (6, 12),  # torso
+    (11, 12),  # hips
+    (11, 13),
+    (13, 15),  # left leg
+    (12, 14),
+    (14, 16),  # right leg
+]
+"""The limbs drawn between COCO keypoints; the face points are left out."""
+
 
 def marker(
     image: ImageArray, shape: str, centre: tuple[int, int], size: int, colour: tuple[int, int, int]

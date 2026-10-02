@@ -2,20 +2,12 @@ from pathlib import Path
 
 import numpy as np
 
-from padel_cv.pipeline import Frame, Pipeline, PipelineStage, PoseDetection
+from padel_cv.pipeline import Frame, PipelineStage, PoseDetection
 from padel_cv.stages.pose import DEFAULT_TRACKER
 
 
 def test_default_tracker_config_exists() -> None:
     assert Path(DEFAULT_TRACKER).is_file()
-
-
-def make_frame(index: int = 0) -> Frame:
-    return Frame(
-        index=index,
-        timestamp_s=index / 30.0,
-        image=np.zeros((64, 64, 3), dtype=np.uint8),
-    )
 
 
 class FakePoseStage:
@@ -44,18 +36,3 @@ class CountingStage:
 def test_stages_satisfy_protocol() -> None:
     assert isinstance(FakePoseStage(), PipelineStage)
     assert isinstance(CountingStage(), PipelineStage)
-
-
-def test_pipeline_applies_stages_in_order() -> None:
-    counter = CountingStage()
-    pipeline = Pipeline([FakePoseStage(), counter])
-    frame = pipeline.process_frame(make_frame(index=3))
-    assert len(frame.poses) == 1
-    assert frame.poses[0].confidence == 0.9
-    assert counter.seen == [3]
-
-
-def test_pipeline_stages_accumulate_results() -> None:
-    pipeline = Pipeline([FakePoseStage(), FakePoseStage()])
-    frame = pipeline.process_frame(make_frame())
-    assert len(frame.poses) == 2
