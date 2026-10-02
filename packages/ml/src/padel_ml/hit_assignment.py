@@ -6,7 +6,7 @@ method (accuracy 83.7% player / 86.8% team), not a naive 1-frame nearest-wrist:
 - take a window around the hit (the paper's 500 ms; ours is ±4 frames, see
   `WINDOW_HALF` — measured better on their own ground truth),
 - per frame with a ball detection, measure ball→player distance (min of both
-  wrists if pose present, else bbox centre),
+  wrists if pose present, else bbox centre), in body heights (`player_distance`),
 - weighted majority vote across the window, weight by standardized distance (eq.1),
 - tie-break by smallest euclidean distance over all frames.
 
@@ -30,26 +30,20 @@ WINDOW_HALF = 4
 """Half-width of the voting window, in frames (±160 ms at 25 fps).
 
 The paper uses ±6 (a 500 ms window) and that is what this replicated first.
-Swept against its own 319-hit ground truth, narrower is better:
+Swept against its own 319-hit ground truth with the system's configuration
+(docs/metrics/assignment_window_sweep.json), narrower is better:
 
-    ±2  89.66% player  95.92% team
-    ±4  89.66%         95.30%
-    ±6  87.46%         93.73%   <- the paper's width
-    ±8  84.33%         91.54%
+    ±4  87.46% player  92.16% team
+    ±5  86.83%         91.54%
+    ±6  85.58%         90.60%   <- the paper's width
 
 Frames far from contact have the ball nowhere near the hitter — after it, the
 ball is already crossing to the far court and votes for whoever is now closest.
-The gain is broad rather than driven by one rally: 6 of 16 rallies improve, 9 are
-unchanged, 1 gets worse.
-
-±2 scores marginally better on team accuracy but leans on the ball being
-detected in a handful of frames; on external footage hits were seen with no ball
-at all in their window. ±4 buys robustness at no cost in player accuracy.
 
 Asymmetry was tested too, since the ball leaves after contact: it does not help
-(±6 before-only 84.33%, after-only 82.45%). The window was too wide on both
+(±6 before-only 82.45%, after-only 81.19%). The window was too wide on both
 sides, not mistimed. Shifting the centre also does not help — the optimum sits at
-offset -1 frame, i.e. no audio/video lag worth correcting.
+offset -1 frame (+0.6 points), i.e. no audio/video lag worth correcting.
 """
 MIN_WINDOW_FRAMES = 12  # paper pads short predicted windows up to 500 ms
 

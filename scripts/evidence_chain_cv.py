@@ -15,6 +15,7 @@ per-hit rows and each fold's training curve) and writes:
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 from dataclasses import asdict
@@ -248,7 +249,7 @@ def main() -> None:
         labels=labels,
         notes=(
             "Primera medida de la cadena entera con los instantes que detecta el audio. Hasta "
-            "aqui cada paso se media aislado: el quien con instantes anotados (89,65%) y el "
+            "aqui cada paso se media aislado: el quien con instantes anotados (87,46%) y el "
             "tipo con el golpeador ya elegido (81,84%)."
         ),
     )
@@ -264,4 +265,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    ).parse_args()
     main()

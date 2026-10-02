@@ -1,7 +1,7 @@
 """Does the assignment vote look at the wrong frames? (tutor's hypothesis)
 
-The current vote is SYMMETRIC around the audio instant: [hit-6, hit+6]. The
-suggestion under test is that this is wrong in a specific way — a few frames
+When this was run the vote was SYMMETRIC around the instant: [hit-6, hit+6]. The
+suggestion under test was that this is wrong in a specific way — a few frames
 after contact the ball is already flying to the far court, so those frames vote
 for whoever is now near it rather than for whoever hit it. Any lag between the
 audio instant and the true contact frame makes it worse, since it shifts the
@@ -17,30 +17,33 @@ previous hit to the next one (up to 1.5 s), which is longer and would pull in
 even more frames where the ball is across the net. The useful part of the
 tutor's idea is the asymmetry, not that particular window.
 
-Runs on `build_states` — the same path as the published evidence — so the
-baseline row reproduces the 87.46% and the rows are comparable to it. A cached
-variant was tried first and scored 79.3% on the same configuration: it skipped
-the court mask and identity tracking, so its numbers were not comparable.
+Outcome: ±4 frames (`hit_assignment.WINDOW_HALF`). Runs on `build_states` and
+the hand-marked court — the same path as the published evidence — so the rows
+are comparable to `hit_assignment_replica.json`. A cached variant was tried
+first and was not comparable: it skipped the court mask and identity tracking.
 
     uv run python scripts/experiment_assignment_window.py
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
-import numpy as np
 from padel_ml.ball_infer import BallDetector
 from padel_ml.hit_assignment import (
     MAX_POSE_GAP,
+    WINDOW_HALF,
     FrameState,
     assign_hit,
     team_alternation_sweep,
 )
-from padel_ml.hit_assignment_eval import CORNER_INDICES, build_states
+from padel_ml.hit_assignment_eval import build_states
 from padel_ml.hit_assignment_gt import load_hit_assignments
+from padel_ml.rally_analysis import POSE_CONFIDENCE
 
+from padel_cv.court_registry import court_file_for, load_corners
 from padel_cv.stages.pose import PlayerPoseStage
 
 REPO = Path(__file__).resolve().parents[1]
@@ -69,11 +72,8 @@ def assign_asymmetric(
 
 
 def main() -> None:
-    corners = np.array(
-        json.loads((REPO / "data/datasets/vigo_court.json").read_text())["keypoints_px"]
-    )[list(CORNER_INDICES), :2]
     truth_by_rally = load_hit_assignments(DATASET / "metadata" / "hit_assignments.xlsx")
-    pose_stage = PlayerPoseStage()
+    pose_stage = PlayerPoseStage(confidence=POSE_CONFIDENCE)  # as analyze_rally
     ball_detector = BallDetector(REPO / "runs/ball_full/tracknetv3.pt")
 
     import cv2
@@ -86,7 +86,10 @@ def main() -> None:
         capture = cv2.VideoCapture(str(video))
         fps = capture.get(cv2.CAP_PROP_FPS) or 25.0
         capture.release()
-        states = build_states(video, pose_stage, ball_detector, corners, fps)
+        court = court_file_for(rally, REPO / "data" / "datasets" / "courts")
+        if court is None:
+            raise SystemExit(f"{rally}: sin pista marcada")
+        states = build_states(video, pose_stage, ball_detector, load_corners(court), fps)
         hits = [(round(h.time_s * fps), h.slot, h.team) for h in truth_by_rally[rally] if h.slot]
         rallies.append((states, hits))
         print(f"  {rally}: {len(hits)} golpes", flush=True)
@@ -117,7 +120,7 @@ def main() -> None:
 
     def row(kind: str, before: int, after: int, offset: int) -> None:
         player, team = score(before, after, offset)
-        baseline = (before, after, offset) == (6, 6, 0)
+        baseline = (before, after, offset) == (WINDOW_HALF, WINDOW_HALF, 0)
         mark = "   <- actual" if baseline else ""
         if kind == "offset":
             print(f"   {offset:+3d}      {player:5.2f}%   {team:5.2f}%{mark}", flush=True)
@@ -158,9 +161,12 @@ def main() -> None:
         row("window", before, after, 0)
 
     out = REPO / "docs" / "metrics" / "assignment_window_sweep.json"
-    out.write_text(json.dumps(results, indent=2), encoding="utf-8")
+    out.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
     print(f"\n[saved] {out}")
 
 
 if __name__ == "__main__":
+    argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    ).parse_args()
     main()

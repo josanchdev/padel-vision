@@ -4,183 +4,183 @@
     "before": 6,
     "after": 6,
     "offset": -6,
-    "player": 72.73,
-    "team": 80.88
+    "player": 70.85,
+    "team": 78.37
   },
   {
     "kind": "offset",
     "before": 6,
     "after": 6,
     "offset": -5,
-    "player": 76.49,
-    "team": 83.7
+    "player": 74.29,
+    "team": 80.88
   },
   {
     "kind": "offset",
     "before": 6,
     "after": 6,
     "offset": -4,
-    "player": 81.19,
-    "team": 87.77
+    "player": 79.0,
+    "team": 84.64
   },
   {
     "kind": "offset",
     "before": 6,
     "after": 6,
     "offset": -3,
-    "player": 84.01,
-    "team": 89.34
+    "player": 82.13,
+    "team": 86.52
   },
   {
     "kind": "offset",
     "before": 6,
     "after": 6,
     "offset": -2,
-    "player": 86.83,
-    "team": 92.16
+    "player": 84.95,
+    "team": 89.34
   },
   {
     "kind": "offset",
     "before": 6,
     "after": 6,
     "offset": -1,
-    "player": 88.09,
-    "team": 93.42
+    "player": 86.21,
+    "team": 90.28
   },
   {
     "kind": "offset",
     "before": 6,
     "after": 6,
     "offset": 0,
-    "player": 87.46,
-    "team": 93.73
+    "player": 85.58,
+    "team": 90.6
   },
   {
     "kind": "offset",
     "before": 6,
     "after": 6,
     "offset": 1,
-    "player": 85.89,
-    "team": 92.79
+    "player": 83.7,
+    "team": 89.97
   },
   {
     "kind": "offset",
     "before": 6,
     "after": 6,
     "offset": 2,
-    "player": 84.01,
-    "team": 92.16
+    "player": 82.45,
+    "team": 89.66
   },
   {
     "kind": "offset",
     "before": 6,
     "after": 6,
     "offset": 3,
-    "player": 79.94,
-    "team": 89.03
+    "player": 78.37,
+    "team": 86.52
   },
   {
     "kind": "offset",
     "before": 6,
     "after": 6,
     "offset": 4,
-    "player": 74.92,
-    "team": 86.52
+    "player": 73.35,
+    "team": 84.01
   },
   {
     "kind": "window",
     "before": 6,
     "after": 6,
     "offset": 0,
-    "player": 87.46,
-    "team": 93.73
+    "player": 85.58,
+    "team": 90.6
   },
   {
     "kind": "window",
     "before": 6,
     "after": 4,
     "offset": 0,
-    "player": 88.71,
-    "team": 94.04
+    "player": 86.83,
+    "team": 90.91
   },
   {
     "kind": "window",
     "before": 6,
     "after": 3,
     "offset": 0,
-    "player": 88.71,
-    "team": 93.73
+    "player": 86.83,
+    "team": 90.6
   },
   {
     "kind": "window",
     "before": 6,
     "after": 2,
     "offset": 0,
-    "player": 88.4,
-    "team": 93.73
+    "player": 86.52,
+    "team": 90.6
   },
   {
     "kind": "window",
     "before": 6,
     "after": 0,
     "offset": 0,
-    "player": 84.33,
-    "team": 90.28
+    "player": 82.45,
+    "team": 87.15
   },
   {
     "kind": "window",
     "before": 8,
     "after": 2,
     "offset": 0,
-    "player": 84.64,
-    "team": 90.28
+    "player": 82.45,
+    "team": 87.15
   },
   {
     "kind": "window",
     "before": 8,
     "after": 4,
     "offset": 0,
-    "player": 86.83,
-    "team": 92.16
+    "player": 84.95,
+    "team": 89.34
   },
   {
     "kind": "window",
     "before": 4,
     "after": 4,
     "offset": 0,
-    "player": 89.66,
-    "team": 95.3
+    "player": 87.46,
+    "team": 92.16
   },
   {
     "kind": "window",
     "before": 5,
     "after": 5,
     "offset": 0,
-    "player": 88.4,
-    "team": 94.67
+    "player": 86.83,
+    "team": 91.54
   },
   {
     "kind": "window",
     "before": 3,
     "after": 6,
     "offset": 0,
-    "player": 86.52,
-    "team": 93.42
+    "player": 84.33,
+    "team": 90.6
   },
   {
     "kind": "window",
     "before": 0,
     "after": 6,
     "offset": 0,
-    "player": 82.45,
-    "team": 92.16
+    "player": 81.19,
+    "team": 89.66
   },
   {
     "kind": "window",
     "before": 10,
     "after": 4,
     "offset": 0,
-    "player": 84.64,
-    "team": 89.97
+    "player": 82.76,
+    "team": 87.15
   }
 ]

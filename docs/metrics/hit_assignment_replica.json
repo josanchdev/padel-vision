@@ -1,10 +1,10 @@
 {
   "name": "hit_assignment_replica",
-  "summary": "Réplica del 'quién golpea' de Decorte 2024: jugador 89.65% (paper 83.70%), equipo 95.30% (paper 86.83%).",
+  "summary": "Réplica del 'quién golpea' de Decorte 2024: jugador 87.46% (paper 83.70%), equipo 92.16% (paper 86.83%).",
   "metrics": {
-    "player_accuracy": 0.8965,
-    "team_accuracy": 0.953,
-    "macro_f1": 0.8969,
+    "player_accuracy": 0.8746,
+    "team_accuracy": 0.9216,
+    "macro_f1": 0.8762,
     "paper_player_accuracy": 0.837,
     "paper_team_accuracy": 0.8683,
     "hits": 319
@@ -12,34 +12,35 @@
   "dataset": "CVSPORTS_Padel — 319 golpes anotados con jugador (16 rallies VIGO)",
   "method": "Voto ponderado multi-frame (ec.1) + fallbacks + barrido por alternancia",
   "params": {
-    "window_half_frames": 6,
+    "window_half_frames": 4,
+    "pose_confidence": 0.25,
     "min_keypoint_confidence": 0.3,
-    "homography": "court v6 agregado (error medio 0,113 m)",
+    "court": "marcada a mano, 20230528_VIGO.json (ADR-0018)",
     "ball": "TrackNetV3 propio (F1 0,94) + post-proceso"
   },
   "per_class": {
     "J1": {
-      "precision": 0.9222,
-      "recall": 0.9326,
-      "f1": 0.9274,
+      "precision": 0.8636,
+      "recall": 0.8539,
+      "f1": 0.8588,
       "support": 89
     },
     "J2": {
-      "precision": 0.8442,
-      "recall": 0.942,
-      "f1": 0.8904,
+      "precision": 0.8312,
+      "recall": 0.9275,
+      "f1": 0.8767,
       "support": 69
     },
     "J3": {
-      "precision": 0.8657,
+      "precision": 0.8529,
       "recall": 0.8657,
-      "f1": 0.8657,
+      "f1": 0.8593,
       "support": 67
     },
     "J4": {
-      "precision": 0.9639,
-      "recall": 0.8511,
-      "f1": 0.904,
+      "precision": 0.9643,
+      "recall": 0.8617,
+      "f1": 0.9101,
       "support": 94
     },
     "sin asignar": {
@@ -51,15 +52,15 @@
   },
   "confusion": [
     [
-      83,
-      3,
-      1,
+      76,
+      4,
+      7,
       1,
       1
     ],
     [
-      4,
-      65,
+      5,
+      64,
       0,
       0,
       0
@@ -72,10 +73,10 @@
       1
     ],
     [
-      1,
       5,
-      8,
-      80,
+      5,
+      3,
+      81,
       0
     ],
     [
@@ -93,7 +94,7 @@
     "J4",
     "sin asignar"
   ],
-  "notes": "Se evalúa con los instantes ANOTADOS, no con los detectados por audio, para medir la asignación aislada. La métrica de EQUIPO reproduce exactamente la del paper (86,83%). En jugador quedamos 3,1 puntos por debajo, pero nosotros asignamos los 319 golpes mientras que ellos dejan algunos sin asignar, luego nuestra cifra es más exigente. Los errores dominantes (J4->J2, J3->J1) son los mismos pares que el paper documenta como límite de una sola cámara (ambigüedad de profundidad, su Fig. 9a).",
-  "commit": "378676c",
-  "timestamp": "2026-09-22T17:24:56+00:00"
+  "notes": "Se evalúa con los instantes ANOTADOS, no con los detectados por audio, para medir la asignación aislada. Mismos 319 golpes y misma métrica que la tabla 3 del paper: acierto ponderado por golpes, y los golpes sin asignar cuentan como fallo en ambos. Las mejoras (distancia normalizada por la altura del jugador, ventana de ±4 frames, resolución de la pelota) se eligieron midiendo sobre estos mismos golpes, así que la cifra puede ser algo optimista. Como en el paper, un barrido por alternancia recupera el EQUIPO de los golpes sin jugador; el sistema completo no lo aplica (tabla 2). Errores más frecuentes: J1->J3 (7), J4->J1 (5), J4->J2 (5).",
+  "commit": "37f2f86",
+  "timestamp": "2026-10-02T07:31:27+00:00"
 }

@@ -33,8 +33,8 @@ Vídeo (mp4 con audio)
    ├─3─ IMAGEN ─────────► TrackNetV3 ────► trayectoria de la pelota  F1 0,94
    │                      + limpieza física (parábola local)
    │
-   ├─4─ 1+2+3 ──────────► voto ponderado ► QUIÉN golpeó       89,65% jugador
-   │                                                          95,30% equipo
+   ├─4─ 1+2+3 ──────────► voto ponderado ► QUIÉN golpeó       87,46% jugador
+   │                                                          92,16% equipo
    │
    └─5─ pose + pelota ──► BST-0 ─────────► TIPO de golpe      81,84% acc
                           + regla del saque                   0,847 macro-F1
@@ -137,11 +137,11 @@ uno solo lo hace robusto a que falte la pose o la pelota en el instante exacto.
   alta— el voto se lo llevaba sistemáticamente quien estaba al fondo.
 - **Ventana de ±4 frames en vez de los 500 ms del paper.** Lejos del impacto la
   pelota no está cerca de nadie en particular y el voto añade ruido: medido
-  sobre su propio ground truth, estrechar la ventana da +2,2 puntos. Se probó
+  sobre su propio ground truth, estrechar la ventana da +1,9 puntos. Se probó
   también desplazarla y hacerla asimétrica —por si hubiera desfase entre audio e
   imagen— y ambas salieron peores.
 
-**Resultado:** **89,65%** por jugador, **95,30%** por equipo (paper: 83,70% y
+**Resultado:** **87,46%** por jugador, **92,16%** por equipo (paper: 83,70% y
 86,83%), sobre su mismo ground truth de 319 golpes anotados.
 
 ### Paso 5 — QUÉ TIPO (la aportación propia)
@@ -183,15 +183,14 @@ dejando torneos enteros fuera.
 | CRNN de audio | cuándo | arquitectura de Decorte et al. | **sí** |
 | YOLO26-pose | jugadores | Ultralytics, pesos COCO | no |
 | TrackNetV3 | pelota | arquitectura TrackNet | **sí**, sobre pádel |
-| Court v6 | pista | YOLO-pose de keypoints | **sí** |
 | BST-0 | tipo de golpe | arquitectura de Chang | **sí** |
 
-Cuatro de los cinco están entrenados en este trabajo. El único de terceros es
+Tres de los cuatro están entrenados en este trabajo. El único de terceros es
 el detector de personas, que se usa con sus pesos originales.
 
 Además, dos componentes que no son modelos: la **asignación de golpe a jugador**
-(voto ponderado) y la **homografía de pista**, que se calcula automáticamente o
-se marca a mano con seis clics por torneo.
+(voto ponderado) y la **homografía de pista**, que se marca a mano con seis
+clics por torneo, como en el paper (ADR-0018).
 
 ---
 
@@ -204,17 +203,16 @@ paper; el tipo de golpe usa el etiquetado propio.
 | Métrica | Este trabajo | Paper de referencia | Datos |
 |---|---|---|---|
 | Detección de golpes (F1) | **0,956** | 0,92 | CVSPORTS, 99 rallies (media de 3 ejecuciones); criterio de emparejamiento distinto, ver nota |
-| Asignación — jugador | **89,65 %** | 83,70 % | CVSPORTS, VIGO, 319 golpes |
-| Asignación — equipo | **95,30 %** | 86,83 % | CVSPORTS, VIGO, 319 golpes |
+| Asignación — jugador | **87,46 %** | 83,70 % | CVSPORTS, VIGO, 319 golpes |
+| Asignación — equipo | **92,16 %** | 86,83 % | CVSPORTS, VIGO, 319 golpes |
 | Clasificación de tipo (accuracy) | **81,84 %** | *no lo hace* | etiquetado propio, 2.377 golpes, por torneos |
 | Clasificación de tipo (macro-F1) | **0,847** | *no lo hace* | ídem |
 
-Componentes propios, sin cifra equivalente en el paper (no se comparan):
+Componente propio, sin cifra equivalente en el paper (no se compara):
 
 | Componente | Resultado | Datos |
 |---|---|---|
 | Detección de pelota (F1) | **0,94** | PadelTracker100: entrenada con la final masculina, validada con la femenina. El paper usa un modelo de tenis sin medirlo en pádel |
-| Pista (homografía) | **automática** | Residual de ajuste 0,113 m en VIGO (sin ground truth: consistencia, no exactitud); 0,196 m frente al ground truth del benchmark WPT. El paper la marca a mano |
 
 Cómo leer la comparación con el paper:
 
@@ -222,7 +220,9 @@ Cómo leer la comparación con el paper:
   de la tabla 3 del paper, con el mismo número de golpes cada uno) y la misma
   métrica: acierto medio ponderado por golpes, contando como fallo los golpes
   que no se asignan, en ambos casos. Se evalúa con los instantes **anotados**,
-  no con los detectados, para medir ese paso aislado.
+  no con los detectados, para medir ese paso aislado, y con la configuración
+  exacta del sistema (pista marcada a mano, umbral de detección de personas
+  0,25).
 - **Las mejoras de la asignación se eligieron midiendo sobre esos mismos 319
   golpes** (normalizar la distancia por altura, la ventana de ±4 frames, la
   resolución del detector de pelota), así que la cifra puede ser algo optimista.
@@ -232,9 +232,9 @@ Cómo leer la comparación con el paper:
   empareja eventos por su inicio y su fin (métrica event-based de sed_eval) y
   promedia 4 particiones de los rallies; aquí se empareja por el instante del
   golpe. Con criterios distintos, 0,956 frente a 0,92 no demuestra una mejora.
-- **Tipo de golpe, pelota y pista no se comparan con el paper**: el paper no
-  clasifica golpes, no mide su detector de pelota en pádel y marca la pista a
-  mano sin dar un error. Solo se compara donde hay la misma prueba.
+- **Tipo de golpe y pelota no se comparan con el paper**: el paper no
+  clasifica golpes ni mide su detector de pelota en pádel. Solo se compara donde
+  hay la misma prueba.
 
 ### El sistema completo, de una vez
 

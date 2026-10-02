@@ -10,6 +10,7 @@ threshold sweep and the comparison against every earlier approach we tried.
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -222,4 +223,7 @@ def main(seed: int = 0) -> None:
 
 
 if __name__ == "__main__":
+    argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    ).parse_args()
     main()

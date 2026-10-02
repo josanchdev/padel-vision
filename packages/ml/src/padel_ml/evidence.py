@@ -26,17 +26,27 @@ FIGURES_DIR = METRICS_DIR / "figures"
 
 
 def _git_commit() -> str | None:
-    """Commit the measurement was taken at, so a result can be traced to code."""
+    """Commit the measurement was taken at, so a result can be traced to code.
+
+    Suffixed "-dirty" when tracked code had uncommitted changes: the result then
+    came from code that the commit alone does not reproduce.
+    """
     try:
-        out = subprocess.run(
+        head = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
             capture_output=True,
             text=True,
             check=True,
-        )
-        return out.stdout.strip()
+        ).stdout.strip()
+        changes = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no", "--", "packages", "scripts"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None
+    return f"{head}-dirty" if changes else head
 
 
 @dataclass

@@ -2,8 +2,8 @@
   {
     "rally": "20230528_VIGO_00",
     "hits": 16,
-    "player_accuracy": 0.75,
-    "team_accuracy": 1.0
+    "player_accuracy": 0.4375,
+    "team_accuracy": 0.4375
   },
   {
     "rally": "20230528_VIGO_01",
@@ -20,7 +20,7 @@
   {
     "rally": "20230528_VIGO_03",
     "hits": 13,
-    "player_accuracy": 0.7692,
+    "player_accuracy": 0.6923,
     "team_accuracy": 0.7692
   },
   {
@@ -63,7 +63,7 @@
     "rally": "20230528_VIGO_10",
     "hits": 10,
     "player_accuracy": 0.7,
-    "team_accuracy": 1.0
+    "team_accuracy": 0.9
   },
   {
     "rally": "20230528_VIGO_11",
@@ -86,7 +86,7 @@
   {
     "rally": "20230528_VIGO_15",
     "hits": 35,
-    "player_accuracy": 0.9429,
+    "player_accuracy": 0.9143,
     "team_accuracy": 0.9714
   },
   {

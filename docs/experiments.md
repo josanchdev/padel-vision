@@ -1728,3 +1728,61 @@ paso aislado y el sistema completo por torneos) bastan. Su código, etiquetas y
 evidencias (`blind_annotator`, `external_eval`, `evaluate_external.py`,
 `data/labels/external/`, `external_evaluation.json`) pasan al inventario de la
 limpieza como candidatos a eliminar.
+
+---
+
+## Limpieza: cada cifra, medida con la configuración exacta del sistema (30 sep – 2 oct 2026)
+
+Al retirar el código viejo (commit `7b058d7`, etiqueta `pre-limpieza` para lo
+anterior) se comprobó, medida por medida, que cada evidencia ejecuta lo mismo
+que `analyze_rally`. La pista pasa a marcarse solo a mano (ADR-0018).
+
+### Asignación (tabla 1): tres diferencias con el sistema real
+
+La medida de 89,65% / 95,30% se tomó con una configuración que el sistema ya
+no usa:
+
+| | Medida anterior | Sistema real |
+|---|---|---|
+| Pista de VIGO | automática (court v6) | marcada a mano |
+| Umbral de detección de personas | 0,4 | 0,25 (con el que se extrajeron los datos del clasificador) |
+| Tracker de pose entre rallies | sin reiniciar | reiniciado al empezar cada vídeo |
+
+Con la configuración real: **jugador 87,46%, equipo 92,16%** (paper 83,70% /
+86,83%). Aislado en VIGO_00, que concentra la caída (5 de los 7 golpes
+perdidos): la pista manual y la automática dan exactamente lo mismo (la pista
+solo sirve para la máscara de público, y ambas difieren en 20-35 px); el umbral
+0,25 hace que la re-identificación cruce dos jugadores a partir del 7.º golpe
+(J1 pasa a numerarse J3). **Decisión de Jorge:** se informa la cifra del sistema
+real, y VIGO_00 no se corrige: ajustar el sistema sobre los golpes de la
+evaluación sería sobreajuste.
+
+El barrido de ventana, repetido con la misma configuración
+(`assignment_window_sweep.json`), mantiene **±4 como la mejor** en jugador y en
+equipo, y su fila ±4 coincide exactamente con la evidencia (dos caminos de
+cálculo, el mismo resultado).
+
+### La caché de pose de los 99 rallies arrastraba el tracker
+
+`data/datasets/rally_features` (entrada del clasificador y de la tabla 2) se
+generó el 20 sep procesando los rallies seguidos sin reiniciar el tracker; el
+reinicio llegó el 27 sep con `analyze_rally`. Comprobado en 5 rallies: la caché
+se reproduce exactamente con el comportamiento antiguo, y el reinicio no cambia
+nada en 4 de ellos (1-5 frames), **pero en VIGO_11 rompe la numeración del rally
+entero**: en la tabla 2 acierta el jugador en 20 de 43 golpes, con el reinicio en
+46 de 46. Se regenera la caché con el reinicio y se repiten la tabla 2, la
+validación del clasificador y el modelo de producción.
+
+### Otros arreglos de la auditoría
+
+- `torchaudio` y `lap` (ByteTrack) se usaban sin estar declaradas: un clon
+  limpio no habría podido ejecutar el audio ni el seguimiento de jugadores.
+- Las notas de `hit_assignment_replica.json` aún decían que el paper deja golpes
+  sin asignar (falso, corregido en `sistema.md` el 29 sep) y declaraban la
+  ventana como ±6; ahora se escriben desde el código.
+- `fit_and_save` aceptaba una semilla que no usaba: ahora la usa.
+- El detector de audio de producción se entrena con su propio script
+  (`train_audio_detector.py`) sobre los 99 rallies; antes salía de un script de
+  demo que dejaba fuera un rally. Las tablas no cambian: usan modelos por torneo.
+- Los scripts de evidencias ejecutaban el experimento entero al pedirles
+  `--help`; ahora todos leen sus argumentos.

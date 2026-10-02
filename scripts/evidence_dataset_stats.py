@@ -9,6 +9,7 @@ split, discard rate and the imbalance the training has to compensate for.
 
 from __future__ import annotations
 
+import argparse
 import collections
 import json
 import statistics
@@ -138,4 +139,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    ).parse_args()
     main()

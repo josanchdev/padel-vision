@@ -36,6 +36,7 @@ BALL_CKPT = REPO / "runs" / "ball_full" / "tracknetv3.pt"
 
 def extract(video: Path, pose_stage: PlayerPoseStage, ball: BallDetector) -> dict[str, object]:
     """Pose (with stable player ids) + cleaned ball track for one rally."""
+    pose_stage.reset()  # the tracker must not carry the previous rally's players
     court_json = court_file_for(video.stem)
     polygon = court_mask_polygon(load_corners(court_json)) if court_json else None
 

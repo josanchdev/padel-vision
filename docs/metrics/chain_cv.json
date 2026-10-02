@@ -248,7 +248,7 @@
     "Serve",
     "Unclassified"
   ],
-  "notes": "Primera medida de la cadena entera con los instantes que detecta el audio. Hasta aqui cada paso se media aislado: el quien con instantes anotados (89,65%) y el tipo con el golpeador ya elegido (81,84%).",
-  "commit": "7bfcd53",
-  "timestamp": "2026-09-27T22:09:47+00:00"
+  "notes": "Primera medida de la cadena entera con los instantes que detecta el audio. Hasta aqui cada paso se media aislado: el quien con instantes anotados (87,46%) y el tipo con el golpeador ya elegido (81,84%).",
+  "commit": "37f2f86",
+  "timestamp": "2026-10-02T09:10:57+00:00"
 }

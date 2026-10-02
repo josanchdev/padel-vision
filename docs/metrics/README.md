@@ -31,7 +31,6 @@ uv run python scripts/evidence_hit_assignment.py   # asignación de golpe a juga
 uv run python scripts/evidence_dataset_stats.py    # estadísticas del etiquetado propio
 uv run python scripts/evidence_shot_classifier.py  # clasificador de tipo (cross-torneo)
 uv run python scripts/experiment_assignment_window.py  # ancho de la ventana de voto
-uv run python scripts/evaluate_external.py        # evaluación externa (etiquetas a ciegas)
 uv run python scripts/evaluate_chain_cv.py        # sistema completo por torneos (reentrena por ronda)
 uv run python scripts/evidence_chain_cv.py        # evidencias y figuras del anterior
 ```
@@ -48,7 +47,7 @@ es un recuerdo.
 | `audio_threshold_sweep.json` | Barrido de umbral (una ejecución) | ADR-0015 A |
 | `audio_threshold_seeds.json` | **Elección del umbral**: F1/P/R por umbral, media de 3 ejecuciones | ADR-0015 A |
 | `audio_training_loss.json` | Curva de entrenamiento del CRNN | ADR-0015 A |
-| `hit_assignment_replica.json` | Asignación: jugador 89,65%, equipo 95,30%; matriz de confusión | ADR-0015 D |
+| `hit_assignment_replica.json` | Asignación: jugador 87,46%, equipo 92,16%, con la configuración del sistema; matriz de confusión | ADR-0015 D |
 | `assignment_window_sweep.json` | **Ancho de la ventana de voto**: desfase, asimetría y ±k | ADR-0015 D |
 | `hit_assignment_per_rally.json` | Tabla por rally, comparable con su Tabla 3 | ADR-0015 D |
 | `shot_baseline_poseonly.json` | Baseline antiguo pose-sola (macro-F1 0,62) | ADR-0013 |
@@ -56,11 +55,9 @@ es un recuerdo.
 | `dataset_per_tournament.json` | Golpes por torneo y clase (base del split cross-torneo) | ADR-0016 |
 | `shot_type_classifier.json` | **Clasificador de tipo**: acc 0,818, macro-F1 0,847, matriz | ADR-0016 |
 | `shot_type_per_tournament.json` | Accuracy por torneo (11 folds) | ADR-0016 |
-| `external_evaluation.json` | **Metraje externo, etiquetado a ciegas**: cuándo/quién/qué/extremo a extremo | bitácora |
-| `external_hits.csv` | Cada golpe externo: marca, detección, jugador y tipo, acierto por capa | bitácora |
 | `chain_cv.json` | **Sistema completo por torneos**: detección, jugador (VIGO), tipo y extremo a extremo, cada torneo sin verse al entrenar | bitácora |
 | `chain_cv_hits.csv` | Cada golpe de CVSPORTS en la cadena completa | bitácora |
-| `method_comparison_same_data.json` | **Cara a cara**: pose+pelota 0,821 vs audio 0,956, mismos datos | ADR-0015 |
+| `method_comparison_same_data.json` | **Cara a cara**: pose+pelota 0,821 vs audio 0,956, mismos datos. Su script necesitaba el detector descartado: se regenera desde la etiqueta git `pre-limpieza` | ADR-0015 |
 
 ### Figuras (`figures/`)
 
@@ -78,7 +75,6 @@ es un recuerdo.
 | `chain_cv_per_tournament.png` | Sistema completo por torneo |
 | `chain_cv_type_confusion.png` | Matriz de confusión del tipo en la cadena completa |
 | `shot_classifier_training_curve.png` | Convergencia del clasificador: pérdida y acierto por época, 11 rondas |
-| `external_type_confusion.png` | Tipo de golpe en el clip externo |
 
 ## Evidencias que NO se pueden regenerar (deuda documentada)
 
