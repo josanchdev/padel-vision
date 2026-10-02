@@ -195,9 +195,12 @@ def fit_and_save(
     Unlike `train_audio_detector` (which holds a val split back to report F1),
     this trains on all available data so the saved detector is as strong as
     possible, and persists the standardization stats needed at inference.
+    `seed` fixes the initial weights and the batch order (GPU kernels may still
+    differ in the last digits).
     """
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
+    torch.manual_seed(seed)
     rallies = build_all_rallies(dataset_dir, cache)
     exclude = exclude or set()
     train_r = [r for r in rallies if r.filename not in exclude]
