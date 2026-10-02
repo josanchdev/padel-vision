@@ -5,13 +5,21 @@ be reproducible, not remembered: it trains the CRNN on CVSPORTS_Padel with a
 cross-rally split, evaluates event-based (250 ms collar) and saves metrics, the
 threshold sweep and the comparison against every earlier approach we tried.
 
-    uv run python scripts/evidence_audio_detector.py
+One run is not enough to choose a threshold: the run-to-run spread (~0.02 F1) is
+as large as the gap between neighbouring thresholds. So it trains once per seed
+— each seed draws its own 70/30 split of the rallies and its own initial
+weights — and averages them (`audio_threshold_seeds.json`, the cited F1). The
+single-run files come from seed 0.
+
+    uv run python scripts/evidence_audio_detector.py [--seeds 3]
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import statistics
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -86,7 +94,19 @@ def sweep_thresholds(
     return rows
 
 
-def main(seed: int = 0) -> None:
+@dataclass
+class SeedRun:
+    """One training run: its split, its loss curve and its threshold sweep."""
+
+    seed: int
+    n_rallies: int
+    n_train: int
+    n_val: int
+    losses: list[float]
+    sweep: list[dict[str, float]]
+
+
+def train_and_sweep(seed: int) -> SeedRun:
     # Seeded so repeated runs are comparable: run-to-run spread (~0.02 F1) is as
     # large as the gap between neighbouring thresholds, so an unseeded sweep
     # cannot tell a real difference from luck. Not about bit-exact reproduction.
@@ -132,6 +152,12 @@ def main(seed: int = 0) -> None:
     hits = load_hits_csv(DATASET / "metadata" / "hits.csv")
     print("barrido de umbral:")
     sweep = sweep_thresholds(model, val_rallies, hits, mean, std, device)
+    return SeedRun(seed, len(rallies), len(train_rallies), n_val, losses, sweep)
+
+
+def report_single_run(run: SeedRun) -> None:
+    """The seed-0 files: metrics, loss curve, threshold sweep and the comparison."""
+    sweep, losses, seed = run.sweep, run.losses, run.seed
     best = max(sweep, key=lambda r: r["f1"])
     chosen = next(r for r in sweep if r["threshold"] == DEFAULT_THRESHOLD)
 
@@ -187,8 +213,8 @@ def main(seed: int = 0) -> None:
             "best_f1_any_threshold": best["f1"],
         },
         dataset=(
-            f"CVSPORTS_Padel — {len(rallies)} rallies, 2.377 golpes; "
-            f"split cross-rally {len(train_rallies)}/{n_val}"
+            f"CVSPORTS_Padel — {run.n_rallies} rallies, 2.377 golpes; "
+            f"split cross-rally {run.n_train}/{run.n_val}"
         ),
         method="CRNN log-Mel (3xconv2D pool-frecuencia + 2xGRU bi) + focal BCE",
         params={
@@ -222,8 +248,110 @@ def main(seed: int = 0) -> None:
     print(f"\nguardado -> {path}")
 
 
-if __name__ == "__main__":
-    argparse.ArgumentParser(
+def report_seeds(runs: list[SeedRun]) -> None:
+    """Average every seed per threshold: the evidence the threshold is chosen on."""
+    thresholds = [r["threshold"] for r in runs[0].sweep]
+    table: dict[str, dict[str, float]] = {}
+    for i, threshold in enumerate(thresholds):
+        rows = [run.sweep[i] for run in runs]
+        table[f"{threshold:.1f}"] = {
+            "f1_mean": round(statistics.mean(r["f1"] for r in rows), 4),
+            "f1_std": round(statistics.stdev(r["f1"] for r in rows), 4),
+            "precision_mean": round(statistics.mean(r["precision"] for r in rows), 4),
+            "recall_mean": round(statistics.mean(r["recall"] for r in rows), 4),
+        }
+    chosen = table[f"{DEFAULT_THRESHOLD:.1f}"]
+    best = max(table, key=lambda t: table[t]["f1_mean"])
+
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    shown = [t for t in table if 0.3 <= float(t) <= 0.7]
+    x = [float(t) for t in shown]
+    figure, axis = plt.subplots(figsize=(7, 4.5))
+    axis.plot(
+        x, [table[t]["precision_mean"] for t in shown], "s--", color="#d84a3b", label="precisión"
+    )
+    axis.plot(x, [table[t]["recall_mean"] for t in shown], "^--", color="#3bd87d", label="recall")
+    axis.axvline(
+        DEFAULT_THRESHOLD,
+        linestyle=":",
+        color="grey",
+        label=f"elegido: {DEFAULT_THRESHOLD:.1f}".replace(".", ","),
+    )
+    axis.errorbar(
+        x,
+        [table[t]["f1_mean"] for t in shown],
+        yerr=[table[t]["f1_std"] for t in shown],
+        fmt="o-",
+        color="#3b7dd8",
+        capsize=4,
+        label=f"F1 (media de {len(runs)} ejecuciones)",
+    )
+    axis.set_xlabel("umbral de detección")
+    axis.set_ylabel("métrica")
+    axis.set_title(
+        f"Elección del umbral: media de {len(runs)} ejecuciones\n"
+        "(la barra de error es la dispersión entre ejecuciones)"
+    )
+    axis.grid(alpha=0.3)
+    axis.legend()
+    figure.tight_layout()
+    figure.savefig(FIGURES_DIR / "audio_threshold_seeds.png", dpi=150)
+    plt.close(figure)
+
+    result = ExperimentResult(
+        name="audio_threshold_seeds",
+        summary=(
+            f"Detector de golpes por audio, media de {len(runs)} ejecuciones: F1 "
+            f"{chosen['f1_mean']:.3f} ± {chosen['f1_std']:.3f} con umbral "
+            f"{DEFAULT_THRESHOLD} (precisión {chosen['precision_mean']:.3f}, recall "
+            f"{chosen['recall_mean']:.3f}; paper {PAPER_F1})."
+        ),
+        metrics={
+            "f1": chosen["f1_mean"],
+            "f1_std": chosen["f1_std"],
+            "precision": chosen["precision_mean"],
+            "recall": chosen["recall_mean"],
+            "runs": len(runs),
+            "paper_f1": PAPER_F1,
+        },
+        dataset=(
+            f"CVSPORTS_Padel — {runs[0].n_rallies} rallies; cada ejecución con su propio "
+            f"split cross-rally {runs[0].n_train}/{runs[0].n_val}"
+        ),
+        method="CRNN log-Mel + focal BCE; evaluación event-based con collar de 250 ms",
+        params={
+            "seeds": [run.seed for run in runs],
+            "threshold": DEFAULT_THRESHOLD,
+            "by_threshold": table,
+        },
+        notes=(
+            f"Mejor umbral por F1 medio: {best}; el sistema usa {DEFAULT_THRESHOLD}. Cada "
+            "semilla cambia el reparto de rallies entre entrenamiento y validación y los "
+            "pesos iniciales, así que la media equivale a promediar particiones, como hace "
+            "el paper con 4. Las ejecuciones individuales no son idénticas bit a bit en GPU."
+        ),
+    )
+    print(f"guardado -> {result.save()}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
-    ).parse_args()
+    )
+    parser.add_argument("--seeds", type=int, default=3, help="Training runs to average")
+    args = parser.parse_args()
+    runs = []
+    for seed in range(args.seeds):
+        print(f"\n=== semilla {seed} ===")
+        runs.append(train_and_sweep(seed))
+    report_single_run(runs[0])
+    if len(runs) > 1:  # a spread needs at least two runs
+        report_seeds(runs)
+
+
+if __name__ == "__main__":
     main()
