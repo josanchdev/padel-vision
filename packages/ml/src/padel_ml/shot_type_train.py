@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import collections
 from dataclasses import dataclass, field
-from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
@@ -288,38 +287,3 @@ def cross_tournament_cv(
         )
         results.append(result)
     return results
-
-
-def aggregate(
-    results: list[FoldResult], windows_by_tournament: dict[str, list[ShotWindow]] | None = None
-) -> dict[str, object]:
-    """Pool every fold's predictions: one global confusion matrix and metrics.
-
-    Pass `windows_by_tournament` to apply the serve rule; without it the raw
-    argmax is used, which is only meaningful for measuring the rule's effect.
-    """
-    n_classes = len(CLASSES)
-    truths: list[int] = []
-    predictions: list[int] = []
-    for result in results:
-        truths.extend(result.truths)
-        if windows_by_tournament is not None:
-            predictions.extend(
-                apply_serve_rule(result.probabilities, windows_by_tournament[result.tournament])
-            )
-        else:
-            predictions.extend(int(np.argmax(p)) for p in result.probabilities)
-    accuracy, macro_f1, per_class, confusion = _metrics(truths, predictions, n_classes)
-    return {
-        "accuracy": round(accuracy, 4),
-        "macro_f1": round(macro_f1, 4),
-        "per_class": per_class,
-        "confusion": confusion,
-        "n": len(truths),
-        "per_fold": {r.tournament: round(r.accuracy, 4) for r in results},
-    }
-
-
-def save_checkpoint(model: ShotTypeBST, path: Path, seq_len: int) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"state_dict": model.state_dict(), "seq_len": seq_len, "classes": CLASSES}, path)

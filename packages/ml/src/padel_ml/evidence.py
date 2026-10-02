@@ -82,23 +82,6 @@ class ExperimentResult:
         return path
 
 
-def load_result(name: str, directory: Path = METRICS_DIR) -> ExperimentResult:
-    """Read one saved experiment back."""
-    data = json.loads((directory / f"{name}.json").read_text())
-    return ExperimentResult(**data)
-
-
-def load_all(directory: Path = METRICS_DIR) -> list[ExperimentResult]:
-    """Every saved experiment, newest first."""
-    out = []
-    for path in sorted(directory.glob("*.json")):
-        try:
-            out.append(ExperimentResult(**json.loads(path.read_text())))
-        except TypeError:  # older files with a different shape
-            continue
-    return sorted(out, key=lambda r: r.timestamp, reverse=True)
-
-
 def confusion_matrix(
     true_labels: list[str], predicted: list[str | None], labels: list[str]
 ) -> npt.NDArray[np.int64]:

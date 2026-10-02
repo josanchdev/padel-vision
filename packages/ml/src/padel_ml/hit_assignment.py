@@ -16,7 +16,6 @@ missing — the single-frame version we tried before was fragile.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 
 import numpy as np
@@ -45,7 +44,6 @@ Asymmetry was tested too, since the ball leaves after contact: it does not help
 sides, not mistimed. Shifting the centre also does not help — the optimum sits at
 offset -1 frame (+0.6 points), i.e. no audio/video lag worth correcting.
 """
-MIN_WINDOW_FRAMES = 12  # paper pads short predicted windows up to 500 ms
 
 
 @dataclass
@@ -218,53 +216,3 @@ def team_alternation_sweep(assignments: dict[int, int | None]) -> dict[int, int 
         if inferred is not None:
             out[frame] = -inferred  # team-only result
     return out
-
-
-def frame_window(
-    start_s: float, end_s: float, fps: float, min_frames: int = MIN_WINDOW_FRAMES
-) -> tuple[int, int]:
-    """Video-frame range for a predicted hit window (paper §5.3).
-
-    The model's own onset/offset are used when the window is long enough;
-    shorter ones are padded symmetrically to 500 ms (12 frames at 25 fps).
-    """
-    first, last = round(start_s * fps), round(end_s * fps)
-    span = last - first + 1
-    if span < min_frames:
-        pad = (min_frames - span) / 2
-        first, last = round(first - pad), round(last + pad)
-    return first, last
-
-
-def assign_hit_window(
-    first_frame: int, last_frame: int, states: dict[int, FrameState]
-) -> int | None:
-    """Weighted vote over an explicit frame range (see `assign_hit`)."""
-    centre = (first_frame + last_frame) // 2
-    half = max((last_frame - first_frame) // 2, 1)
-    return assign_hit(centre, states, window_half=half)
-
-
-def assign_hits(
-    hit_frames: Sequence[int],
-    states: dict[int, FrameState],
-    window_half: int = WINDOW_HALF,
-    alternation_sweep: bool = True,
-) -> dict[int, int | None]:
-    """Assign every detected hit frame to a player (negative = team only)."""
-    out: dict[int, int | None] = {hf: assign_hit(hf, states, window_half) for hf in hit_frames}
-    return team_alternation_sweep(out) if alternation_sweep else out
-
-
-def assign_hit_windows(
-    windows_s: Sequence[tuple[float, float]],
-    states: dict[int, FrameState],
-    fps: float,
-    alternation_sweep: bool = True,
-) -> dict[int, int | None]:
-    """Assign predicted hit windows (seconds) to players; keyed by centre frame."""
-    out: dict[int, int | None] = {}
-    for start_s, end_s in windows_s:
-        first, last = frame_window(start_s, end_s, fps)
-        out[(first + last) // 2] = assign_hit_window(first, last, states)
-    return team_alternation_sweep(out) if alternation_sweep else out

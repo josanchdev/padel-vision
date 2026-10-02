@@ -31,12 +31,12 @@ FloatArray = npt.NDArray[np.float32]
 DEFAULT_THRESHOLD = 0.5
 """Detection threshold, measured rather than assumed.
 
-Swept over 0.3-0.7 (docs/metrics/audio_threshold_seeds.json): mean F1 0.930 /
-0.947 / **0.956** / 0.954 / 0.943. 0.5 wins on F1 and balances precision (0.969)
-against recall (0.944) without sacrificing either, and the curve is flat around
-it, so the choice is robust rather than a fragile peak. Dropping to 0.4 buys
-recall (0.960) at the cost of precision (0.936) if soft hits — drop shots,
-slices — ever matter more than false positives.
+Swept over 0.3-0.7, mean of three runs (docs/metrics/audio_threshold_seeds.json):
+F1 0.932 / 0.947 / **0.957** / 0.953 / 0.942. 0.5 wins on F1 and balances
+precision (0.969) against recall (0.945) without sacrificing either, and the curve
+is flat around it, so the choice is robust rather than a fragile peak. Dropping
+to 0.4 buys recall (0.958) at the cost of precision (0.938) if soft hits — drop
+shots, slices — ever matter more than false positives.
 """
 
 
@@ -93,47 +93,6 @@ def peaks_from_frames(
             out.append(i)
             last = i
     return out
-
-
-def windows_from_frames(
-    probs: FloatArray, threshold: float = DEFAULT_THRESHOLD, min_gap_frames: int = 4
-) -> list[tuple[int, int]]:
-    """Contiguous above-threshold runs as (start, end) spectrogram frames.
-
-    The paper drives hit assignment from the predicted hit WINDOW (padded to
-    500 ms only when it is shorter), not from a bare peak — so we emit the real
-    onset/offset the CRNN produces. The window's width is itself information: a
-    slice sounds different from a smash. Runs closer than `min_gap_frames` are
-    merged, as they belong to one hit.
-    """
-    above = probs >= threshold
-    runs: list[tuple[int, int]] = []
-    start: int | None = None
-    for i, hot in enumerate(above):
-        if hot and start is None:
-            start = i
-        elif not hot and start is not None:
-            runs.append((start, i - 1))
-            start = None
-    if start is not None:
-        runs.append((start, len(probs) - 1))
-    merged: list[tuple[int, int]] = []
-    for run in runs:
-        if merged and run[0] - merged[-1][1] < min_gap_frames:
-            merged[-1] = (merged[-1][0], run[1])
-        else:
-            merged.append(run)
-    return merged
-
-
-def hit_windows_seconds(
-    probs: FloatArray, threshold: float = DEFAULT_THRESHOLD, min_gap_frames: int = 4
-) -> list[tuple[float, float]]:
-    """Predicted hit windows as (start, end) seconds."""
-    return [
-        (frame_time(a), frame_time(b))
-        for a, b in windows_from_frames(probs, threshold, min_gap_frames)
-    ]
 
 
 @dataclass
@@ -266,18 +225,6 @@ def detect_hits_in_audio(
     """Run the saved detector over a video/audio file → list of hit times (s)."""
     probs = hit_probabilities(audio_source, checkpoint, device)
     return [frame_time(p) for p in peaks_from_frames(probs, threshold, min_gap_frames)]
-
-
-def detect_hit_windows_in_audio(
-    audio_source: Path,
-    checkpoint: Path,
-    threshold: float = DEFAULT_THRESHOLD,
-    min_gap_frames: int = 8,
-    device: str | None = None,
-) -> list[tuple[float, float]]:
-    """Hit WINDOWS (start, end) in seconds — what hit assignment consumes."""
-    probs = hit_probabilities(audio_source, checkpoint, device)
-    return hit_windows_seconds(probs, threshold, min_gap_frames)
 
 
 def train_audio_detector(
