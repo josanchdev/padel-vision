@@ -1,6 +1,6 @@
 # ADR-0015: Golpes = AUDIO detecta + RGB clasifica (supera ADR-0013)
 
-**Estado:** aceptada · 2026-02 · **supera a ADR-0013** (dos modelos aprendidos sobre pose+pelota)
+**Estado:** aceptada · 2026-09-06 · **supera a ADR-0013** (dos modelos aprendidos sobre pose+pelota)
 
 ## Contexto
 

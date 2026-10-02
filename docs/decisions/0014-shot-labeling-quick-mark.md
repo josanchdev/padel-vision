@@ -1,6 +1,8 @@
 # ADR-0014: Etiquetado de golpes por marca rápida (frame + tipo)
 
-**Estado:** aceptada · 2026-07-31
+**Estado:** SUPERADA en parte · 2026-09-07 — la detección del golpe la resuelve el audio ([ADR-0015](0015-shot-audio-detect-rgb-classify.md)); el tipo se etiqueta sobre los instantes de CVSPORTS ([ADR-0016](0016-shot-type-classifier.md))
+
+**Estado original:** aceptada · 2026-07-31
 
 ## Contexto
 

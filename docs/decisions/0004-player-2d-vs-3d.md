@@ -1,6 +1,8 @@
 # ADR-0004: Representación del jugador — 2D vs 3D
 
-**Estado:** ABIERTA (decisión provisional: 2D) · 2026-07-12
+**Estado:** CERRADA en 2D · 2026-10-02 — el sistema final clasifica sobre pose 2D (ADR-0016); el lifting 3D no llegó a hacer falta y queda como trabajo futuro
+
+**Estado original:** ABIERTA (decisión provisional: 2D) · 2026-07-12
 
 ## Contexto
 

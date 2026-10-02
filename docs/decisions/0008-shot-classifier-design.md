@@ -1,6 +1,8 @@
 # ADR-0008: Diseño del clasificador de golpes (Nivel 2)
 
-**Estado:** aceptada · 2026-07-26
+**Estado:** SUPERADA por [ADR-0016](0016-shot-type-classifier.md) · 2026-09-07 — BST sobre pose y pelota, 4 clases, sin pesos de clase
+
+**Estado original:** aceptada · 2026-07-26
 
 ## Contexto
 

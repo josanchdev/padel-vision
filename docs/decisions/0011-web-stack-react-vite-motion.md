@@ -1,6 +1,6 @@
 # ADR-0011: Stack web — React + Vite + Motion, build estático servido por FastAPI
 
-**Estado:** aceptada · 2026-07-27
+**Estado:** aceptada · 2026-07-27 — la Decisión C (build servido por FastAPI) la supera [ADR-0017](0017-static-web-viewer.md): visor estático sin backend
 
 ## Contexto
 
