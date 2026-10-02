@@ -1,11 +1,11 @@
 {
   "name": "audio_threshold_seeds",
-  "summary": "Detector de golpes por audio, media de 3 ejecuciones: F1 0.957 ± 0.009 con umbral 0.5 (precisión 0.969, recall 0.945; paper 0.92).",
+  "summary": "Detector de golpes por audio, media de 3 ejecuciones: F1 0.958 ± 0.007 con umbral 0.5 (precisión 0.972, recall 0.945; paper 0.92).",
   "metrics": {
-    "f1": 0.9566,
-    "f1_std": 0.0092,
-    "precision": 0.9692,
-    "recall": 0.9445,
+    "f1": 0.9582,
+    "f1_std": 0.0074,
+    "precision": 0.9715,
+    "recall": 0.9454,
     "runs": 3,
     "paper_f1": 0.92
   },
@@ -20,46 +20,46 @@
     "threshold": 0.5,
     "by_threshold": {
       "0.2": {
-        "f1_mean": 0.8983,
-        "f1_std": 0.0312,
-        "precision_mean": 0.8264,
-        "recall_mean": 0.986
+        "f1_mean": 0.9012,
+        "f1_std": 0.0272,
+        "precision_mean": 0.8309,
+        "recall_mean": 0.9865
       },
       "0.3": {
-        "f1_mean": 0.9315,
-        "f1_std": 0.0235,
-        "precision_mean": 0.8966,
-        "recall_mean": 0.9709
+        "f1_mean": 0.9331,
+        "f1_std": 0.0193,
+        "precision_mean": 0.8989,
+        "recall_mean": 0.9714
       },
       "0.4": {
-        "f1_mean": 0.9473,
-        "f1_std": 0.0145,
-        "precision_mean": 0.9376,
-        "recall_mean": 0.9582
+        "f1_mean": 0.9496,
+        "f1_std": 0.0108,
+        "precision_mean": 0.9426,
+        "recall_mean": 0.9573
       },
       "0.5": {
-        "f1_mean": 0.9566,
-        "f1_std": 0.0092,
-        "precision_mean": 0.9692,
-        "recall_mean": 0.9445
+        "f1_mean": 0.9582,
+        "f1_std": 0.0074,
+        "precision_mean": 0.9715,
+        "recall_mean": 0.9454
       },
       "0.6": {
-        "f1_mean": 0.9534,
-        "f1_std": 0.007,
-        "precision_mean": 0.9825,
-        "recall_mean": 0.926
+        "f1_mean": 0.9529,
+        "f1_std": 0.0067,
+        "precision_mean": 0.9819,
+        "recall_mean": 0.9256
       },
       "0.7": {
-        "f1_mean": 0.9417,
-        "f1_std": 0.0095,
-        "precision_mean": 0.9937,
-        "recall_mean": 0.8949
+        "f1_mean": 0.9436,
+        "f1_std": 0.0054,
+        "precision_mean": 0.9922,
+        "recall_mean": 0.8996
       },
       "0.8": {
-        "f1_mean": 0.8929,
-        "f1_std": 0.0205,
+        "f1_mean": 0.8938,
+        "f1_std": 0.0216,
         "precision_mean": 0.9982,
-        "recall_mean": 0.808
+        "recall_mean": 0.8095
       },
       "0.9": {
         "f1_mean": 0.0,
@@ -73,6 +73,6 @@
   "confusion": [],
   "labels": [],
   "notes": "Mejor umbral por F1 medio: 0.5; el sistema usa 0.5. Cada semilla cambia el reparto de rallies entre entrenamiento y validación y los pesos iniciales, así que la media equivale a promediar particiones, como hace el paper con 4. Las ejecuciones individuales no son idénticas bit a bit en GPU.",
-  "commit": "155350e",
-  "timestamp": "2026-10-02T13:47:37+00:00"
+  "commit": "4dc5c7a",
+  "timestamp": "2026-10-02T15:50:44+00:00"
 }

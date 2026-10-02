@@ -1,15 +1,15 @@
 {
   "name": "shot_type_classifier",
-  "summary": "Clasificador de tipo de golpe (BST-0 adaptado): accuracy 81.98%, macro-F1 0.8524 en validación cruzada por torneos.",
+  "summary": "Clasificador de tipo de golpe (BST-0 adaptado): accuracy 82.71%, macro-F1 0.8590 en validación cruzada por torneos.",
   "metrics": {
-    "accuracy": 0.8198,
-    "macro_f1": 0.8524,
-    "accuracy_without_serve_rule": 0.8148,
-    "macro_f1_without_serve_rule": 0.8217,
-    "n": 2187,
+    "accuracy": 0.8271,
+    "macro_f1": 0.859,
+    "accuracy_without_serve_rule": 0.8248,
+    "macro_f1_without_serve_rule": 0.8423,
+    "n": 2186,
     "tournaments": 11
   },
-  "dataset": "2187 golpes etiquetados por nosotros sobre CVSPORTS_Padel, 11 torneos; leave-one-tournament-out",
+  "dataset": "2186 golpes etiquetados por nosotros sobre CVSPORTS_Padel, 11 torneos; leave-one-tournament-out",
   "method": "BST-0 (pose + trayectoria de pelota, cross-attention), sin pesos de clase",
   "params": {
     "epochs": 60,
@@ -19,86 +19,86 @@
     "class_weight_power": 0.0,
     "class_weight_ablation": {
       "0.0": {
-        "accuracy": 0.8198,
-        "macro_f1": 0.8524,
-        "serve_precision": 1.0,
-        "serve_recall": 0.9053,
-        "serve_f1": 0.9503
-      },
-      "0.5": {
-        "accuracy": 0.8144,
-        "macro_f1": 0.8464,
-        "serve_precision": 0.9885,
-        "serve_recall": 0.9053,
-        "serve_f1": 0.9451
-      },
-      "1.0": {
-        "accuracy": 0.8217,
-        "macro_f1": 0.8543,
+        "accuracy": 0.8271,
+        "macro_f1": 0.859,
         "serve_precision": 1.0,
         "serve_recall": 0.9158,
         "serve_f1": 0.956
+      },
+      "0.5": {
+        "accuracy": 0.8207,
+        "macro_f1": 0.8551,
+        "serve_precision": 0.9889,
+        "serve_recall": 0.9368,
+        "serve_f1": 0.9622
+      },
+      "1.0": {
+        "accuracy": 0.8184,
+        "macro_f1": 0.8572,
+        "serve_precision": 1.0,
+        "serve_recall": 0.9579,
+        "serve_f1": 0.9785
       }
     },
     "serve_rule": "solo el primer golpe del rally puede ser saque",
     "serve_without_rule": {
-      "precision": 0.7611,
-      "recall": 0.9053,
-      "f1": 0.8269,
+      "precision": 0.8614,
+      "recall": 0.9158,
+      "f1": 0.8878,
       "support": 95
     },
     "ball_inference_size": "768x432"
   },
   "per_class": {
     "Forehand": {
-      "precision": 0.8008,
-      "recall": 0.7887,
-      "f1": 0.7947,
-      "support": 800
+      "precision": 0.8055,
+      "recall": 0.8035,
+      "f1": 0.8045,
+      "support": 799
     },
     "Backhand": {
-      "precision": 0.777,
-      "recall": 0.7962,
-      "f1": 0.7865,
+      "precision": 0.789,
+      "recall": 0.803,
+      "f1": 0.7959,
       "support": 731
     },
     "Smash": {
-      "precision": 0.8759,
-      "recall": 0.8806,
-      "f1": 0.8782,
+      "precision": 0.8817,
+      "recall": 0.877,
+      "f1": 0.8794,
       "support": 561
     },
     "Serve": {
       "precision": 1.0,
-      "recall": 0.9053,
-      "f1": 0.9503,
+      "recall": 0.9158,
+      "f1": 0.956,
       "support": 95
     }
   },
   "confusion": [
     [
-      631,
-      135,
+      642,
+      123,
       34,
       0
     ],
     [
       115,
-      582,
-      34,
+      587,
+      29,
       0
     ],
     [
       39,
-      28,
-      494,
+      30,
+      492,
       0
     ],
     [
-      3,
+      1,
       4,
-      2,
-      86
+      3,
+      87
     ]
   ],
   "labels": [
@@ -107,7 +107,7 @@
     "Remate",
     "Saque"
   ],
-  "notes": "Split CROSS-TORNEO, no cross-rally: los rallies de un torneo comparten pista, cámara e iluminación, así que un split por rally filtraría. La cifra responde a si funciona en una pista nunca vista. Pesos de clase (macro-F1): potencia 0.0 0,852, potencia 0.5 0,846, potencia 1.0 0,854; el sistema entrena sin pesos (potencia 0). Regla del saque (solo el primer golpe del rally puede serlo): precisión del saque 0,761 sin la regla y 1,000 con ella; recall 0,905 y 0,905.",
-  "commit": "b7e6f73",
-  "timestamp": "2026-10-02T13:34:17+00:00"
+  "notes": "Split CROSS-TORNEO, no cross-rally: los rallies de un torneo comparten pista, cámara e iluminación, así que un split por rally filtraría. La cifra responde a si funciona en una pista nunca vista. Pesos de clase (macro-F1): potencia 0.0 0,859, potencia 0.5 0,855, potencia 1.0 0,857; el sistema entrena sin pesos (potencia 0). Regla del saque (solo el primer golpe del rally puede serlo): precisión del saque 0,861 sin la regla y 1,000 con ella; recall 0,916 y 0,916.",
+  "commit": "4dc5c7a",
+  "timestamp": "2026-10-02T15:27:04+00:00"
 }

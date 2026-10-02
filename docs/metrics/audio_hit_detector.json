@@ -1,15 +1,15 @@
 {
   "name": "audio_hit_detector",
-  "summary": "Detector de golpes por audio (CRNN SED): F1 0.947, precisión 0.949, recall 0.945 (paper 0.92).",
+  "summary": "Detector de golpes por audio (CRNN SED): F1 0.950, precisión 0.954, recall 0.946 (paper 0.92).",
   "metrics": {
-    "f1": 0.9466,
-    "precision": 0.9486,
-    "recall": 0.9446,
-    "tp": 665,
-    "fp": 36,
-    "fn": 39,
+    "f1": 0.9501,
+    "precision": 0.9542,
+    "recall": 0.946,
+    "tp": 666,
+    "fp": 32,
+    "fn": 38,
     "paper_f1": 0.92,
-    "best_f1_any_threshold": 0.9466
+    "best_f1_any_threshold": 0.9501
   },
   "dataset": "CVSPORTS_Padel — 99 rallies, 2.377 golpes; split cross-rally 70/29",
   "method": "CRNN log-Mel (3xconv2D pool-frecuencia + 2xGRU bi) + focal BCE",
@@ -31,6 +31,6 @@
   "confusion": [],
   "labels": [],
   "notes": "Reproduce el paper de pádel (Decorte CVPRW 2024, F1 0,92) sobre su dataset abierto. Justifica el giro: los enfoques previos por pose+pelota daban recall 15-52% (heurística), 29% (detector por ventana deslizado sobre vídeo real) y 61% (localizer por frame, solo en rallies). El recall que se pierde son dejadas/slices, que suenan poco — el mismo modo de fallo que reporta el paper (su tasa de borrado 0,13). Bug corregido en el camino: las stats de normalización deben calcularse sobre features CRUDAS y reutilizarse en evaluación; calcularlas después de normalizar hundía la precisión a 0,53.",
-  "commit": "155350e",
-  "timestamp": "2026-10-02T13:47:37+00:00"
+  "commit": "4dc5c7a",
+  "timestamp": "2026-10-02T15:50:44+00:00"
 }

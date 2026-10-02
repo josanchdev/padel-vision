@@ -53,6 +53,6 @@
   "confusion": [],
   "labels": [],
   "notes": "Los descartes (Other) NO se entrenan: sirven para calibrar el umbral de rechazo (ADR-0016 D). El saque está desbalanceado 8,4:1 por construcción del dataset (un saque por punto), no por sesgo del etiquetado, y habrá que pesarlo en la pérdida. La distribución estable entre los 11 torneos habilita un split cross-torneo, más exigente que cross-rally porque mide generalización a pistas y cámaras nuevas.",
-  "commit": "a1cf4e9",
-  "timestamp": "2026-09-20T12:18:37+00:00"
+  "commit": "4dc5c7a",
+  "timestamp": "2026-10-02T15:04:26+00:00"
 }

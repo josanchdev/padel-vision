@@ -69,6 +69,6 @@
   "confusion": [],
   "labels": [],
   "notes": "Se mide el detector tal como corre en el sistema, no como se validó al entrenar (frames precortados a 512x288 y 4 celdas de tolerancia, unos 60 px en 1080p, que dio F1 0,942). La limpieza de trayectoria es la que usa el voto de quién golpea.",
-  "commit": "b7e6f73",
-  "timestamp": "2026-10-02T13:45:51+00:00"
+  "commit": "4dc5c7a",
+  "timestamp": "2026-10-02T16:01:56+00:00"
 }

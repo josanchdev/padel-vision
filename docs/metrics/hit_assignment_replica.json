@@ -95,6 +95,6 @@
     "sin asignar"
   ],
   "notes": "Se evalúa con los instantes ANOTADOS, no con los detectados por audio, para medir la asignación aislada. Mismos 319 golpes y misma métrica que la tabla 3 del paper: acierto ponderado por golpes, y los golpes sin asignar cuentan como fallo en ambos. Las mejoras (distancia normalizada por la altura del jugador, ventana de ±4 frames, resolución de la pelota) se eligieron midiendo sobre estos mismos golpes, así que la cifra puede ser algo optimista. Como en el paper, un barrido por alternancia recupera el EQUIPO de los golpes sin jugador; el sistema completo no lo aplica (tabla 2). Errores más frecuentes: J1->J3 (7), J4->J1 (5), J4->J2 (5).",
-  "commit": "3ce7522",
-  "timestamp": "2026-10-02T12:49:09+00:00"
+  "commit": "4dc5c7a",
+  "timestamp": "2026-10-02T15:43:30+00:00"
 }

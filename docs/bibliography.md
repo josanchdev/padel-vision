@@ -133,4 +133,4 @@ descartó cada una están en `docs/experiments.md` (bitácora) y `docs/decisions
   asignación de jugador (`hit_assignments.xlsx`), scoreboard oculto.
   *Uso:* GT de audio+golpes alineado para entrenar el detector por audio (CRNN SED
   log-Mel). Resuelve el obstáculo de no tener audio+GT. Descargado en
-  `data/raw/padel_audio_dataset/`. Cita obligatoria.
+  `data/raw/cvsports_padel/`. Cita obligatoria.
