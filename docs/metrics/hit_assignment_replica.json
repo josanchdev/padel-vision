@@ -16,7 +16,7 @@
     "pose_confidence": 0.25,
     "min_keypoint_confidence": 0.3,
     "court": "marcada a mano, 20230528_VIGO.json (ADR-0018)",
-    "ball": "TrackNetV3 propio (F1 0,94) + post-proceso"
+    "ball": "TrackNetV3 propio a 768x432 + post-proceso (ball_detector.json)"
   },
   "per_class": {
     "J1": {
@@ -95,6 +95,6 @@
     "sin asignar"
   ],
   "notes": "Se evalúa con los instantes ANOTADOS, no con los detectados por audio, para medir la asignación aislada. Mismos 319 golpes y misma métrica que la tabla 3 del paper: acierto ponderado por golpes, y los golpes sin asignar cuentan como fallo en ambos. Las mejoras (distancia normalizada por la altura del jugador, ventana de ±4 frames, resolución de la pelota) se eligieron midiendo sobre estos mismos golpes, así que la cifra puede ser algo optimista. Como en el paper, un barrido por alternancia recupera el EQUIPO de los golpes sin jugador; el sistema completo no lo aplica (tabla 2). Errores más frecuentes: J1->J3 (7), J4->J1 (5), J4->J2 (5).",
-  "commit": "37f2f86",
-  "timestamp": "2026-10-02T07:31:27+00:00"
+  "commit": "3ce7522",
+  "timestamp": "2026-10-02T12:49:09+00:00"
 }

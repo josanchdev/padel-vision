@@ -27,6 +27,11 @@ CLASS_WEIGHT_POWERS = (0.0, 0.5, 1.0)
 """0 is what the system uses; 1 is plain inverse-frequency weighting."""
 
 
+def _es(value: float) -> str:
+    """0.8524 -> "0,852": the notes are read in Spanish."""
+    return f"{value:.3f}".replace(".", ",")
+
+
 def _pool(
     folds: list[FoldResult], by_tournament: dict[str, list[ShotWindow]]
 ) -> tuple[list[int], list[int], list[int], dict[str, float]]:
@@ -75,7 +80,6 @@ def main() -> None:
     acc_plain, macro_plain, per_class_plain, _ = _metrics(truths, plain, len(CLASSES))
     accuracy, macro_f1, per_class, confusion = _metrics(truths, ruled, len(CLASSES))
     serve_before, serve_after = per_class_plain["Serve"], per_class["Serve"]
-    weighted = ablation[str(CLASS_WEIGHT_POWERS[-1])]
 
     plot_confusion(
         np.array(confusion),
@@ -120,13 +124,12 @@ def main() -> None:
         notes=(
             "Split CROSS-TORNEO, no cross-rally: los rallies de un torneo comparten pista, "
             "cámara e iluminación, así que un split por rally filtraría. La cifra responde a "
-            "si funciona en una pista nunca vista. Dos decisiones medidas: (1) SIN pesos de "
-            f"clase: con pesos por frecuencia inversa el macro-F1 es {weighted['macro_f1']:.3f} "
-            f"frente a {macro_f1:.3f}, y el F1 del saque {weighted['serve_f1']:.3f} frente a "
-            f"{serve_after['f1']:.3f}; (2) la regla del saque, que es reglamento y no "
-            f"aprendizaje: su precisión pasa de {serve_before['precision']:.3f} a "
-            f"{serve_after['precision']:.3f} y su recall de {serve_before['recall']:.3f} a "
-            f"{serve_after['recall']:.3f}."
+            "si funciona en una pista nunca vista. Pesos de clase (macro-F1): "
+            + ", ".join(f"potencia {k} {_es(v['macro_f1'])}" for k, v in ablation.items())
+            + "; el sistema entrena sin pesos (potencia 0). Regla del saque (solo el primer "
+            f"golpe del rally puede serlo): precisión del saque {_es(serve_before['precision'])} "
+            f"sin la regla y {_es(serve_after['precision'])} con ella; recall "
+            f"{_es(serve_before['recall'])} y {_es(serve_after['recall'])}."
         ),
     )
     path = result.save()

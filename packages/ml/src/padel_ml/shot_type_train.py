@@ -6,9 +6,9 @@ Splitting by rally would leak — rallies of one tournament share court, lightin
 and camera angle, and the model would be graded on conditions it memorised.
 
 The serve is outnumbered 8.4:1 by the forehand (one serve per point, by
-construction). The loss is nevertheless NOT class-weighted: measured, weighting
-made every class worse, the serve included (see `class_weights`). What protects
-the serve is a rule of the sport instead (see `best_class`).
+construction). What protects it is a rule of the sport (see `best_class`), not
+the loss: with the rule in place, class weighting changes nothing measurable
+(see `class_weights`), so the loss is not weighted.
 """
 
 from __future__ import annotations
@@ -85,12 +85,12 @@ def to_tensors(windows: list[ShotWindow]) -> tuple[Tensor, Tensor, Tensor]:
 def class_weights(labels: Tensor, n_classes: int, power: float = 0.0) -> Tensor:
     """Inverse-frequency weights raised to `power`, normalised to mean 1.
 
-    `power=0` means no weighting at all, which is what measured best — against
-    the intuition that the serve (outnumbered 8.4:1) needs protecting. Weighting
-    made the serve *worse*, not better: pushed never to miss one, the model fires
-    it everywhere, and those false serves eat into the other three classes too.
-    `scripts/evidence_shot_classifier.py` measures powers 0, 0.5 and 1 on every
-    run (docs/metrics/shot_type_classifier.json, `class_weight_ablation`).
+    `power=0` means no weighting at all, which is what the system uses. Before
+    the serve rule existed, weighting made the serve *worse*: pushed never to
+    miss one, the model fired it everywhere. With the rule, powers 0, 0.5 and 1
+    score within noise of each other; `scripts/evidence_shot_classifier.py`
+    measures all three on every run (docs/metrics/shot_type_classifier.json,
+    `class_weight_ablation`).
     """
     counts = torch.bincount(labels, minlength=n_classes).float().clamp(min=1.0)
     weights = (counts.max() / counts) ** power
