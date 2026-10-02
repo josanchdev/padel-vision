@@ -25,34 +25,31 @@ from padel_cv.court_registry import court_file_for
 from padel_cv.paths import CVSPORTS_RALLIES, RUNS
 
 
+def timed(function: Callable[..., Any], calls: list[float]) -> Callable[..., Any]:
+    """`function`, adding the duration of every call to `calls`."""
+
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        start = time.perf_counter()
+        result = function(*args, **kwargs)
+        calls.append(time.perf_counter() - start)
+        return result
+
+    return wrapper
+
+
 class Timed:
-    """Stands in for a detector and adds up the time spent in one of its methods."""
+    """Stands in for a detector and times one of its methods."""
 
     def __init__(self, inner: Any, method: str) -> None:
-        self._inner, self._method, self.seconds = inner, method, 0.0
+        self._inner, self._method, self.calls = inner, method, []
+
+    @property
+    def seconds(self) -> float:
+        return sum(self.calls)
 
     def __getattr__(self, name: str) -> Any:
         attribute = getattr(self._inner, name)
-        if name != self._method:
-            return attribute
-
-        def timed(*args: Any, **kwargs: Any) -> Any:
-            start = time.perf_counter()
-            result = attribute(*args, **kwargs)
-            self.seconds += time.perf_counter() - start
-            return result
-
-        return timed
-
-
-def timed_function(function: Callable[..., Any], bucket: list[float]) -> Callable[..., Any]:
-    def timed(*args: Any, **kwargs: Any) -> Any:
-        start = time.perf_counter()
-        result = function(*args, **kwargs)
-        bucket.append(time.perf_counter() - start)
-        return result
-
-    return timed
+        return timed(attribute, self.calls) if name == self._method else attribute
 
 
 def main() -> None:
@@ -68,7 +65,7 @@ def main() -> None:
     analyze_rally(video, models, court)  # warm-up: CUDA kernels, model loading
 
     audio: list[float] = []
-    rally_analysis.detect_hits_in_audio = timed_function(rally_analysis.detect_hits_in_audio, audio)
+    rally_analysis.detect_hits_in_audio = timed(rally_analysis.detect_hits_in_audio, audio)
     pose, ball = Timed(models.pose, "detect"), Timed(models.ball, "detect")
     models.pose, models.ball = pose, ball  # type: ignore[assignment]
     start = time.perf_counter()
