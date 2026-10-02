@@ -2,9 +2,9 @@
 
 Cross-validation (`cross_tournament_cv`) measures how well the approach
 generalises by holding tournaments out in turn, but every model it trains is
-thrown away. This trains the one that ships: all 11 tournaments, all 2,209
-labelled hits, nothing held back — the standard practice of validating to learn
-the score, then fitting on everything to deploy.
+thrown away. This trains the one that ships: all 11 tournaments, every labelled
+hit, nothing held back — the standard practice of validating to learn the score,
+then fitting on everything to deploy.
 
     uv run python scripts/train_shot_classifier.py [--epochs 60]
 """

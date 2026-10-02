@@ -1,8 +1,9 @@
 """Cross-tournament evidence for the shot-type classifier (ADR-0016).
 
-Leave-one-tournament-out over the 2,197 labelled hits, with the two decisions
-that were measured rather than assumed: no class weighting, and the serve
-restricted to a rally's opening hit.
+Leave-one-tournament-out over the labelled hits, with the two decisions that
+were measured rather than assumed, and are re-measured on every run: no class
+weighting (powers 0, 0.5 and 1 are each cross-validated), and the serve
+restricted to a rally's opening hit (scored with and without the rule).
 
     uv run python scripts/evidence_shot_classifier.py
 """
@@ -15,24 +16,21 @@ from pathlib import Path
 
 import numpy as np
 from padel_ml.evidence import FIGURES_DIR, ExperimentResult, plot_confusion
-from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, build_dataset
-from padel_ml.shot_type_train import _metrics, apply_serve_rule, cross_tournament_cv
+from padel_ml.shot_type_dataset import CLASSES, SEQ_LEN, ShotWindow, build_dataset
+from padel_ml.shot_type_train import FoldResult, _metrics, apply_serve_rule, cross_tournament_cv
 
 REPO = Path(__file__).resolve().parents[1]
 SPANISH = {"Forehand": "Derecha", "Backhand": "Revés", "Smash": "Remate", "Serve": "Saque"}
 
 
-def main() -> None:
-    windows, _ = build_dataset(
-        REPO / "data" / "datasets" / "rally_features", REPO / "data" / "labels" / "types"
-    )
-    by_tournament: dict[str, list] = {}
-    for window in windows:
-        by_tournament.setdefault(window.tournament, []).append(window)
+CLASS_WEIGHT_POWERS = (0.0, 0.5, 1.0)
+"""0 is what the system uses; 1 is plain inverse-frequency weighting."""
 
-    print(f"{len(windows)} ventanas · {len(by_tournament)} torneos")
-    folds = cross_tournament_cv(windows, SEQ_LEN, epochs=60)
 
+def _pool(
+    folds: list[FoldResult], by_tournament: dict[str, list[ShotWindow]]
+) -> tuple[list[int], list[int], list[int], dict[str, float]]:
+    """Every fold's predictions together: truths, raw argmax, with the serve rule."""
     truths: list[int] = []
     plain: list[int] = []
     ruled: list[int] = []
@@ -44,9 +42,40 @@ def main() -> None:
         ruled.extend(fold_ruled)
         correct = sum(int(a == b) for a, b in zip(fold.truths, fold_ruled, strict=True))
         per_fold[fold.tournament] = round(correct / len(fold.truths), 4)
+    return truths, plain, ruled, per_fold
 
-    acc_plain, macro_plain, _, _ = _metrics(truths, plain, len(CLASSES))
+
+def main() -> None:
+    windows, _ = build_dataset(
+        REPO / "data" / "datasets" / "rally_features", REPO / "data" / "labels" / "types"
+    )
+    by_tournament: dict[str, list] = {}
+    for window in windows:
+        by_tournament.setdefault(window.tournament, []).append(window)
+
+    print(f"{len(windows)} ventanas · {len(by_tournament)} torneos")
+    ablation: dict[str, dict[str, float]] = {}
+    for power in CLASS_WEIGHT_POWERS:
+        print(f"\npesos de clase, potencia {power}")
+        folds = cross_tournament_cv(windows, SEQ_LEN, epochs=60, class_weight_power=power)
+        truths, plain, ruled, per_fold = _pool(folds, by_tournament)
+        acc_power, macro_power, per_class_power, _ = _metrics(truths, ruled, len(CLASSES))
+        serve = per_class_power["Serve"]
+        ablation[str(power)] = {
+            "accuracy": round(acc_power, 4),
+            "macro_f1": round(macro_power, 4),
+            "serve_precision": round(serve["precision"], 4),
+            "serve_recall": round(serve["recall"], 4),
+            "serve_f1": round(serve["f1"], 4),
+        }
+        if power == 0.0:  # what the system uses: the headline numbers
+            system = (truths, plain, ruled, per_fold)
+
+    truths, plain, ruled, per_fold = system
+    acc_plain, macro_plain, per_class_plain, _ = _metrics(truths, plain, len(CLASSES))
     accuracy, macro_f1, per_class, confusion = _metrics(truths, ruled, len(CLASSES))
+    serve_before, serve_after = per_class_plain["Serve"], per_class["Serve"]
+    weighted = ablation[str(CLASS_WEIGHT_POWERS[-1])]
 
     plot_confusion(
         np.array(confusion),
@@ -80,7 +109,9 @@ def main() -> None:
             "lr": 5e-4,
             "seq_len": SEQ_LEN,
             "class_weight_power": 0.0,
+            "class_weight_ablation": ablation,
             "serve_rule": "solo el primer golpe del rally puede ser saque",
+            "serve_without_rule": {k: round(v, 4) for k, v in serve_before.items()},
             "ball_inference_size": "768x432",
         },
         per_class=per_class,
@@ -90,10 +121,12 @@ def main() -> None:
             "Split CROSS-TORNEO, no cross-rally: los rallies de un torneo comparten pista, "
             "cámara e iluminación, así que un split por rally filtraría. La cifra responde a "
             "si funciona en una pista nunca vista. Dos decisiones medidas: (1) SIN pesos de "
-            "clase — ponderar por frecuencia inversa empeoraba incluso el saque, la clase que "
-            "pretendía proteger (macro-F1 0,786 con pesos frente a 0,812 sin ellos); (2) la "
-            "regla del saque, que es conocimiento del reglamento y no aprendizaje: sube su "
-            "precisión de 0,722 a 1,000 sin perder ninguno real."
+            f"clase: con pesos por frecuencia inversa el macro-F1 es {weighted['macro_f1']:.3f} "
+            f"frente a {macro_f1:.3f}, y el F1 del saque {weighted['serve_f1']:.3f} frente a "
+            f"{serve_after['f1']:.3f}; (2) la regla del saque, que es reglamento y no "
+            f"aprendizaje: su precisión pasa de {serve_before['precision']:.3f} a "
+            f"{serve_after['precision']:.3f} y su recall de {serve_before['recall']:.3f} a "
+            f"{serve_after['recall']:.3f}."
         ),
     )
     path = result.save()
@@ -101,6 +134,8 @@ def main() -> None:
         json.dumps(per_fold, indent=2) + "\n"
     )
     print(f"\naccuracy {accuracy:.4f}  macro-F1 {macro_f1:.4f}  (sin regla: {macro_plain:.4f})")
+    for power, row in ablation.items():
+        print(f"  pesos {power}: {row}")
     for name, values in per_class.items():
         print(
             f"  {name:10s} P {values['precision']:.3f} R {values['recall']:.3f} "

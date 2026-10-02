@@ -28,8 +28,8 @@ FIGURES_DIR = METRICS_DIR / "figures"
 def _git_commit() -> str | None:
     """Commit the measurement was taken at, so a result can be traced to code.
 
-    Suffixed "-dirty" when tracked code had uncommitted changes: the result then
-    came from code that the commit alone does not reproduce.
+    Suffixed "-dirty" when the code had uncommitted changes or new files: the
+    result then came from code that the commit alone does not reproduce.
     """
     try:
         head = subprocess.run(
@@ -39,7 +39,7 @@ def _git_commit() -> str | None:
             check=True,
         ).stdout.strip()
         changes = subprocess.run(
-            ["git", "status", "--porcelain", "--untracked-files=no", "--", "packages", "scripts"],
+            ["git", "status", "--porcelain", "--", "packages", "scripts"],
             capture_output=True,
             text=True,
             check=True,

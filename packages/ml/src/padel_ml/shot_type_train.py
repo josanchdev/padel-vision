@@ -86,17 +86,11 @@ def class_weights(labels: Tensor, n_classes: int, power: float = 0.0) -> Tensor:
     """Inverse-frequency weights raised to `power`, normalised to mean 1.
 
     `power=0` means no weighting at all, which is what measured best — against
-    the intuition that the serve (outnumbered 8.4:1) needs protecting:
-
-        power 1.0  acc 0.7938  macro-F1 0.7862  serve F1 0.736
-        power 0.5  acc 0.8107  macro-F1 0.8072  serve F1 0.775
-        power 0.0  acc 0.8129  macro-F1 0.8118  serve F1 0.790
-
-    Weighting made the serve *worse*, not better. Pushed hard enough to never
-    miss one, the model fires it everywhere: recall stayed at 0.94 while
-    precision fell to 0.605, and those false serves ate into the other three
-    classes too. Left alone it finds serves nearly as often and is right far
-    more of the time.
+    the intuition that the serve (outnumbered 8.4:1) needs protecting. Weighting
+    made the serve *worse*, not better: pushed never to miss one, the model fires
+    it everywhere, and those false serves eat into the other three classes too.
+    `scripts/evidence_shot_classifier.py` measures powers 0, 0.5 and 1 on every
+    run (docs/metrics/shot_type_classifier.json, `class_weight_ablation`).
     """
     counts = torch.bincount(labels, minlength=n_classes).float().clamp(min=1.0)
     weights = (counts.max() / counts) ** power
@@ -157,6 +151,7 @@ def fit(
     device: str | None = None,
     seed: int = 0,
     held_out: list[ShotWindow] | None = None,
+    class_weight_power: float = 0.0,
 ) -> tuple[ShotTypeBST, TrainingCurve]:
     """Train one classifier. The single training loop of the project: the
     cross-validation folds and the production model both come through here."""
@@ -169,7 +164,8 @@ def fit(
     model = ShotTypeBST(seq_len=seq_len, n_classes=n_classes).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     loss_fn = nn.CrossEntropyLoss(
-        weight=class_weights(y_tr, n_classes).to(device), label_smoothing=label_smoothing
+        weight=class_weights(y_tr, n_classes, class_weight_power).to(device),
+        label_smoothing=label_smoothing,
     )
     loader = DataLoader(
         TensorDataset(pose_tr, ball_tr, y_tr), batch_size=batch_size, shuffle=True, drop_last=True
@@ -230,11 +226,19 @@ def train_one_fold(
     epochs: int = EPOCHS,
     device: str | None = None,
     seed: int = 0,
+    class_weight_power: float = 0.0,
 ) -> FoldResult:
     """Train on every tournament but one, score on the one held out."""
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-    model, _ = fit(train_windows, seq_len, epochs=epochs, device=device, seed=seed)
+    model, _ = fit(
+        train_windows,
+        seq_len,
+        epochs=epochs,
+        device=device,
+        seed=seed,
+        class_weight_power=class_weight_power,
+    )
     probabilities = predict(model, test_windows, device)
     predictions = apply_serve_rule(probabilities, test_windows)
     truths = [w.label for w in test_windows]
@@ -257,6 +261,7 @@ def cross_tournament_cv(
     epochs: int = EPOCHS,
     device: str | None = None,
     folds: list[str] | None = None,
+    class_weight_power: float = 0.0,
 ) -> list[FoldResult]:
     """Leave-one-tournament-out evaluation over the whole dataset."""
     by_tournament: dict[str, list[ShotWindow]] = collections.defaultdict(list)
@@ -268,7 +273,14 @@ def cross_tournament_cv(
     for tournament in targets:
         test = by_tournament[tournament]
         train = [w for w in windows if w.tournament != tournament]
-        result = train_one_fold(train, test, seq_len, epochs=epochs, device=device)
+        result = train_one_fold(
+            train,
+            test,
+            seq_len,
+            epochs=epochs,
+            device=device,
+            class_weight_power=class_weight_power,
+        )
         print(
             f"  {tournament:24s} acc {result.accuracy:.3f}  macro-F1 {result.macro_f1:.3f}"
             f"  (n={result.n_test})",

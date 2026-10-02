@@ -145,7 +145,7 @@ def main() -> None:
             "pose_confidence": POSE_CONFIDENCE,
             "min_keypoint_confidence": 0.3,
             "court": "marcada a mano, 20230528_VIGO.json (ADR-0018)",
-            "ball": "TrackNetV3 propio (F1 0,94) + post-proceso",
+            "ball": "TrackNetV3 propio a 768x432 + post-proceso (ball_detector.json)",
         },
         per_class=per_class,
         confusion=matrix.tolist(),
