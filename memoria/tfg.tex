@@ -1,0 +1,203 @@
+% Memoria del TFG «Análisis automatizado de vídeo deportivo mediante visión por
+% computador» (Padel Vision). Basada en la plantilla de la ETSII de la URJC
+% (github.com/codeurjc-students/tfg-template, licencia MIT: LICENSE-plantilla).
+%
+% Compilar: latexmk -pdf tfg.tex   (o guardar en VS Code con LaTeX Workshop)
+% Las notas \alumno{} y \tutor{} solo se ven con \drafttrue (config/config.tex).
+
+% Clase del documento
+\documentclass[12pt,twoside,titlepage,openright]{report}
+
+% Configuración
+\input{config/config.tex}
+\usepackage{emptypage} % sin cabeceras en las páginas en blanco antes de cada capítulo
+
+% Datos del trabajo (tal como figuran en la plataforma de TFG)
+\newcommand{\nombreautor}{Jorge Sánchez Aguilar}
+\newcommand{\nombretutor}{Isaac Martín de Diego}
+\newcommand{\nombrecotutor}{Víctor Aceña Gil}
+\newcommand{\titulotrabajo}{Análisis automatizado de vídeo deportivo mediante visión por computador}
+\newcommand{\grado}{Grado en Ingeniería Informática}
+\newcommand{\curso}{2026/2027}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                           Inicio del documento
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\pagestyle{plain}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Portada %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\include{config/portada}
+
+% Estilo de párrafo de los preliminares
+\setlength{\parskip}{0.75em}
+\renewcommand{\baselinestretch}{1.25}
+\spacing{1}
+
+\pagenumbering{Roman}
+\setcounter{page}{2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%% Licencia %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\include{config/licencia}
+
+%%%%%%%%%%%%%%%%%%%%%%%%% Agradecimientos %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter*{Agradecimientos}
+
+\alumno{Opcional. Breves agradecimientos o dedicatoria.}
+
+\afterpage{\blankpage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Resumen %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter*{Resumen}
+
+\input{pages/resumen.tex}
+
+\afterpage{\blankpage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Abstract %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter*{Abstract}
+
+\input{pages/abstract.tex}
+
+\afterpage{\blankpage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Índices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setlength{\parskip}{1pt}
+\renewcommand{\baselinestretch}{1}
+\renewcommand{\contentsname}{Índice de contenidos}
+
+\dominitoc
+\setcounter{minitocdepth}{2}
+\setlength{\mtcindent}{0pt}
+
+\tableofcontents
+\afterpage{\blankpage}
+
+\listoffigures
+\afterpage{\blankpage}
+\addcontentsline{toc}{chapter}{\listfigurename}
+\adjustmtc
+
+\listoftables
+\afterpage{\blankpage}
+\addcontentsline{toc}{chapter}{\listtablename}
+\adjustmtc
+
+%%%%%%%%%%%%%%%%%%%%%%% Cabeceras y pies de página %%%%%%%%%%%%%%%%%%%%%%%
+
+\setlength{\headheight}{15pt}
+\renewcommand{\chaptermark}[1]{\markboth{Capítulo \thechapter.\ #1}{}}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LO]{\leftmark}
+\fancyhead[RO]{}
+\fancyhead[RE]{\nouppercase\rightmark}
+\fancyhead[LE]{}
+\fancyfoot[C]{\thepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Capítulos %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% La extensión (40-60 páginas) se cuenta desde la introducción y sin anexos
+% (art. 16 del reglamento de la ETSII).
+
+\setlength{\parskip}{0.75em}
+\renewcommand{\baselinestretch}{1.25}
+\spacing{1}
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\chapter{Introducción}
+\label{cap:introduccion}
+\input{pages/introduccion.tex}
+
+\chapter{Objetivos}
+\label{cap:objetivos}
+\input{pages/objetivos.tex}
+
+\chapter{Estado del arte y estudio de alternativas}
+\label{cap:estado-del-arte}
+\input{pages/estado-del-arte.tex}
+
+\chapter{Metodología}
+\label{cap:metodologia}
+\input{pages/metodologia.tex}
+
+\chapter{Descripción informática}
+\label{cap:descripcion-informatica}
+\input{pages/descripcion-informatica.tex}
+
+\chapter{Experimentos y validación}
+\label{cap:experimentos}
+\input{pages/experimentos.tex}
+
+\chapter{Conclusiones y trabajo futuro}
+\label{cap:conclusiones}
+\input{pages/conclusiones.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Bibliografía %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliografía}
+
+\footnotesize{
+\bibliographystyle{IEEEtran}
+\bibliography{bibliografia}
+}
+
+\normalsize
+\raggedbottom
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Anexos %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\cleardoublepage
+\appendix
+
+\phantomsection
+\addcontentsline{toc}{chapter}{Anexos}
+
+\mbox{}
+\vfill
+\begin{center}
+\begin{Huge}
+\textbf{Anexos}
+\end{Huge}
+\end{center}
+\vfill
+\mbox{}
+\thispagestyle{empty}
+
+\newpage
+\mbox{}
+\thispagestyle{empty}
+\newpage
+
+\chapter{Reproducibilidad}
+\label{anexo:reproducibilidad}
+\input{pages/anexos/reproducibilidad.tex}
+
+\chapter{Registro de decisiones}
+\label{anexo:decisiones}
+\input{pages/anexos/decisiones.tex}
+
+\chapter{Herramientas de etiquetado}
+\label{anexo:etiquetado}
+\input{pages/anexos/etiquetado.tex}
+
+\chapter{Visor web}
+\label{anexo:visor-web}
+\input{pages/anexos/visor-web.tex}
+
+\chapter{Uso de herramientas de inteligencia artificial}
+\label{anexo:uso-ia}
+\input{pages/anexos/uso-ia.tex}
+
+\end{document}

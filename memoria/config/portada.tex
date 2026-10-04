@@ -1,0 +1,59 @@
+% Portada según el modelo del Anexo I del Reglamento Específico del TFG de la
+% ETSII (Junta de Escuela, 16 de enero de 2026).
+
+\begin{titlepage}
+\selectlanguage{spanish}
+
+% Logo
+\begin{center}
+    \includegraphics[scale=0.7]{\logoUniversidad}
+\end{center}
+
+\vspace{1.5cm}
+
+% Escuela, grado y curso
+\begin{center}
+    % One line, as in the official model: centred, allowed into the margins
+    \makebox[0pt][c]{\textbf{\MakeUppercase{\escuela}}}
+
+    \vspace{1cm}
+
+    \textbf{\MakeUppercase{\grado}}
+
+    \vspace{0.4cm}
+
+    \textbf{Curso Académico \curso}
+
+    \vspace{1.2cm}
+
+    \textbf{Trabajo de Fin de Grado}
+\end{center}
+
+\vspace{1.8cm}
+
+% Título
+\begin{center}
+    \begin{large}
+        \textbf{\MakeUppercase{\titulotrabajo}}
+    \end{large}
+\end{center}
+
+\vfill
+
+% Autor y tutores
+\begin{center}
+    \begin{tabular}{@{}l@{\hspace{1.5em}}l@{}}
+        \textbf{Autor:}   & \nombreautor \\[1.2em]
+        \textbf{Tutores:} & \nombretutor \\
+                          & \nombrecotutor \\
+    \end{tabular}
+\end{center}
+
+\vspace{2cm}
+
+\end{titlepage}
+
+\hypersetup{pageanchor=true}
+
+\normalsize
+\afterpage{\blankpage} % Página en blanco para que las secciones siguientes empiecen en página impar

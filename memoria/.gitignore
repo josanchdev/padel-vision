@@ -1,0 +1,23 @@
+# LaTeX build files (latexmk, bibtex, minitoc, hyperref...)
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.toc
+*.synctex.gz
+*.maf
+*.mtc*
+*.mlf*
+*.mlt*
+*.stc*
+*.slf*
+*.slt*
+*.tdo
+*-converted-to.*
+# The compiled PDF: regenerated with latexmk, not versioned
+tfg.pdf
