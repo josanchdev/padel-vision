@@ -10,9 +10,10 @@ relative to the true ball (the TrackNet convention). Each frame is one of:
 - TN: ball absent and no peak (correct silence)
 
 From these come precision/recall/F1 and the mean localization error (in grid
-cells) over the true positives. We also split the frames flagged `occluded` in
-PadelTracker100 from the visible ones, because the hypothesis (ADR-0009) is that
-TrackNetV3 recovers occluded balls that V2 misses.
+cells) over the true positives. Frames flagged `occluded` are also scored apart
+from the visible ones, to check whether TrackNetV3 recovers occluded balls that
+V2 misses (ADR-0009). PadelTracker100 never sets that flag, so on its data the
+occluded group stays empty and only the overall numbers are meaningful.
 """
 
 from __future__ import annotations

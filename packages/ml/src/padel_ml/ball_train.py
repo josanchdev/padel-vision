@@ -8,8 +8,8 @@ trivially predicts "empty" everywhere.
 
 Metrics (peak distance with tolerance, ADR-0009) and training curves go to
 MLflow, and presentation PNGs are written for the defense (Decision E). The
-occluded-vs-visible breakdown is the headline: it shows whether TrackNetV3's
-refiner recovers balls that V2 misses.
+occluded-vs-visible breakdown is logged too, but it stays empty on
+PadelTracker100 (its `occluded` flag is never set), so the overall F1 decides.
 """
 
 from __future__ import annotations

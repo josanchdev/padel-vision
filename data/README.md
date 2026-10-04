@@ -19,5 +19,10 @@ Las rutas que usa el código están en `packages/cv/src/padel_cv/paths.py`.
 
 - **CVSPORTS_Padel**: https://github.com/robbedec/datasets/tree/master/CVsports/Padel
   → `raw/cvsports_padel/` (con `rallies/` y `metadata/` dentro).
-- **PadelTracker100**: Zenodo, registro 17020011 → `raw/padeltracker100/`
-  (`2022_BCN_FinalF_1.mp4`, `2022_BCN_FinalM_1.mp4` y sus `*_ball.json`).
+- **PadelTracker100** (Zenodo) → `raw/padeltracker100/` (`2022_BCN_FinalF_1.mp4`,
+  `2022_BCN_FinalM_1.mp4` y sus `*_ball.json`). Las anotaciones están en la versión
+  actual (registro 17020011, `labels.zip`). Los vídeos recortados que se anotaron
+  solo están en la primera versión (registro 14653706, `padel-data-labels.zip`,
+  7,1 GB); los enlaces de YouTube de la versión actual son los partidos completos y
+  no coinciden frame a frame con las anotaciones. Los `*_ball.json` son idénticos
+  en las dos versiones.

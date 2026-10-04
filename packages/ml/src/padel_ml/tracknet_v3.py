@@ -3,13 +3,15 @@
 V2 predicts each frame's ball heatmap independently. Its weakness is occlusion:
 when a player or the glass hides the ball, V2 has nothing to output. V3's idea is
 to *refine* V2's coarse heatmap using the surrounding motion context, recovering
-the ball where a single-frame view fails (ADR-0009). The hypothesis we test is
-that V3 wins specifically on the frames PadelTracker100 flags as ``occluded``.
+the ball where a single-frame view fails (ADR-0009). Whether it does could not be
+measured here: PadelTracker100's ``occluded`` attribute is false on every
+annotation, so V2 and V3 were compared on overall metrics only (a tie, see
+docs/experiments.md); the system uses V3.
 
 Here the refiner is a small residual module fed the concatenation of V2's
 heatmap and the (downsampled) input frames: it learns a correction added back to
 V2's output. Kept compact on purpose to stay comparable to V2 and cheap to train
-on this box. The comparison V2-vs-V3, same protocol, is the scientific core.
+on this box.
 """
 
 from __future__ import annotations

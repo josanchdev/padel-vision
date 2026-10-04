@@ -1,9 +1,10 @@
 """Presentation plots for the ball-detector comparison (ADR-0009, Decision E).
 
 Self-contained PNGs meant to drop straight into defense slides: training curves,
-and the V2-vs-V3 bar chart broken down by visible vs occluded frames — the plot
-that shows *where* the modern model earns its keep. No interactivity, no external
-assets; just matplotlib figures saved to disk (and logged to MLflow upstream).
+and the V2-vs-V3 bar chart broken down by visible vs occluded frames (the
+occluded bars stay empty on PadelTracker100, whose `occluded` flag is never set).
+No interactivity, no external assets; just matplotlib figures saved to disk (and
+logged to MLflow upstream).
 """
 
 from __future__ import annotations
@@ -41,8 +42,8 @@ def plot_occlusion_comparison(
 ) -> None:
     """Grouped bars: each model's F1 on visible vs occluded vs overall frames.
 
-    results maps model name -> its BallEval. This is the headline comparison:
-    if TrackNetV3 wins, the occluded bar is where the gap shows.
+    results maps model name -> its BallEval. With occlusion labels, the occluded
+    bar is where a TrackNetV3 advantage would show.
     """
     out_path.parent.mkdir(parents=True, exist_ok=True)
     models = list(results)
