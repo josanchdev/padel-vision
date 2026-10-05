@@ -33,7 +33,8 @@ anexo A»), y en un anexo nunca aparece un resultado que no esté en el cuerpo.
 - Herramientas de etiquetado: las dos herramientas propias, con capturas (`docs/media/`).
 - Visor web: capturas. La web es una demostración, no una prueba de que el sistema generalice;
   en el cuerpo basta una frase.
-- Uso de IA: pendiente de lo que diga el tutor.
+
+El tutor validó esta estructura el 5 de octubre de 2026, sin anexo de uso de IA.
 
 ## 2. Cifras
 
@@ -143,8 +144,7 @@ Configurado en `config/config.tex`: T1 + Latin Modern, `microtype`, `booktabs`, 
 3. Jorge lo revisa y lo reescribe con sus palabras.
 4. Compila sin avisos y se hace el commit.
 
-Nada se escribe sin acuerdo previo. Lo que conteste el tutor sobre el uso de IA puede cambiar
-este apartado.
+Nada se escribe sin acuerdo previo. El tutor dio el visto bueno a esta forma de trabajar.
 
 ## 8. Revisión antes de entregar
 
