@@ -111,7 +111,7 @@ def test_tools_table_reads_versions_from_the_lock_files() -> None:
 def test_a_figure_is_written_as_pdf(tmp_path: Path) -> None:
     import matplotlib as mpl
 
-    out = tmp_path / "embudo.pdf"
+    out = tmp_path / "tipo-confusion.pdf"
     with mpl.rc_context(STYLE):
-        FIGURES["embudo.pdf"](Evidence(), out)
+        FIGURES["tipo-confusion.pdf"](Evidence(), out)
     assert out.read_bytes().startswith(b"%PDF")

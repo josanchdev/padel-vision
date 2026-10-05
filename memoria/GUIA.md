@@ -38,15 +38,18 @@ El tutor validó esta estructura el 5 de octubre de 2026, sin anexo de uso de IA
 
 ## 2. Cifras
 
-- **Ninguna cifra se escribe a mano.** Un script genera desde `docs/metrics/` las tablas, las
-  figuras y un fichero de macros con las cifras que aparecen en el texto (pendiente de hacer).
-  Así no pueden desincronizarse.
+- **Ninguna cifra se escribe a mano.** `scripts/build_thesis_assets.py` genera desde
+  `docs/metrics/` las tablas, las figuras y `cifras.tex`; en el texto, `\cifra{tipo-accuracy}`
+  imprime «82,7 %» (las claves están en `figuras/generadas/cifras.tex`). Así no pueden
+  desincronizarse.
 - Cada resultado va con su intervalo de confianza del 95 %: «82,7 % (IC 95 %: 80,3–85,0)».
 - **Decimales:** porcentajes con uno («82,7 %») y F1, macro-F1 y demás proporciones con tres
   («0,958»). Es lo habitual en visión por computador, coherente entre sí (0,958 = 95,8 %) y
   acorde con la incertidumbre: con intervalos de ±2 puntos o más, el segundo decimal no
   significa nada. Las cifras de otros trabajos se redondean igual, sin añadirles decimales que no
   dan (el 83,70 % de Decorte → 83,7 %; su F1 0,92 se queda como está).
+- **Excepción, las matrices de confusión:** proporciones por fila con dos decimales («0,80»),
+  como las muestra por defecto scikit-learn; con tres, dieciséis celdas se leen mal.
 - Los resultados de clasificadores retirados (ST-GCN, PoseConv3D) no se comparan con el
   final: otro dataset y otras clases.
 
@@ -159,43 +162,33 @@ los modelos finales, para poder rehacerlas igual:
 
 ## 6. Figuras y tablas por capítulo
 
-Plan del 5 de octubre de 2026: unas 19 figuras y 12 tablas. Se revisará al verlas generadas y al
-escribir cada capítulo.
+**Criterio** (acordado el 6 de octubre de 2026, tras revisar una primera tanda): una figura o tabla
+solo entra si responde a una pregunta concreta del capítulo, se entiende en pocos segundos y no se
+puede decir igual de bien en una frase. Si no, la cifra va en el texto con `\cifra{}`. Se decide
+**capítulo a capítulo, al escribirlo**, viendo cómo queda junto al texto.
 
-| Capítulo | Figura o tabla | Cómo se hace |
+**Ya generadas** (`figuras/generadas/`, se pueden quitar si al escribir no aportan):
+
+| Pieza | Para qué capítulo | Pregunta que responde |
 |---|---|---|
-| Introducción | Fig.: *frame* de retransmisión con esqueletos, J1–J4, pelota y etiqueta del golpe | captura de un *frame* |
-| Objetivos | Tabla: cada objetivo y cómo se mide | texto |
-| Estado del arte | Tabla: trabajos en pádel (qué resuelve cada uno: cuándo, quién, tipo; con qué datos) | texto |
-| Metodología | Fig.: planificación julio–diciembre por niveles (Gantt) | gráfica desde las fechas de la bitácora |
-| Metodología | Fig.: validación por torneos (entrenar con 10, medir en el que queda fuera) | TikZ |
-| Metodología | Tabla: herramientas y versiones | desde `uv.lock` |
-| Descripción | Fig.: arquitectura, el flujo en 5 pasos | TikZ |
-| Descripción | Tabla: requisitos funcionales y no funcionales | texto |
-| Descripción | Tabla: *datasets* y para qué se usa cada uno | desde los JSON |
-| Descripción | Fig.: el *dataset* propio por clase y por torneo | gráfica |
-| Descripción | Fig.: cuándo. Espectrograma log-Mel de un punto, golpes reales y salida del detector frente al umbral | ejecuta el sistema sobre un punto |
-| Descripción | Fig.: jugadores. Esqueleto de 17 puntos y pista con sus 6 puntos y vista cenital | ejecuta el sistema sobre un punto |
-| Descripción | Fig.: pelota. Mapa de calor de la red y trayectoria antes y después de limpiarla | ejecuta el sistema sobre un punto |
-| Descripción | Fig.: quién. Ventana de voto de un golpe real (distancia pelota–muñeca de los 4 jugadores) | ejecuta el sistema sobre un punto |
-| Descripción | Fig.: qué tipo. El clasificador: rama de pose, rama de pelota, transformer, regla del saque | TikZ |
-| Experimentos | Tabla 1: cada paso por separado, con intervalos y la columna de Decorte | desde los JSON |
-| Experimentos | Tabla 2: el sistema completo por torneos | desde los JSON |
-| Experimentos | Fig.: por qué umbral 0,5 (F1, *precision* y *recall* con la dispersión de 3 ejecuciones) | gráfica |
-| Experimentos | Fig.: matriz de confusión de la asignación | gráfica |
-| Experimentos | Fig.: asignación punto a punto frente a Decorte (16 puntos) | gráfica |
-| Experimentos | Fig.: matriz de confusión del tipo de golpe | gráfica |
-| Experimentos | Fig.: *accuracy* del tipo por torneo, con su intervalo | gráfica |
-| Experimentos | Fig.: embudo, de cada 100 golpes cuántos se detectan, con jugador y con tipo correctos | gráfica |
-| Experimentos | Fig.: errores típicos (2 o 3 *frames* reales) | captura de *frames* |
-| Experimentos | Tabla: decisiones medidas (sin y con cada una) | desde los JSON |
-| Experimentos | Tabla: detector de pelota a 15, 30 y 60 px, con y sin limpieza | desde los JSON |
-| Experimentos | Tabla: coste por etapa | desde los JSON |
-| Conclusiones | Tabla: cada objetivo frente a su resultado | texto + cifras |
-| Anexos | Tablas: qué comando regenera cada cifra; los ADR y su estado. Capturas de las dos herramientas y de la web | texto y capturas |
+| `tabla-pasos` | Experimentos | ¿Cuánto acierta cada paso y cómo queda frente a Decorte? |
+| `tabla-sistema` | Experimentos | ¿Y todo encadenado? (se prefirió al embudo, que repetía lo mismo) |
+| `tipo-confusion` | Experimentos | ¿En qué se equivoca el clasificador? (derecha y revés) |
+| `umbral-detector` | Experimentos | ¿Por qué umbral 0,5? |
+| `dataset-por-torneo` | Descripción (datos) | ¿Qué significa evaluar por torneos? |
+| `tabla-datasets` | Descripción (datos) | ¿Qué datos se usan y para qué? |
+| `tabla-coste` | Experimentos | ¿Es práctico? ¿Qué etapa cuesta más? |
+| `tabla-herramientas` | Metodología | ¿Con qué está hecho? |
 
-Fuera de la memoria (siguen en el repo): las curvas de entrenamiento, la matriz de confusión del
-tipo en la cadena completa (repite la del clasificador) y las figuras de exploración.
+**Descartadas** (sus cifras van en frases): la tabla de decisiones medidas, la del detector de
+pelota a varias tolerancias, la asignación punto a punto frente a Decorte, el tipo por torneo, la
+matriz de confusión de la asignación y el embudo.
+
+**Candidatas, a decidir al llegar a cada capítulo:** el *frame* anotado de la introducción; las
+tablas de objetivos, estado del arte, requisitos y objetivos frente a resultados; el Gantt; los
+diagramas en TikZ (arquitectura, validación por torneos, clasificador); las figuras que ejecutan
+el sistema sobre un punto (espectrograma, esqueleto y pista, pelota, ventana de voto); los
+errores típicos; y en los anexos, las capturas de la web y de las herramientas.
 
 ## 7. LaTeX
 

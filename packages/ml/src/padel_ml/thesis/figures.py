@@ -25,7 +25,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter
 from matplotlib.typing import RcKeyType
 
-from padel_ml.thesis.latex import PERCENT_PLACES, PROPORTION_PLACES, fixed
+from padel_ml.thesis.latex import fixed
 from padel_ml.thesis.sources import Evidence
 
 TEXT_WIDTH_IN = 412.27864 / 72.27
@@ -73,6 +73,10 @@ TOURNAMENT_NAMES = {
     "MENORCA": "Menorca",
     "MALMO": "Malmö",
 }
+
+MATRIX_PLACES = 2
+"""Confusion matrix cells: two decimals (0,80), the usual choice and what
+scikit-learn prints by default; three would crowd sixteen cells."""
 
 BLUE_RAMP = ["#ffffff", "#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
 
@@ -200,7 +204,7 @@ def _confusion(
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
             fill = colour_map(share[i, j])
-            text = fixed(share[i, j], PROPORTION_PLACES).replace(".", "{,}")
+            text = fixed(share[i, j], MATRIX_PLACES).replace(".", "{,}")
             axes.text(j, i, text, ha="center", va="center", color=_ink_for(fill))
     axes.set_xticks(range(len(cols)), cols)
     labels = [f"{row} ({int(n)})" for row, n in zip(rows, totals[:, 0], strict=True)]
@@ -215,44 +219,12 @@ def _confusion(
         spine.set_visible(False)
 
 
-def assignment_confusion_figure(evidence: Evidence, out: Path) -> None:
-    """Who hit: real player against the one the vote chose, 319 hits."""
-    data = evidence("hit_assignment_replica")
-    labels = [label if label != "sin asignar" else "Sin asignar" for label in data["labels"]]
-    matrix = np.array(data["confusion"], dtype=np.int64)
-    real = [i for i, label in enumerate(labels) if matrix[i].sum() > 0]  # nobody is "unassigned"
-    figure = Figure(figsize=(0.6 * TEXT_WIDTH_IN, 2.6), layout="constrained")
-    _confusion(figure.add_subplot(), matrix[real], [labels[i] for i in real], labels)
-    _save(figure, out)
-
-
 def shot_type_confusion_figure(evidence: Evidence, out: Path) -> None:
     """What kind of shot: real type against the classifier's, by tournament."""
     data = evidence("shot_type_classifier")
     matrix = np.array(data["confusion"], dtype=np.int64)
     figure = Figure(figsize=(0.6 * TEXT_WIDTH_IN, 2.6), layout="constrained")
     _confusion(figure.add_subplot(), matrix, data["labels"], data["labels"])
-    _save(figure, out)
-
-
-def funnel_figure(evidence: Evidence, out: Path) -> None:
-    """Of every 100 real hits in VIGO: detected, right player, right player and type."""
-    funnel = evidence("chain_cv")["params"]["funnel_vigo_percent"]
-    labels = list(funnel)
-    values = [funnel[label] / 100 for label in labels]
-    positions = np.arange(len(labels))[::-1]
-    figure = Figure(figsize=(TEXT_WIDTH_IN, 1.9), layout="constrained")
-    axes = figure.add_subplot()
-    axes.barh(positions, values, height=0.55, color=SERIES[0])
-    for y, value in zip(positions, values, strict=True):
-        text = fixed(value, PERCENT_PLACES, scale=100).replace(".", "{,}")
-        axes.annotate(f"{text}\\,\\%", (value, y), xytext=(4, 0), textcoords="offset points",
-                      va="center", color=INK)  # fmt: skip
-    axes.set_yticks(positions, labels)
-    axes.set_xlim(0, 1.12)
-    axes.set_xticks([])
-    axes.spines["bottom"].set_visible(False)
-    axes.spines["left"].set_visible(False)
     _save(figure, out)
 
 
@@ -279,9 +251,7 @@ def dataset_figure(evidence: Evidence, out: Path) -> None:
 
 FIGURES: dict[str, Callable[[Evidence, Path], None]] = {
     "umbral-detector.pdf": threshold_figure,
-    "asignacion-confusion.pdf": assignment_confusion_figure,
     "tipo-confusion.pdf": shot_type_confusion_figure,
-    "embudo.pdf": funnel_figure,
     "dataset-por-torneo.pdf": dataset_figure,
 }
 """Output name -> function that draws it."""
