@@ -83,6 +83,14 @@ def thesis_numbers(evidence: Evidence) -> list[Number]:
     cleaned = ("params", "by_tolerance", "detector + limpieza", "15px")
     serve = ("params", "class_weight_ablation", "0.0")
     funnel = ("params", "funnel_vigo_percent")
+    raw = ("params", "by_tolerance", "detector")
+    weights = ("params", "class_weight_ablation", "1.0")
+    per_tournament: dict[str, float] = evidence("shot_type_per_tournament")
+    window_paper = next(
+        row
+        for row in evidence("assignment_window_sweep")
+        if row["kind"] == "window" and (row["before"], row["after"], row["offset"]) == (6, 6, 0)
+    )
 
     return [
         # Cuándo: detector de audio, media de 3 ejecuciones (tabla 1).
@@ -121,6 +129,23 @@ def thesis_numbers(evidence: Evidence) -> list[Number]:
         classifier(
             "saque-precision-sin-regla", proportion, "params", "serve_without_rule", "precision"
         ),
+        Number(
+            "tipo-torneo-peor",
+            percent(min(per_tournament.values())),
+            "shot_type_per_tournament.json: el torneo con menos accuracy",
+        ),
+        Number(
+            "tipo-torneo-mejor",
+            percent(max(per_tournament.values())),
+            "shot_type_per_tournament.json: el torneo con más accuracy",
+        ),
+        classifier("tipo-accuracy-pesos", percent, *weights, "accuracy"),
+        classifier("tipo-macro-f1-pesos", proportion, *weights, "macro_f1"),
+        Number(
+            "asignacion-jugador-ventana-paper",
+            percent(window_paper["player"] / 100),
+            "assignment_window_sweep.json: ventana de ±6 frames, la del paper",
+        ),
         # El sistema completo por torneos (tabla 2).
         *prop("cadena-deteccion-f1", "tabla2_cadena.detection_f1"),
         chain("cadena-deteccion-precision", proportion, "metrics", "detection_precision"),
@@ -155,6 +180,8 @@ def thesis_numbers(evidence: Evidence) -> list[Number]:
         ball("pelota-recall", proportion, "metrics", "recall"),
         ball("pelota-tolerancia", partial(pixels, places=0), "metrics", "tolerance_px"),
         ball("pelota-error-mediano", partial(pixels, places=1), "metrics", "median_error_px"),
+        ball("pelota-f1-30px", proportion, *raw, "30px", "f1"),
+        ball("pelota-f1-60px", proportion, *raw, "60px", "f1"),
         ball("pelota-limpieza-f1", proportion, *cleaned, "f1"),
         ball("pelota-limpieza-recall", proportion, *cleaned, "recall"),
         # Coste de procesado.

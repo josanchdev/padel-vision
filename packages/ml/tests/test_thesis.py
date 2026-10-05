@@ -64,6 +64,12 @@ def test_tabular_has_booktabs_rules_and_no_vertical_ones() -> None:
     assert "|" not in text
 
 
+def test_tabular_turns_a_plain_string_into_a_heading_across_the_table() -> None:
+    text = tabular("lc", ["Medida", "Valor"], ["Los 11 torneos", ["a", "1"]])
+    assert r"\multicolumn{2}{@{}l}{\emph{Los 11 torneos}} \\" in text
+    assert r"\textbf{Medida} & \textbf{Valor}" in text
+
+
 def test_tabular_rejects_a_row_with_the_wrong_number_of_cells() -> None:
     with pytest.raises(ValueError, match="3 cells"):
         tabular("lc", ["Medida", "Valor"], [["a", "1", "extra"]])
@@ -87,8 +93,6 @@ def test_evidence_reads_the_three_bounds_of_an_interval(tmp_path: Path) -> None:
     [
         tables.steps_table,
         tables.system_table,
-        tables.decisions_table,
-        tables.ball_table,
         tables.cost_table,
         tables.datasets_table,
     ],

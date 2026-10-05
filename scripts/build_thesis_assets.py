@@ -39,8 +39,6 @@ def main() -> None:
     for name, text in {
         "tabla-pasos.tex": tables.steps_table(evidence),
         "tabla-sistema.tex": tables.system_table(evidence),
-        "tabla-decisiones.tex": tables.decisions_table(evidence),
-        "tabla-pelota.tex": tables.ball_table(evidence),
         "tabla-coste.tex": tables.cost_table(evidence),
         "tabla-datasets.tex": tables.datasets_table(evidence),
         "tabla-herramientas.tex": tables.tools_table(

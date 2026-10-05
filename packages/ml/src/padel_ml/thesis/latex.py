@@ -105,25 +105,29 @@ def numbers_file(numbers: list[Number]) -> str:
 
 
 def tabular(
-    spec: str, header: list[str], rows: list[list[str]], *, rules: list[int] | None = None
+    spec: str, header: list[str], rows: list[list[str] | str], *, rules: list[int] | None = None
 ) -> str:
-    """A booktabs tabular: no vertical rules, a \\midrule after the header and
-    before each row index in `rules`."""
+    """A booktabs tabular: header in bold, no vertical rules, a \\midrule after the
+    header and before each row index in `rules`. A row given as a plain string is
+    a group heading that spans the whole width, in italics."""
     width = len(header)
     for row in rows:
-        if len(row) != width:
+        if isinstance(row, list) and len(row) != width:
             raise ValueError(f"row with {len(row)} cells in a {width}-column table: {row}")
     breaks = set(rules or [])
     body = []
     for index, row in enumerate(rows):
         if index in breaks:
             body.append("\\midrule")
-        body.append(" & ".join(row) + " \\\\")
+        if isinstance(row, str):
+            body.append(f"\\multicolumn{{{width}}}{{@{{}}l}}{{\\emph{{{row}}}}} \\\\")
+        else:
+            body.append(" & ".join(row) + " \\\\")
     return "\n".join(
         [
             f"\\begin{{tabular}}{{{spec}}}",
             "\\toprule",
-            " & ".join(header) + " \\\\",
+            " & ".join(f"\\textbf{{{cell}}}" for cell in header) + " \\\\",
             "\\midrule",
             *body,
             "\\bottomrule",
