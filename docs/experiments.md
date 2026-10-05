@@ -1101,7 +1101,9 @@ tarea, medido por ellos) · TrackNetV3 para la pelota.
 
 ### Otros datos de los papers de PES
 
-- **δ=0 es dificilísimo**: en tenis, E2E-Spot saca 45,34 mAP a δ=0 vs 96,10 a δ=1.
+- **δ=0 es dificilísimo**: en tenis, E2E-Spot saca 45,34 mAP a δ=0 vs 96,10 a δ=1
+  (corrección, oct 2026: 45,34 es la re-medición de Santra et al.; el artículo
+  original de E2E-Spot da 71,6 a δ=0).
   Acertar el frame EXACTO es el problema abierto del campo. Nuestro audio ya lo
   resuelve → el clasificador no tiene que localizar, solo clasificar.
 - **E2E-Spot excluye a propósito la clasificación fina**: sus 6 clases de tenis son

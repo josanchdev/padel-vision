@@ -55,10 +55,8 @@ partido; con él, solo los ~1.500 en los que ocurre algo.
 convolucional-recurrente (CRNN) marca, frame a frame, si suena un golpe.
 
 **Por qué audio y no imagen.** Un golpe de pala produce un chasquido muy
-característico. Detectar el instante exacto por imagen es de los problemas
-abiertos de la visión por computador: en tenis, el estado del arte (E2E-Spot)
-acierta el frame exacto solo el 45% de las veces. El sonido lo resuelve casi
-gratis.
+característico, y en pádel el audio ya había funcionado (Decorte et al., F1 0,92).
+Aquí se comparó además con la imagen, midiéndolo (abajo).
 
 **De dónde sale.** Reimplementado del paper de Decorte et al. (arquitectura
 SED-net adaptada). **Se probó primero el camino propio** —detectar el golpe por

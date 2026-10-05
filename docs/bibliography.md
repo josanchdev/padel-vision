@@ -70,7 +70,7 @@ autores/venue, enlace, y para qué se usó aquí. Verificar el formato de cita f
   1 capa, per-frame, cross-entropy con peso 5x al foreground). Detalles extraídos:
   clips de 100 frames, 224x224, AdamW, mixup, solapamiento 50% en test + NMS.
   Su dataset de tenis EXCLUYE deliberadamente la clasificación fina (derecha/revés/
-  slice/volea) — confirma que el TIPO de golpe es hueco abierto, no resuelto.
+  slice/volea): separan a propósito localizar el golpe de clasificarlo (supl. D.1).
 
 - **Precise Event Spotting in Sports Videos: Solving Long-Range Dependency and
   Class Imbalance** — Santra, Chudasama, Wasnik (Sony Research India),
@@ -78,9 +78,10 @@ autores/venue, enlace, y para qué se usó aquí. Verificar el formato de cita f
   PDF local: `~/reference/papers/2503.00147.pdf` (10 pp., LEÍDO sep 2026).
   *Uso:* ataca EXACTAMENTE nuestros dos problemas (dependencia larga + desbalance).
   ASTRM (spatial + local temporal + global temporal) sustituye a GSM; Bi-GRU;
-  Soft Instance Contrastive loss + ASAM. +15,67 % sobre E2E-Spot en tenis δ=0.
-  **Su ablation mide que la FOCAL LOSS EMPEORA** (72,65 -> 70,36) y SoftIC mejora
-  (-> 73,74); y que Bi-GRU 1 capa bate a transformers y a Bi-LSTM. Clip 128.
+  Soft Instance Contrastive loss + ASAM. +15,67 puntos de mAP en tenis δ=0 frente a
+  E2E-Spot re-medido por ellos (45,34; el artículo original da 71,6).
+  **Su ablation (SoccerNet) mide que la FOCAL LOSS EMPEORA** (72,65 -> 70,36) y SoftIC
+  mejora (-> 73,74); y que Bi-GRU 1 capa bate a transformers y a Bi-LSTM. Clip 128.
 
 - **T-DEED: Temporal-Discriminability Enhancer Encoder-Decoder for Precise Event
   Spotting** — Xarles et al. CVPRW 2024. arXiv:2404.05392.
