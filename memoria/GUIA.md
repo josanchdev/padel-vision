@@ -50,7 +50,7 @@ anexo A»), y en un anexo nunca aparece un resultado que no esté en el cuerpo.
 | Tema | Se dice | No se dice |
 |---|---|---|
 | Asignación frente a Decorte | «comparable, por encima en la media» (la diferencia no es concluyente) | «supera» |
-| Detección frente a Decorte | «reproduce» (criterio de acierto distinto, ver Mesaros) | «supera» |
+| Detección frente a Decorte | «reproduce» (otro criterio para dar por buena una detección, ver Mesaros) | «supera» |
 | Clasificador | «basado en el método de BST (que parte de TemPose)» | «reimplementa BST»; no se enumeran las diferencias menores |
 | Detector de pelota | «basado en TrackNet: una red de tipo U-Net con un refinador residual propio» | «TrackNetV3» (es un nombre interno); «una U-Net» |
 | Pose | «el modelo de pose, preentrenado en COCO [n], devuelve 17 puntos por persona» | — |
@@ -82,8 +82,8 @@ anexo A»), y en un anexo nunca aparece un resultado que no esté en el cuerpo.
   «82,7 %», «48 kHz», «15 px». En LaTeX, con `\num{}` y `\SI{}{}` (apartado 6), que lo hacen
   solos.
 - **Comillas:** «» primero, “” dentro, ‘’ en último lugar.
-- **Palabras extranjeras sin adaptar, en cursiva (RAE):** *frame*, *dataset*, *recall*,
-  *bootstrap*… Se mantienen los términos estándar en visión por computador; el glosario dice
+- **Palabras extranjeras sin adaptar, en cursiva (RAE):** *frame*, *dataset*,
+  *accuracy*, *recall*, *bootstrap*… Se mantienen los términos estándar en visión por computador; el glosario dice
   cuáles.
 - **Siglas:** completas la primera vez: «red neuronal convolucional (CNN)».
 - Títulos de capítulos y apartados: solo la primera palabra en mayúscula.
@@ -101,8 +101,7 @@ anexo A»), y en un anexo nunca aparece un resultado que no esté en el cuerpo.
 | seguimiento | *tracking* | |
 | asignación del golpe | — | Quién golpea |
 | *dataset* | conjunto de datos | Los nombres propios (CVSPORTS, PadelTracker100) tal cual, sin cursiva |
-| acierto | *accuracy* | |
-| precisión, *recall* | exhaustividad | |
+| *accuracy*, *precision*, *recall*, F1, macro-F1 | acierto, exactitud, precisión, exhaustividad | Nombres de métricas, en inglés para ser consistentes. En sentido general («no publican su precisión») se escribe en español |
 | puntos clave | *keypoints* | Los 17 puntos de la pose |
 
 ## 5. Figuras
