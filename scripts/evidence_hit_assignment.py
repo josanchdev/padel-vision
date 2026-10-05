@@ -26,12 +26,13 @@ from padel_ml.evidence import (
 )
 from padel_ml.hit_assignment import WINDOW_HALF, assign_hit, team_alternation_sweep
 from padel_ml.hit_assignment_eval import annotated_rallies
+from padel_ml.hit_assignment_gt import PAPER_PLAYER_ACCURACY, PAPER_TEAM_ACCURACY
 from padel_ml.rally_analysis import POSE_CONFIDENCE
 
 from padel_cv.paths import COURTS, CVSPORTS, METRICS, RUNS
 from padel_cv.pose import PoseDetector
 
-PAPER_PLAYER, PAPER_TEAM = 0.8370, 0.8683
+PAPER_PLAYER, PAPER_TEAM = PAPER_PLAYER_ACCURACY, PAPER_TEAM_ACCURACY
 LABELS = ["J1", "J2", "J3", "J4", "sin asignar"]
 
 

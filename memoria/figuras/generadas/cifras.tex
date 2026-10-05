@@ -1,0 +1,102 @@
+% Generado por scripts/build_thesis_assets.py desde docs/metrics/. No editar a mano.
+% Uso en el texto: \cifra{tipo-accuracy}.
+\makeatletter
+\newcommand{\cifra}[1]{%
+  \@ifundefined{cifra@#1}%
+    {\PackageError{cifras}{Cifra desconocida: #1}{Las claves estan en cifras.tex}}%
+    {\@nameuse{cifra@#1}}}
+\@namedef{cifra@audio-f1}{\num{0.958}} % audio_threshold_seeds.json: metrics.f1
+\@namedef{cifra@audio-f1-desviacion}{\num{0.007}} % audio_threshold_seeds.json: metrics.f1_std
+\@namedef{cifra@audio-precision}{\num{0.972}} % audio_threshold_seeds.json: metrics.precision
+\@namedef{cifra@audio-recall}{\num{0.945}} % audio_threshold_seeds.json: metrics.recall
+\@namedef{cifra@audio-ejecuciones}{\num{3}} % audio_threshold_seeds.json: metrics.runs
+\@namedef{cifra@audio-umbral}{\num{0.5}} % audio_threshold_seeds.json: params.threshold
+\@namedef{cifra@decorte-deteccion-f1}{\num{0.92}} % audio_threshold_seeds.json: metrics.paper_f1
+\@namedef{cifra@poseypelota-f1}{\num{0.821}} % method_comparison_same_data.json: metrics.old_f1
+\@namedef{cifra@audio-mismos-datos-f1}{\num{0.956}} % method_comparison_same_data.json: metrics.audio_f1
+\@namedef{cifra@asignacion-jugador}{\SI{87.5}{\percent}} % confidence_intervals.json: tabla1_asignacion.player
+\@namedef{cifra@asignacion-jugador-ic}{\num{78.4}--\num{93.6}} % confidence_intervals.json: tabla1_asignacion.player
+\@namedef{cifra@asignacion-jugador-bajo}{\SI{78.4}{\percent}} % confidence_intervals.json: tabla1_asignacion.player
+\@namedef{cifra@asignacion-jugador-alto}{\SI{93.6}{\percent}} % confidence_intervals.json: tabla1_asignacion.player
+\@namedef{cifra@asignacion-pareja}{\SI{92.2}{\percent}} % confidence_intervals.json: tabla1_asignacion.team
+\@namedef{cifra@asignacion-pareja-ic}{\num{84.4}--\num{96.8}} % confidence_intervals.json: tabla1_asignacion.team
+\@namedef{cifra@asignacion-pareja-bajo}{\SI{84.4}{\percent}} % confidence_intervals.json: tabla1_asignacion.team
+\@namedef{cifra@asignacion-pareja-alto}{\SI{96.8}{\percent}} % confidence_intervals.json: tabla1_asignacion.team
+\@namedef{cifra@asignacion-diferencia-jugador}{\num{3.8}} % confidence_intervals.json: tabla1_asignacion.player_minus_paper
+\@namedef{cifra@asignacion-diferencia-jugador-bajo}{\num{-5.4}} % confidence_intervals.json: tabla1_asignacion.player_minus_paper
+\@namedef{cifra@asignacion-diferencia-jugador-alto}{\num{9.9}} % confidence_intervals.json: tabla1_asignacion.player_minus_paper
+\@namedef{cifra@asignacion-diferencia-pareja}{\num{5.3}} % confidence_intervals.json: tabla1_asignacion.team_minus_paper
+\@namedef{cifra@asignacion-diferencia-pareja-bajo}{\num{-2.9}} % confidence_intervals.json: tabla1_asignacion.team_minus_paper
+\@namedef{cifra@asignacion-diferencia-pareja-alto}{\num{10.2}} % confidence_intervals.json: tabla1_asignacion.team_minus_paper
+\@namedef{cifra@asignacion-golpes}{\num{319}} % hit_assignment_replica.json: metrics.hits
+\@namedef{cifra@asignacion-ventana}{\num{4}} % hit_assignment_replica.json: params.window_half_frames
+\@namedef{cifra@decorte-jugador}{\SI{83.7}{\percent}} % hit_assignment_replica.json: metrics.paper_player_accuracy
+\@namedef{cifra@decorte-pareja}{\SI{86.8}{\percent}} % hit_assignment_replica.json: metrics.paper_team_accuracy
+\@namedef{cifra@asignacion-puntos}{\num{16}} % hit_assignment_per_rally.json: número de puntos
+\@namedef{cifra@tipo-accuracy}{\SI{82.7}{\percent}} % confidence_intervals.json: tabla1_tipo.accuracy
+\@namedef{cifra@tipo-accuracy-ic}{\num{80.3}--\num{85.0}} % confidence_intervals.json: tabla1_tipo.accuracy
+\@namedef{cifra@tipo-accuracy-bajo}{\SI{80.3}{\percent}} % confidence_intervals.json: tabla1_tipo.accuracy
+\@namedef{cifra@tipo-accuracy-alto}{\SI{85.0}{\percent}} % confidence_intervals.json: tabla1_tipo.accuracy
+\@namedef{cifra@tipo-macro-f1}{\num{0.859}} % shot_type_classifier.json: metrics.macro_f1
+\@namedef{cifra@tipo-golpes}{\num{2186}} % shot_type_classifier.json: metrics.n
+\@namedef{cifra@tipo-torneos}{\num{11}} % shot_type_classifier.json: metrics.tournaments
+\@namedef{cifra@tipo-accuracy-sin-regla}{\SI{82.5}{\percent}} % shot_type_classifier.json: metrics.accuracy_without_serve_rule
+\@namedef{cifra@tipo-macro-f1-sin-regla}{\num{0.842}} % shot_type_classifier.json: metrics.macro_f1_without_serve_rule
+\@namedef{cifra@saque-precision}{\num{1.000}} % shot_type_classifier.json: params.class_weight_ablation.0.0.serve_precision
+\@namedef{cifra@saque-recall}{\num{0.916}} % shot_type_classifier.json: params.class_weight_ablation.0.0.serve_recall
+\@namedef{cifra@saque-precision-sin-regla}{\num{0.861}} % shot_type_classifier.json: params.serve_without_rule.precision
+\@namedef{cifra@cadena-deteccion-f1}{\num{0.948}} % confidence_intervals.json: tabla2_cadena.detection_f1
+\@namedef{cifra@cadena-deteccion-f1-ic}{\num{0.939}--\num{0.955}} % confidence_intervals.json: tabla2_cadena.detection_f1
+\@namedef{cifra@cadena-deteccion-f1-bajo}{\num{0.939}} % confidence_intervals.json: tabla2_cadena.detection_f1
+\@namedef{cifra@cadena-deteccion-f1-alto}{\num{0.955}} % confidence_intervals.json: tabla2_cadena.detection_f1
+\@namedef{cifra@cadena-deteccion-precision}{\num{0.972}} % chain_cv.json: metrics.detection_precision
+\@namedef{cifra@cadena-deteccion-recall}{\num{0.925}} % chain_cv.json: metrics.detection_recall
+\@namedef{cifra@cadena-tipo}{\SI{83.5}{\percent}} % confidence_intervals.json: tabla2_cadena.type_accuracy
+\@namedef{cifra@cadena-tipo-ic}{\num{81.1}--\num{85.7}} % confidence_intervals.json: tabla2_cadena.type_accuracy
+\@namedef{cifra@cadena-tipo-bajo}{\SI{81.1}{\percent}} % confidence_intervals.json: tabla2_cadena.type_accuracy
+\@namedef{cifra@cadena-tipo-alto}{\SI{85.7}{\percent}} % confidence_intervals.json: tabla2_cadena.type_accuracy
+\@namedef{cifra@cadena-tipo-macro-f1}{\num{0.863}} % chain_cv.json: metrics.type_macro_f1
+\@namedef{cifra@cadena-jugador}{\SI{86.5}{\percent}} % confidence_intervals.json: tabla2_cadena.player_accuracy
+\@namedef{cifra@cadena-jugador-ic}{\num{77.7}--\num{92.6}} % confidence_intervals.json: tabla2_cadena.player_accuracy
+\@namedef{cifra@cadena-jugador-bajo}{\SI{77.7}{\percent}} % confidence_intervals.json: tabla2_cadena.player_accuracy
+\@namedef{cifra@cadena-jugador-alto}{\SI{92.6}{\percent}} % confidence_intervals.json: tabla2_cadena.player_accuracy
+\@namedef{cifra@cadena-pareja}{\SI{92.0}{\percent}} % confidence_intervals.json: tabla2_cadena.team_accuracy
+\@namedef{cifra@cadena-pareja-ic}{\num{84.1}--\num{97.3}} % confidence_intervals.json: tabla2_cadena.team_accuracy
+\@namedef{cifra@cadena-pareja-bajo}{\SI{84.1}{\percent}} % confidence_intervals.json: tabla2_cadena.team_accuracy
+\@namedef{cifra@cadena-pareja-alto}{\SI{97.3}{\percent}} % confidence_intervals.json: tabla2_cadena.team_accuracy
+\@namedef{cifra@cadena-detectado-tipo}{\SI{80.1}{\percent}} % confidence_intervals.json: tabla2_cadena.end_to_end_when_what
+\@namedef{cifra@cadena-detectado-tipo-ic}{\num{77.4}--\num{82.6}} % confidence_intervals.json: tabla2_cadena.end_to_end_when_what
+\@namedef{cifra@cadena-detectado-tipo-bajo}{\SI{77.4}{\percent}} % confidence_intervals.json: tabla2_cadena.end_to_end_when_what
+\@namedef{cifra@cadena-detectado-tipo-alto}{\SI{82.6}{\percent}} % confidence_intervals.json: tabla2_cadena.end_to_end_when_what
+\@namedef{cifra@cadena-todo-vigo}{\SI{75.5}{\percent}} % confidence_intervals.json: tabla2_cadena.end_to_end_vigo
+\@namedef{cifra@cadena-todo-vigo-ic}{\num{66.9}--\num{82.2}} % confidence_intervals.json: tabla2_cadena.end_to_end_vigo
+\@namedef{cifra@cadena-todo-vigo-bajo}{\SI{66.9}{\percent}} % confidence_intervals.json: tabla2_cadena.end_to_end_vigo
+\@namedef{cifra@cadena-todo-vigo-alto}{\SI{82.2}{\percent}} % confidence_intervals.json: tabla2_cadena.end_to_end_vigo
+\@namedef{cifra@cadena-golpes}{\num{2377}} % chain_cv.json: metrics.real_hits
+\@namedef{cifra@cadena-golpes-vigo}{\num{286}} % chain_cv.json: metrics.vigo_hits
+\@namedef{cifra@embudo-detectados}{\SI{96.2}{\percent}} % chain_cv.json: params.funnel_vigo_percent.Detectados
+\@namedef{cifra@embudo-jugador}{\SI{84.6}{\percent}} % chain_cv.json: params.funnel_vigo_percent.Jugador correcto
+\@namedef{cifra@embudo-jugador-tipo}{\SI{75.5}{\percent}} % chain_cv.json: params.funnel_vigo_percent.Jugador y tipo correctos
+\@namedef{cifra@dataset-golpes}{\num{2377}} % dataset_shot_types.json: metrics.labelled
+\@namedef{cifra@dataset-entrenables}{\num{2210}} % dataset_shot_types.json: metrics.trainable
+\@namedef{cifra@dataset-descartes}{\num{167}} % dataset_shot_types.json: metrics.discards
+\@namedef{cifra@dataset-descartes-pct}{\SI{7.0}{\percent}} % dataset_shot_types.json: metrics.discard_rate
+\@namedef{cifra@dataset-puntos}{\num{99}} % dataset_shot_types.json: metrics.rallies
+\@namedef{cifra@dataset-torneos}{\num{11}} % dataset_shot_types.json: metrics.tournaments
+\@namedef{cifra@dataset-desbalance}{\num{8.4}} % dataset_shot_types.json: metrics.imbalance_ratio
+\@namedef{cifra@dataset-golpes-por-punto}{\num{23}} % dataset_shot_types.json: metrics.median_hits_per_rally
+\@namedef{cifra@dataset-derecha}{\num{813}} % dataset_shot_types.json: per_class.Forehand.support
+\@namedef{cifra@dataset-reves}{\num{735}} % dataset_shot_types.json: per_class.Backhand.support
+\@namedef{cifra@dataset-remate}{\num{565}} % dataset_shot_types.json: per_class.Smash.support
+\@namedef{cifra@dataset-saque}{\num{97}} % dataset_shot_types.json: per_class.Serve.support
+\@namedef{cifra@pelota-f1}{\num{0.915}} % ball_detector.json: metrics.f1
+\@namedef{cifra@pelota-precision}{\num{0.871}} % ball_detector.json: metrics.precision
+\@namedef{cifra@pelota-recall}{\num{0.964}} % ball_detector.json: metrics.recall
+\@namedef{cifra@pelota-tolerancia}{\SI{15}{px}} % ball_detector.json: metrics.tolerance_px
+\@namedef{cifra@pelota-error-mediano}{\SI{8.1}{px}} % ball_detector.json: metrics.median_error_px
+\@namedef{cifra@pelota-limpieza-f1}{\num{0.902}} % ball_detector.json: params.by_tolerance.detector + limpieza.15px.f1
+\@namedef{cifra@pelota-limpieza-recall}{\num{0.975}} % ball_detector.json: params.by_tolerance.detector + limpieza.15px.recall
+\@namedef{cifra@coste-total}{\SI{67.5}{\second}} % processing_time.json: metrics.total_s
+\@namedef{cifra@coste-video}{\SI{64.3}{\second}} % processing_time.json: metrics.video_s
+\@namedef{cifra@coste-factor}{\num{1.05}} % processing_time.json: metrics.realtime_factor
+\makeatother

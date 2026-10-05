@@ -29,6 +29,7 @@ from typing import TypeVar
 import numpy as np
 from padel_ml.chain_eval import Row, summarize
 from padel_ml.evidence import ExperimentResult
+from padel_ml.hit_assignment_gt import PAPER_TABLE_3
 from padel_ml.shot_type_dataset import build_dataset
 
 from padel_cv.paths import METRICS, RALLY_FEATURES, SHOT_TYPE_LABELS
@@ -36,14 +37,6 @@ from padel_cv.paths import METRICS, RALLY_FEATURES, SHOT_TYPE_LABELS
 RESAMPLES = 10_000
 SEED = 0
 
-PAPER_TABLE_3 = [
-    (87.50, 87.50, 16), (83.87, 87.10, 31), (88.89, 88.89, 9), (61.54, 76.92, 13),
-    (87.50, 87.50, 8), (100.00, 100.00, 10), (81.48, 81.48, 27), (88.24, 94.12, 17),
-    (100.00, 100.00, 16), (77.14, 82.86, 35), (90.00, 100.00, 10), (86.96, 86.96, 46),
-    (85.00, 90.00, 20), (80.95, 80.95, 21), (82.86, 85.71, 35), (40.00, 60.00, 5),
-]  # fmt: skip
-"""Decorte et al. (CVPRW 2024), Table 3: player %, team %, hits for each VIGO rally,
-in the same order as ours (VIGO_00 ... VIGO_16, without VIGO_13)."""
 T = TypeVar("T")
 
 

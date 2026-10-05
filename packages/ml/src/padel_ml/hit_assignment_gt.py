@@ -24,6 +24,19 @@ _NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 #: "t{team}p{n}" -> player slot 1-4 (paper's starting-position numbering).
 LABEL_TO_SLOT = {"t1p1": 1, "t1p2": 2, "t2p1": 3, "t2p2": 4}
 
+PAPER_PLAYER_ACCURACY = 0.8370
+PAPER_TEAM_ACCURACY = 0.8683
+"""Decorte et al. (CVPRW 2024), Table 3: accuracy over the 319 annotated hits."""
+
+PAPER_TABLE_3: list[tuple[float, float, int]] = [
+    (87.50, 87.50, 16), (83.87, 87.10, 31), (88.89, 88.89, 9), (61.54, 76.92, 13),
+    (87.50, 87.50, 8), (100.00, 100.00, 10), (81.48, 81.48, 27), (88.24, 94.12, 17),
+    (100.00, 100.00, 16), (77.14, 82.86, 35), (90.00, 100.00, 10), (86.96, 86.96, 46),
+    (85.00, 90.00, 20), (80.95, 80.95, 21), (82.86, 85.71, 35), (40.00, 60.00, 5),
+]  # fmt: skip
+"""Decorte et al. (CVPRW 2024), Table 3: player %, team %, hits for each VIGO rally,
+in the same order as ours (VIGO_00 ... VIGO_16, without VIGO_13)."""
+
 
 @dataclass(frozen=True)
 class HitAssignment:
