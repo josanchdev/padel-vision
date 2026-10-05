@@ -32,9 +32,9 @@ golpes y 6 clases → 98,9% de accuracy. Estamos en ese régimen.
   mitad de complejidad. Baseline comparativo para la memoria: ST-GCN (Nivel 2),
   que en TenniSet (pocas clases, datos limpios) llega a batir a TemPose.
 - **B — 4 clases: Saque, Derecha, Revés, Remate.** Se mantiene ADR-0014.
-  Medido por BST sobre el MISMO dataset: 35 clases → acc 0,7626 / macro-F1
-  0,6908; 25 clases fusionadas → **0,8284 / 0,8041**. +6,6 y +11 puntos solo por
-  fusionar. Su criterio: fusionar lo que el modelo confunde (`wrist smash →
+  Medido por BST sobre el MISMO dataset y con la misma ventana: 35 clases → acc
+  0,7655 / macro-F1 0,6976; 25 clases fusionadas → **0,8284 / 0,8041**. +6,3 y
+  +10,7 puntos solo por fusionar. Su criterio: fusionar lo que el modelo confunde (`wrist smash →
   smash`, `defensive return drive → drive`).
   **Regla adoptada: separar clases solo cuando difiere el GESTO, no la intención
   táctica ni la posición.**

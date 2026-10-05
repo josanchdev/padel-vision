@@ -109,8 +109,8 @@ real faltaba de su propio frame de golpe en el 10% de los casos.
 golpe está pegada a la pala de alguien. El paso 4 decide por proximidad, y el
 paso 5 la usa como segunda entrada — es lo que distingue un remate de una
 defensa alta, que en el esqueleto se parecen pero mandan la pelota en
-direcciones opuestas. Es la entrada que más aporta al clasificador según las
-mediciones publicadas de BST.
+direcciones opuestas. En bádminton es la entrada que más aporta al clasificador,
+según las mediciones publicadas de BST.
 
 **Qué hace.** TrackNetV3 localiza la pelota frame a frame; después se limpia la
 trayectoria con un modelo físico (entre golpe y bote la pelota es un proyectil,
@@ -168,9 +168,9 @@ derecha, revés, remate o saque. Recibe una ventana adaptativa que va del golpe
 anterior del rival al siguiente, de modo que ve el gesto completo —preparación,
 impacto y terminación— y no un frame suelto.
 
-**De dónde sale.** Arquitectura reimplementada de BST (Chang, CVPRW 2026) sobre
-bloques de TemPose, adaptada a pádel: un solo jugador en vez de dos (el golpe ya
-está atribuido) y un indicador de presencia en la pelota.
+**De dónde sale.** Basado en el método de BST (Chang, CVPRW 2026), que parte de
+TemPose, llevado a pádel: un solo jugador, el que golpea (el golpe ya está
+atribuido), y un indicador de presencia en la pelota.
 
 **Lo propio aquí.**
 - **El dataset**: 2.377 golpes etiquetados a mano, uno a uno. El dataset público
@@ -196,7 +196,7 @@ está atribuido) y un indicador de presencia en la pelota.
 | CRNN de audio | cuándo | arquitectura de Decorte et al. | **sí** |
 | YOLO26-pose | jugadores | Ultralytics, pesos COCO | no |
 | TrackNetV3 | pelota | arquitectura TrackNet | **sí**, sobre pádel |
-| BST-0 | tipo de golpe | arquitectura de Chang | **sí** |
+| BST-0 | tipo de golpe | basado en el método de Chang | **sí** |
 
 Tres de los cuatro están entrenados en este trabajo. El único de terceros es
 el detector de personas, que se usa con sus pesos originales.
@@ -333,6 +333,6 @@ Declarado a propósito, no por omisión:
   juego real de repeticiones, una pila de robustez documentada en el backlog.
 - **Bandeja, víbora y dejada** como clases propias: se descartaron para mantener
   cuatro clases bien separadas; hay evidencia publicada de que reducir clases
-  mejora sustancialmente (BST: +6,6 puntos al pasar de 35 a 25 clases).
+  mejora sustancialmente (BST: +6,3 puntos al pasar de 35 a 25 clases).
 - **Vídeos de cámara móvil o a nivel de pista**: todo el sistema asume la cámara
   fija elevada de retransmisión.

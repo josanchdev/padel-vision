@@ -25,14 +25,14 @@ autores/venue, enlace, y para qué se usó aquí. Verificar el formato de cita f
   PDF local: `~/reference/papers/2502.21085.pdf` (18 pp., LEÍDO ENTERO sep 2026).
   *Uso:* **BASE DEL CLASIFICADOR DE TIPO DE GOLPE (ADR-0016).** Estado del arte
   en clasificación de tipo de golpe en deportes de raqueta; pose+pelota con
-  cross-attention. **Reimplementamos su arquitectura BST-0** siguiendo el paper y
-  su implementación de referencia (repo público), con sus hiperparámetros
-  (d_model 100, d_head 128, 6 cabezas, 2+1 capas, dropout 0,3, TCN kernel 5) y su
-  **estrategia de ventana adaptativa** (§3.1). Adaptaciones propias documentadas:
-  un solo jugador en vez de dos (en pádel el golpe ya está atribuido) y flag de
-  presencia en la pelota. Sus tablas sostienen además dos decisiones nuestras:
-  la pelota es la entrada que más aporta (+3,4 pts sobre pose sola) y reducir
-  clases mejora mucho (35→25 clases: +6,6 pts de accuracy).
+  cross-attention. **Nuestro clasificador se basa en su método (BST-0)**, con sus
+  hiperparámetros (d_model 100, d_head 128, 6 cabezas, 2+1 capas, dropout 0,3,
+  TCN kernel 5) y su **estrategia de ventana adaptativa** (§3.1). Decisiones
+  propias: un solo jugador, el que golpea (en pádel el golpe ya está atribuido), y
+  flag de presencia en la pelota. Sus tablas sostienen además dos decisiones
+  nuestras: en bádminton la pelota es la entrada que más aporta (+3,4 pts sobre pose
+  sola, tabla 1) y reducir clases mejora mucho (35→25 clases con la misma ventana:
+  +6,3 pts de accuracy, tablas C y 2).
 
 - **TemPose: a new skeleton-based transformer model for fine-grained motion
   recognition in badminton** — Ibh, Grasshof, Witzner, Madeleine (2023).
@@ -110,9 +110,9 @@ autores/venue, enlace, y para qué se usó aquí. Verificar el formato de cita f
 
 **Nota de método (para la memoria):** toda técnica o arquitectura de terceros
 usada o consultada está aquí con su fuente. Se distingue explícitamente entre
-**lo reimplementado de terceros** (detector de audio y asignación de golpe de
-Decorte et al.; arquitectura BST-0 de Chang sobre bloques de TemPose) y **la
-aportación propia**: el etiquetado de 2.377 golpes por tipo, la adaptación del
+**lo que viene de terceros** (detector de audio y asignación de golpe de
+Decorte et al., reimplementados; el clasificador, basado en el método BST-0 de
+Chang, que parte de TemPose) y **la aportación propia**: el etiquetado de 2.377 golpes por tipo, la adaptación del
 clasificador a pádel, el detector de pelota entrenado sobre pádel, y la
 evaluación comparativa de todo ello. Reimplementar
 un método publicado citándolo es práctica estándar en investigación; lo que no es

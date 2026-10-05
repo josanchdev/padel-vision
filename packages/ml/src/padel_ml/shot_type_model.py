@@ -1,20 +1,14 @@
-"""Shot-type classifier: BST-0 adapted to padel (ADR-0016 A).
+"""Shot-type classifier for padel, based on BST-0 (ADR-0016 A).
 
-Reimplemented from Chang's BST (CVPRW 2026, arXiv:2502.21085) and the TemPose
-blocks it builds on, following the published architecture and the author's
-reference implementation. Hyper-parameters are theirs: d_model 100, d_head 128,
-6 heads, 2 temporal layers + 1 interaction layer, dropout 0.3, TCN kernel 5.
+Based on the method of Chang's BST (CVPRW 2026) and the TemPose blocks it
+builds on, with BST's hyper-parameters: d_model 100, d_head 128, 6 heads,
+2 temporal layers + 1 interaction layer, dropout 0.3, TCN kernel 5.
 
-Two deliberate departures from the original, both because padel is not
-badminton singles:
-
-- **One player, not two.** BST feeds both players because in singles the
-  opponent's position is informative about the rally. Here the hit has already
-  been attributed to a specific player (86.8% team accuracy, ADR-0015 D) and
-  what we classify is *that player's gesture*, so the model sees the hitter and
-  the ball. The cross-attention between pose and ball — the part BST shows
-  matters most — is kept intact.
-- **The ball carries a presence flag.** TrackNet finds the ball in ~89% of
+- **One player: the hitter.** The hit has already been attributed to a player
+  (ADR-0015 D), so what we classify is *that player's gesture*: the model sees
+  the hitter's pose and the ball, and cross-attention lets the pose query the
+  ball trajectory.
+- **The ball carries a presence flag.** TrackNet misses the ball in some
   frames, so a third channel marks which positions are real; without it a
   missing ball reads as a ball at the origin.
 
@@ -39,7 +33,7 @@ BALL_CHANNELS = 3
 
 
 def sinusoidal_encoding(length: int, dim: int) -> Tensor:
-    """Standard 1-D positional encoding (BST uses the same, fixed not learned)."""
+    """Standard fixed 1-D sinusoidal positional encoding."""
     position = torch.arange(length).unsqueeze(1).float()
     div = torch.exp(torch.arange(0, dim, 2).float() * (-math.log(10000.0) / dim))
     encoding = torch.zeros(length, dim)
