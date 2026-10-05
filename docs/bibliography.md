@@ -36,9 +36,10 @@ autores/venue, enlace, y para qué se usó aquí. Verificar el formato de cita f
 
 - **TemPose: a new skeleton-based transformer model for fine-grained motion
   recognition in badminton** — Ibh, Grasshof, Witzner, Madeleine (2023).
-  IEEE, https://ieeexplore.ieee.org/document/10208321
-  *Uso:* arquitectura de la que deriva BST; de aquí vienen los bloques que
-  reimplementamos (TCN dilatado, TransformerEncoder pre-norm, MLP_Head).
+  CVPRW 2023, https://ieeexplore.ieee.org/document/10208321
+  *Uso:* arquitectura de la que deriva BST; de aquí vienen los bloques en los que
+  se basa nuestro clasificador (TCN dilatado, TransformerEncoder pre-norm,
+  MLP_Head) y sus hiperparámetros por defecto (D_L 100, D_A 128, 6 cabezas).
   Citación obligatoria junto a BST: el crédito de esos bloques es suyo.
 
 - **ST-GCN (Spatial-Temporal Graph Convolutional Networks)** — Yan et al. (2018).
