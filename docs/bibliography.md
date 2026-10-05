@@ -99,8 +99,10 @@ autores/venue, enlace, y para qué se usó aquí. Verificar el formato de cita f
 
 ## Pelota (Nivel 3, ya implementado)
 
-- **TrackNet (V2/V3)** — detección de pelota pequeña por heatmap (3 frames→heatmap).
-  *Uso:* nuestro detector de pelota (F1 ~0,94). Base de la trayectoria.
+- **TrackNet** — Huang et al., AVSS 2019. Detección de pelota pequeña por heatmap
+  a partir de frames consecutivos. *Uso:* nuestro detector se basa en él: U-Net
+  sobre 3 frames más un refinador residual propio (F1 0,915 a 15 px). En el código
+  se llama TrackNetV3, pero no es el TrackNetV3 publicado (Chen y Wang, 2023).
 
 ## Detección/pose base
 

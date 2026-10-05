@@ -1,17 +1,20 @@
-"""TrackNetV3: TrackNetV2 plus a trajectory-refinement head.
+"""The ball detector the system uses: the U-Net of `tracknet.py` plus a refiner.
 
-V2 predicts each frame's ball heatmap independently. Its weakness is occlusion:
-when a player or the glass hides the ball, V2 has nothing to output. V3's idea is
-to *refine* V2's coarse heatmap using the surrounding motion context, recovering
-the ball where a single-frame view fails (ADR-0009). Whether it does could not be
-measured here: PadelTracker100's ``occluded`` attribute is false on every
-annotation, so V2 and V3 were compared on overall metrics only (a tie, see
-docs/experiments.md); the system uses V3.
+Named "V3" in this project only. It is NOT the published TrackNetV3 (Chen & Wang,
+2023), which adds an estimated background, mixup and a second model that repairs
+the coordinate trajectory; none of that is here.
 
-Here the refiner is a small residual module fed the concatenation of V2's
+The U-Net predicts each frame's ball heatmap independently. Its weakness is
+occlusion: when a player or the glass hides the ball, it has nothing to output.
+The refiner is a small residual module fed the concatenation of the U-Net's
 heatmap and the (downsampled) input frames: it learns a correction added back to
-V2's output. Kept compact on purpose to stay comparable to V2 and cheap to train
-on this box.
+the heatmap (ADR-0009). Kept compact on purpose to stay comparable to the U-Net
+and cheap to train on this box.
+
+Whether it recovers occluded balls could not be measured: PadelTracker100's
+``occluded`` attribute is false on every annotation, so the two models were
+compared on overall metrics only (a tie, see docs/experiments.md); the system
+uses this one.
 """
 
 from __future__ import annotations

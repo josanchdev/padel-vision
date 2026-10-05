@@ -1,4 +1,8 @@
-"""TrackNetV2: a U-Net that predicts a ball heatmap from 3 stacked frames.
+"""A TrackNet-style U-Net that predicts a ball heatmap from 3 stacked frames.
+
+Named "V2" in this project after the U-Net version of TrackNet; it is our own
+implementation, not the published TrackNetV2. Following TrackNet (Huang et al.,
+2019), it takes consecutive frames and outputs a heatmap whose peak is the ball.
 
 Input (N, 9, H, W) = 3 consecutive RGB frames; output (N, 1, H/4, W/4) heatmap
 whose peak is the ball. The movement between the three frames is what lets the
@@ -7,8 +11,8 @@ net find an ~8px ball the background hides (ADR-0009).
 Structure: a VGG-style encoder (double-conv + maxpool, three downsampling
 stages) and a decoder that upsamples back to quarter resolution, with skip
 connections carrying fine detail across. The head is a 1x1 conv + sigmoid, so
-the output is a per-pixel ball probability. This is the citable baseline against
-which TrackNetV3 is measured.
+the output is a per-pixel ball probability. It is the baseline the refined model
+(`tracknet_v3.py`) was compared against.
 """
 
 from __future__ import annotations

@@ -2,6 +2,8 @@
 
 **Estado:** aceptada en parte · 2026-10-02 — la pelota (TrackNetV3) sigue; la detección de botes se retiró en la limpieza: no la usaba ni la medía nada
 
+**Nota (2026-10-05):** el «TrackNetV3» que se implementó es nuestra U-Net más un refinador residual del mapa de calor, no el TrackNetV3 publicado (Chen y Wang, 2023: fondo estimado, mixup y reparación de la trayectoria). El nombre se mantiene en el código; la memoria lo describe como detector basado en TrackNet.
+
 **Estado original:** aceptada · 2026-07-26
 
 ## Contexto

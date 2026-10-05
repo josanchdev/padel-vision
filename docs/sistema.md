@@ -110,7 +110,10 @@ defensa alta, que en el esqueleto se parecen pero mandan la pelota en
 direcciones opuestas. En bádminton es la entrada que más aporta al clasificador,
 según las mediciones publicadas de BST.
 
-**Qué hace.** TrackNetV3 localiza la pelota frame a frame; después se limpia la
+**Qué hace.** Un detector de la familia TrackNet localiza la pelota frame a frame:
+una U-Net que recibe tres frames seguidos y devuelve un mapa de calor, más un
+refinador residual propio. En el código se llama TrackNetV3, pero no es el
+TrackNetV3 publicado (Chen y Wang, 2023). Después se limpia la
 trayectoria con un modelo físico (entre golpe y bote la pelota es un proyectil,
 así que su recorrido en imagen es casi parabólico).
 
