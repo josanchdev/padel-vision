@@ -1,5 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%% Paquetes %%%%%%%%%%%%%%%%%%%%%%%
 
+% Citas al estilo IEEE: \cite{a,b} -> [1], [2]; tres o más seguidas -> [3]--[5]
+\usepackage{cite}
+\renewcommand{\citepunct}{], [}
+\renewcommand{\citedash}{]--[}
+
 \usepackage[a4paper,bindingoffset=3mm,bottom=35mm]{geometry}
 
 
@@ -47,6 +52,10 @@
 \usepackage{paralist}
 \usepackage{enumitem}
 \usepackage{float}
+\usepackage{microtype} % mejor justificado (protrusión y expansión de caracteres)
+\usepackage{booktabs}  % tablas sin líneas verticales: \toprule, \midrule, \bottomrule
+\usepackage{siunitx}   % números y unidades: \num{0.958} -> 0,958; \SI{82.7}{\percent}
+\sisetup{output-decimal-marker={,}}
 \usepackage{setspace}
 \usepackage{minitoc}
 \usepackage{listings}
@@ -154,6 +163,7 @@
 \drafttrue
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf}
+\captionsetup[table]{position=top} % el título de las tablas va encima
 \usepackage{subcaption}
 \input{config/macros}
 
