@@ -41,7 +41,11 @@ anexo A»), y en un anexo nunca aparece un resultado que no esté en el cuerpo.
   figuras y un fichero de macros con las cifras que aparecen en el texto (pendiente de hacer).
   Así no pueden desincronizarse.
 - Cada resultado va con su intervalo de confianza del 95 %: «82,7 % (IC 95 %: 80,3–85,0)».
-- Decimales: pendiente de fijar al hacer el script.
+- **Decimales:** porcentajes con uno («82,7 %») y F1, macro-F1 y demás proporciones con tres
+  («0,958»). Es lo habitual en visión por computador, coherente entre sí (0,958 = 95,8 %) y
+  acorde con la incertidumbre: con intervalos de ±2 puntos o más, el segundo decimal no
+  significa nada. Las cifras de otros trabajos se redondean igual, sin añadirles decimales que no
+  dan (el 83,70 % de Decorte → 83,7 %; su F1 0,92 se queda como está).
 - Los resultados de clasificadores retirados (ST-GCN, PoseConv3D) no se comparan con el
   final: otro dataset y otras clases.
 
