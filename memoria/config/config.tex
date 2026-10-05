@@ -16,6 +16,10 @@
 %\usepackage[latin1]{inputenc} % Usad en WinEdt/MikTex
 \ifPDFTeX
   \usepackage[utf8]{inputenc} % Usad en overleaf
+  % T1: letras con tilde como un solo carácter (bien partidas al final de
+  % línea) y caracteres que OT1 no tiene, como la «ę» de un autor citado.
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
   \newcommand{\codefont}{\ttfamily}
 \else
   \usepackage{fontspec}
@@ -29,8 +33,6 @@
 
 \newcommand{\jsonbasicfont}{\codefont\footnotesize}
 \newcommand{\codeboldfont}{\bfseries\codefont}
-
-%\usepackage[T1]{fontenc}
 
 
 % Algunos paquetes útiles
@@ -260,6 +262,20 @@ captionpos=b,
 
 
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Bibliografía
+
+% \bstctlcite pasa opciones a IEEEtran.bst (aquí, «et al.» a partir de siete
+% autores, como pide la guía de IEEE). Solo lo define la clase IEEEtran; esta
+% es la definición que da el manual de IEEEtran.bst para otras clases.
+\makeatletter
+\def\bstctlcite{\@ifnextchar[{\@bstctlcite}{\@bstctlcite[@auxout]}}
+\def\@bstctlcite[#1]#2{\@bsphack
+  \@for\@citeb:=#2\do{%
+    \edef\@citeb{\expandafter\@firstofone\@citeb}%
+    \if@filesw\immediate\write\csname #1\endcsname{\string\citation{\@citeb}}\fi}%
+  \@esphack}
+\makeatother
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Comandos definidos por el autor
 

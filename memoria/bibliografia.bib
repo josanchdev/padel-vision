@@ -1,72 +1,387 @@
-@misc{java,
-  author       = {Oracle},
-  howpublished = {\url{http://www.oracle.com/technetwork/java/index.html}},
-  title        = {Java, lenguaje de programación},
-  year         = {1995}
+% Bibliografía de la memoria. Una entrada por referencia revisada en
+% notas_citas.md; BibTeX solo imprime las que se citan con \cite.
+% Origen de cada entrada: el .bib del editor (o escrito a mano para webs),
+% con las correcciones anotadas en notas_citas.md.
+% Criterios comunes:
+%   - Títulos tal cual; IEEEtran los pasa a minúsculas, así que siglas y
+%     nombres propios van entre llaves.
+%   - Caracteres no ASCII escritos como comandos de LaTeX.
+%   - DOI en todas las que lo tienen (IEEEtran 1.12 no lo imprime).
+%   - URL solo en recursos web.
+%   - Número de artículo en «note» (IEEEtran no tiene campo propio).
+
+% Opciones de IEEEtran.bst (se activan con \bstctlcite en tfg.tex): con más
+% de seis autores, solo el primero y «et al.», como pide la guía de IEEE.
+@IEEEtranBSTCTL{IEEEtran:BSTcontrol,
+  CTLuse_forced_etal       = {yes},
+  CTLmax_names_forced_etal = {6},
+  CTLnames_show_etal       = {1}
 }
 
+% ---------------------------------------------------------------------------
+% Pádel
+% ---------------------------------------------------------------------------
 
-% EJEMPLOS:
-
-@article{bibex,
-  Title                    = {Cómo escribir TFG},
-  Journal                  = {IEEE Informática},
-  Author                   = {Autores},
-  Url                      = {http://una.url},
-  Year                     = {3081},
+@misc{fip2025report,
+  author = {{International Padel Federation}},
+  title  = {{FIP World Padel Report} 2025},
+  month  = dec,
+  year   = {2025},
+  url    = {https://www.padelfip.com/wp-content/uploads/2025/12/FIP-WPR-2025_DIGITAL.pdf},
+  note   = {{Accessed}: Oct. 5, 2026}
 }
 
-@manual{Oetiker2007,
-  author = {Oetiker, Tobias and Partl, Hubert and Hyna, Irene and Schlegl, Elisabeth},
-  keywords = {documentation latex reference typesetting},
-  month = {June},
-  note = {Version 4.22},
-  title = {The Not So Short Introduction to LaTeX},
-  url = {http://tobi.oetiker.ch/lshort/lshort.pdf},
-  year = 2007
+@article{ramonllin2020stroke,
+  author  = {Ram{\'o}n-Llin, Jes{\'u}s and Guzm{\'a}n, Jos{\'e} and Mart{\'i}nez-Gallego, Rafael and Mu{\~n}oz, Diego and S{\'a}nchez-Pay, Alejandro and S{\'a}nchez-Alcaraz, Bernardino J.},
+  title   = {Stroke Analysis in Padel According to Match Outcome and Game Side on Court},
+  journal = {International Journal of Environmental Research and Public Health},
+  volume  = {17},
+  number  = {21},
+  year    = {2020},
+  note    = {Art. no. 7838},
+  doi     = {10.3390/ijerph17217838}
 }
 
-@Article{mitchell,
-  title={Social networks},
-  author={Mitchell, J Clyde},
-  journal={Annual review of anthropology},
-  volume={3},
-  number={1},
-  pages={279--299},
-  year={1974},
-  publisher={Annual Reviews 4139 El Camino Way, PO Box 10139, Palo Alto, CA 94303-0139, USA}
+@article{cartesdominguez2023padel,
+  author  = {{Cartes Dom{\'i}nguez}, Guillermo and {Franco {\'A}lvarez}, Evelia and {Tapia C{\'o}rdoba}, Alejandro and {Guti{\'e}rrez Reina}, Daniel},
+  title   = {A comparative study of machine learning and deep learning algorithms for padel tennis shot classification},
+  journal = {Soft Computing},
+  volume  = {27},
+  number  = {17},
+  pages   = {12367--12385},
+  year    = {2023},
+  doi     = {10.1007/s00500-023-07874-x}
 }
 
-@inproceedings{fortune,
-  title={Efficient exact arithmetic for computational geometry},
-  author={Fortune, Steven and Van Wyk, Christopher J},
-  booktitle={Proceedings of the Ninth Annual Symposium on Computational Geometry},
-  pages={163--172},
-  year={1993}
+@article{javadiha2021positions,
+  author  = {Javadiha, Mohammadreza and Andujar, Carlos and Lacasa, Enrique and Ric, Angel and Susin, Antonio},
+  title   = {Estimating Player Positions from Padel High-Angle Videos: Accuracy Comparison of Recent Computer Vision Methods},
+  journal = {Sensors},
+  volume  = {21},
+  number  = {10},
+  year    = {2021},
+  note    = {Art. no. 3368},
+  doi     = {10.3390/s21103368}
 }
 
-@Article{fortuneB,
-  title={Voronoi diagrams and Delaunay triangulations},
-  author={Fortune, Steven},
-  journal={Computing in Euclidean geometry},
-  pages={225--265},
-  year={1995},
-  publisher={World Scientific}
+@inproceedings{novillo2025padel,
+  author    = {Novillo, {\'A}lvaro and Ace{\~{n}}a, V{\'i}ctor and Lancho, Carmen and Cuesta, Marina and {Mart{\'i}n de Diego}, Isaac},
+  title     = {Padel Two-Dimensional Tracking Extraction from Monocular Video Recordings},
+  booktitle = {Intelligent Data Engineering and Automated Learning -- {IDEAL} 2024},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {15346},
+  publisher = {Springer Nature Switzerland},
+  address   = {Cham},
+  year      = {2025},
+  pages     = {110--120},
+  doi       = {10.1007/978-3-031-77731-8_11}
 }
 
-@Book{giaquinta,
-  title={Calculus of variations II},
-  author={Giaquinta, Mariano and Hildebrandt, Stefan},
-  volume={311},
-  year={2013},
-  publisher={Springer Science and Business Media}
+@article{badanerin2026padeltracker100,
+  author  = {Bada-Nerin, Roberto and Rodr{\'i}guez-Gonz{\'a}lez, Paula and Kreibel, Denis and Teodoro, V{\'i}ctor and Pedrayes, Oscar D. and Usamentiaga, Rub{\'e}n and Fontenla-Seco, Yago and Ben-Leston, Pablo and Rodriguez-Trillo, Sebastian and J{\k{e}}drzejowski, Marcin and Lozano-Garc{\'i}a, Nicol{\'a}s and Mosquera-Bonasorte, Franco},
+  title   = {{PadelTracker100}: A dataset for intelligent player and ball tracking in padel sports},
+  journal = {Data in Brief},
+  volume  = {65},
+  year    = {2026},
+  note    = {Art. no. 112546},
+  doi     = {10.1016/j.dib.2026.112546}
 }
 
-@Book{morrey,
-  title={Multiple integrals in the calculus of variations},
-  author={Morrey Jr, Charles Bradfield},
-  year={2009},
-  publisher={Springer Science and Business Media}
+@inproceedings{decorte2024padel,
+  author    = {Decorte, Robbe and Par\'e, Martin and Vanhaeverbeke, Jelle and Taelman, Joachim and Slembrouck, Maarten and Verstockt, Steven},
+  title     = {Multi-Modal Hit Detection and Positional Analysis in Padel Competitions},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops},
+  month     = jun,
+  year      = {2024},
+  pages     = {3306--3314}
 }
 
-@Comment{jabref-meta: databaseType:bibtex;}
+% Productos comerciales: webs consultadas el 5 oct 2026.
+
+@misc{aiball,
+  title        = {aiball -- {AI} for p{\`a}del},
+  howpublished = {App Store, Aiball Lovelace S.L.},
+  url          = {https://apps.apple.com/app/id6450213118},
+  note         = {{Accessed}: Oct. 5, 2026}
+}
+
+@misc{padelytics,
+  title = {{Padelytics}},
+  url   = {https://www.padelytics.ai/},
+  note  = {{Accessed}: Oct. 5, 2026}
+}
+
+@misc{padelai,
+  title = {{Padel AI}: {AI} Padel Coach and Video Analysis App},
+  url   = {https://padelaiapp.com/},
+  note  = {{Accessed}: Oct. 5, 2026}
+}
+
+% ---------------------------------------------------------------------------
+% Detección y clasificación de golpes
+% ---------------------------------------------------------------------------
+
+@inproceedings{chang2026bst,
+  author    = {Chang, Jing-Yuan},
+  title     = {{BST}: Badminton Stroke-type Transformer for Skeleton-based Action Recognition in Racket Sports},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops},
+  month     = jun,
+  year      = {2026},
+  pages     = {9889--9898}
+}
+
+@inproceedings{ibh2023tempose,
+  author    = {Ibh, Magnus and Grasshof, Stella and Witzner, Dan and Madeleine, Pascal},
+  title     = {{TemPose}: A New Skeleton-Based Transformer Model Designed for Fine-Grained Motion Recognition in Badminton},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops},
+  month     = jun,
+  year      = {2023},
+  pages     = {5199--5208}
+}
+
+@inproceedings{hong2022e2espot,
+  author    = {Hong, James and Zhang, Haotian and Gharbi, Micha{\"e}l and Fisher, Matthew and Fatahalian, Kayvon},
+  title     = {Spotting Temporally Precise, Fine-Grained Events in Video},
+  booktitle = {Computer Vision -- {ECCV} 2022},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {13695},
+  publisher = {Springer Nature Switzerland},
+  address   = {Cham},
+  year      = {2022},
+  pages     = {33--51},
+  doi       = {10.1007/978-3-031-19833-5_3}
+}
+
+@inproceedings{yan2018stgcn,
+  author    = {Yan, Sijie and Xiong, Yuanjun and Lin, Dahua},
+  title     = {Spatial Temporal Graph Convolutional Networks for Skeleton-Based Action Recognition},
+  booktitle = {Proceedings of the {AAAI} Conference on Artificial Intelligence},
+  publisher = {{AAAI} Press},
+  year      = {2018},
+  pages     = {7444--7452},
+  doi       = {10.1609/aaai.v32i1.12328}
+}
+
+@inproceedings{duan2022poseconv3d,
+  author    = {Duan, Haodong and Zhao, Yue and Chen, Kai and Lin, Dahua and Dai, Bo},
+  title     = {Revisiting Skeleton-Based Action Recognition},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  month     = jun,
+  year      = {2022},
+  pages     = {2969--2978}
+}
+
+% ---------------------------------------------------------------------------
+% Pelota y jugadores
+% ---------------------------------------------------------------------------
+
+@inproceedings{huang2019tracknet,
+  author    = {Huang, Yu-Chuan and Liao, I-No and Chen, Ching-Hsuan and {\.I}k, Ts{\`i}-U{\'i} and Peng, Wen-Chih},
+  title     = {{TrackNet}: A Deep Learning Network for Tracking High-speed and Tiny Objects in Sports Applications},
+  booktitle = {2019 16th IEEE International Conference on Advanced Video and Signal Based Surveillance (AVSS)},
+  year      = {2019},
+  pages     = {1--8},
+  doi       = {10.1109/AVSS.2019.8909871}
+}
+
+@inproceedings{ronneberger2015unet,
+  author    = {Ronneberger, Olaf and Fischer, Philipp and Brox, Thomas},
+  title     = {{U-Net}: Convolutional Networks for Biomedical Image Segmentation},
+  booktitle = {Medical Image Computing and Computer-Assisted Intervention -- {MICCAI} 2015},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {9351},
+  publisher = {Springer International Publishing},
+  address   = {Cham},
+  year      = {2015},
+  pages     = {234--241},
+  doi       = {10.1007/978-3-319-24574-4_28}
+}
+
+@inproceedings{zhang2022bytetrack,
+  author    = {Zhang, Yifu and Sun, Peize and Jiang, Yi and Yu, Dongdong and Weng, Fucheng and Yuan, Zehuan and Luo, Ping and Liu, Wenyu and Wang, Xinggang},
+  title     = {{ByteTrack}: Multi-object Tracking by Associating Every Detection Box},
+  booktitle = {Computer Vision -- {ECCV} 2022},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {13682},
+  publisher = {Springer Nature Switzerland},
+  address   = {Cham},
+  year      = {2022},
+  pages     = {1--21},
+  doi       = {10.1007/978-3-031-20047-2_1}
+}
+
+@inproceedings{lin2014coco,
+  author    = {Lin, Tsung-Yi and Maire, Michael and Belongie, Serge and Hays, James and Perona, Pietro and Ramanan, Deva and Doll{\'a}r, Piotr and Zitnick, C. Lawrence},
+  title     = {{Microsoft COCO}: Common Objects in Context},
+  booktitle = {Computer Vision -- {ECCV} 2014},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {8693},
+  publisher = {Springer International Publishing},
+  address   = {Cham},
+  year      = {2014},
+  pages     = {740--755},
+  doi       = {10.1007/978-3-319-10602-1_48}
+}
+
+@book{szeliski2022cv,
+  author    = {Szeliski, Richard},
+  title     = {Computer Vision: Algorithms and Applications},
+  edition   = {2nd},
+  series    = {Texts in Computer Science},
+  publisher = {Springer},
+  year      = {2022},
+  doi       = {10.1007/978-3-030-34372-9}
+}
+
+% ---------------------------------------------------------------------------
+% Bloques de las redes y entrenamiento
+% ---------------------------------------------------------------------------
+
+@inproceedings{lin2017focal,
+  author    = {Lin, Tsung-Yi and Goyal, Priya and Girshick, Ross and He, Kaiming and Doll{\'a}r, Piotr},
+  title     = {Focal Loss for Dense Object Detection},
+  booktitle = {Proceedings of the IEEE International Conference on Computer Vision (ICCV)},
+  month     = oct,
+  year      = {2017},
+  pages     = {2980--2988}
+}
+
+@inproceedings{vaswani2017attention,
+  author    = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, {\L}ukasz and Polosukhin, Illia},
+  title     = {Attention is All you Need},
+  booktitle = {Advances in Neural Information Processing Systems},
+  volume    = {30},
+  publisher = {Curran Associates, Inc.},
+  year      = {2017}
+}
+
+@inproceedings{cho2014gru,
+  author    = {Cho, Kyunghyun and van Merri{\"e}nboer, Bart and Gulcehre, Caglar and Bahdanau, Dzmitry and Bougares, Fethi and Schwenk, Holger and Bengio, Yoshua},
+  title     = {Learning Phrase Representations using {RNN} Encoder{--}Decoder for Statistical Machine Translation},
+  booktitle = {Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing ({EMNLP})},
+  month     = oct,
+  year      = {2014},
+  address   = {Doha, Qatar},
+  publisher = {Association for Computational Linguistics},
+  pages     = {1724--1734},
+  doi       = {10.3115/v1/D14-1179}
+}
+
+@inproceedings{loshchilov2019adamw,
+  author    = {Loshchilov, Ilya and Hutter, Frank},
+  title     = {Decoupled Weight Decay Regularization},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2019}
+}
+
+% ---------------------------------------------------------------------------
+% Evaluación
+% ---------------------------------------------------------------------------
+
+@article{efron1979bootstrap,
+  author    = {Efron, B.},
+  title     = {Bootstrap Methods: Another Look at the Jackknife},
+  volume    = {7},
+  journal   = {The Annals of Statistics},
+  number    = {1},
+  publisher = {Institute of Mathematical Statistics},
+  pages     = {1--26},
+  year      = {1979},
+  doi       = {10.1214/aos/1176344552}
+}
+
+@article{mesaros2016metrics,
+  author  = {Mesaros, Annamaria and Heittola, Toni and Virtanen, Tuomas},
+  title   = {Metrics for Polyphonic Sound Event Detection},
+  journal = {Applied Sciences},
+  volume  = {6},
+  number  = {6},
+  year    = {2016},
+  note    = {Art. no. 162},
+  doi     = {10.3390/app6060162}
+}
+
+% ---------------------------------------------------------------------------
+% Metodología
+% ---------------------------------------------------------------------------
+
+@misc{nygard2011adr,
+  author       = {Nygard, Michael},
+  title        = {Documenting Architecture Decisions},
+  howpublished = {Cognitect Blog},
+  month        = nov,
+  year         = {2011},
+  url          = {https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions},
+  note         = {{Accessed}: Oct. 4, 2026}
+}
+
+% ---------------------------------------------------------------------------
+% Software
+% ---------------------------------------------------------------------------
+
+@inproceedings{paszke2019pytorch,
+  author    = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and Kopf, Andreas and Yang, Edward and DeVito, Zachary and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
+  title     = {{PyTorch}: An Imperative Style, High-Performance Deep Learning Library},
+  booktitle = {Advances in Neural Information Processing Systems},
+  volume    = {32},
+  publisher = {Curran Associates, Inc.},
+  year      = {2019}
+}
+
+@inproceedings{yang2022torchaudio,
+  author    = {Yang, Yao-Yuan and Hira, Moto and Ni, Zhaoheng and Astafurov, Artyom and Chen, Caroline and Puhrsch, Christian and Pollack, David and Genzel, Dmitriy and Greenberg, Donny and Yang, Edward Z. and Lian, Jason and Hwang, Jeff and Chen, Ji and Goldsborough, Peter and Narenthiran, Sean and Watanabe, Shinji and Chintala, Soumith and Quenneville-B{\'e}lair, Vincent},
+  title     = {{Torchaudio}: Building Blocks for Audio and Speech Processing},
+  booktitle = {ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  year      = {2022},
+  pages     = {6982--6986},
+  doi       = {10.1109/ICASSP43922.2022.9747236}
+}
+
+@article{harris2020numpy,
+  author  = {Harris, Charles R. and Millman, K. Jarrod and van der Walt, St{\'e}fan J. and Gommers, Ralf and Virtanen, Pauli and Cournapeau, David and Wieser, Eric and Taylor, Julian and Berg, Sebastian and Smith, Nathaniel J. and Kern, Robert and Picus, Matti and Hoyer, Stephan and van Kerkwijk, Marten H. and Brett, Matthew and Haldane, Allan and {Fern{\'a}ndez del R{\'i}o}, Jaime and Wiebe, Mark and Peterson, Pearu and G{\'e}rard-Marchant, Pierre and Sheppard, Kevin and Reddy, Tyler and Weckesser, Warren and Abbasi, Hameer and Gohlke, Christoph and Oliphant, Travis E.},
+  title   = {Array programming with {NumPy}},
+  journal = {Nature},
+  volume  = {585},
+  number  = {7825},
+  pages   = {357--362},
+  month   = sep,
+  year    = {2020},
+  doi     = {10.1038/s41586-020-2649-2}
+}
+
+@article{bradski2000opencv,
+  author  = {Bradski, Gary},
+  title   = {The {OpenCV} Library},
+  journal = {Dr. Dobb's Journal of Software Tools},
+  year    = {2000}
+}
+
+@misc{jocher2026yolo26,
+  author       = {Jocher, Glenn and Qiu, Jing and Liu, Mengyu and Lyu, Shuai and Akyon, Fatih Cagatay and Kalfaoglu, Muhammet Esat},
+  title        = {{Ultralytics YOLO26}: Unified Real-Time End-to-End Vision Models},
+  howpublished = {arXiv:2606.03748},
+  year         = {2026},
+  doi          = {10.48550/arXiv.2606.03748}
+}
+
+@article{hunter2007matplotlib,
+  author    = {Hunter, J. D.},
+  title     = {{Matplotlib}: A {2D} graphics environment},
+  journal   = {Computing in Science \& Engineering},
+  volume    = {9},
+  number    = {3},
+  pages     = {90--95},
+  year      = {2007},
+  doi       = {10.1109/MCSE.2007.55}
+}
+
+% ---------------------------------------------------------------------------
+% Reserva: no se prevé citarla (ver notas_citas.md)
+% ---------------------------------------------------------------------------
+
+@misc{xu2025survey,
+  author       = {Xu, Hao and Baniya, Arbind Agrahari and Wells, Sam and Bouadjenek, Mohamed Reda and Dazeley, Richard and Aryal, Sunil},
+  title        = {Deep Learning for Sports Video Event Detection: Tasks, Datasets, Methods, and Challenges},
+  howpublished = {arXiv:2505.03991},
+  year         = {2025}
+}
