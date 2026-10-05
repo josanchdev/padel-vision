@@ -82,8 +82,9 @@ anexo A»), y en un anexo nunca aparece un resultado que no esté en el cuerpo.
   «82,7 %», «48 kHz», «15 px». En LaTeX, con `\num{}` y `\SI{}{}` (apartado 6), que lo hacen
   solos.
 - **Comillas:** «» primero, “” dentro, ‘’ en último lugar.
-- **Palabras extranjeras sin adaptar, en cursiva:** *bootstrap*, *dataset*… Mejor el término
-  español cuando existe (glosario).
+- **Palabras extranjeras sin adaptar, en cursiva (RAE):** *frame*, *dataset*, *recall*,
+  *bootstrap*… Se mantienen los términos estándar en visión por computador; el glosario dice
+  cuáles.
 - **Siglas:** completas la primera vez: «red neuronal convolucional (CNN)».
 - Títulos de capítulos y apartados: solo la primera palabra en mayúscula.
 
@@ -96,12 +97,12 @@ anexo A»), y en un anexo nunca aparece un resultado que no esté en el cuerpo.
 | jugador J1–J4 | — | |
 | pareja | equipo | Los dos jugadores del mismo lado |
 | pelota | bola | |
-| fotograma | frame | |
+| *frame* | fotograma | Estándar en visión por computador |
 | seguimiento | *tracking* | |
 | asignación del golpe | — | Quién golpea |
-| conjunto de datos | *dataset* | Los nombres propios (CVSPORTS, PadelTracker100) tal cual |
+| *dataset* | conjunto de datos | Los nombres propios (CVSPORTS, PadelTracker100) tal cual, sin cursiva |
 | acierto | *accuracy* | |
-| precisión, exhaustividad | *recall* | La primera vez: «exhaustividad (*recall*)» |
+| precisión, *recall* | exhaustividad | |
 | puntos clave | *keypoints* | Los 17 puntos de la pose |
 
 ## 5. Figuras
@@ -110,7 +111,7 @@ anexo A»), y en un anexo nunca aparece un resultado que no esté en el cuerpo.
   memoria (Latin Modern, instalada) y un cuerpo parecido al del texto. Nítidas a cualquier
   zoom y con el texto seleccionable.
 - **Capturas:** PNG a unos 300 ppp al tamaño impreso (1920 px de ancho dan unos 16 cm).
-  **Fotogramas de vídeo:** JPG de buena calidad. Un PNG metido en un PDF no gana calidad.
+  ***Frames* de vídeo:** JPG de buena calidad. Un PNG metido en un PDF no gana calidad.
 - **Título:** debajo en las figuras, encima en las tablas (estilo IEEE; ya configurado). Que se
   entienda sin leer el texto.
 - Cada figura y tabla se cita en el texto antes de aparecer. Dejar que LaTeX las coloque
