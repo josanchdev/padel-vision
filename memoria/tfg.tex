@@ -1,32 +1,21 @@
-% Memoria del TFG «Análisis automatizado de vídeo deportivo mediante visión por
-% computador» (Padel Vision). Basada en la plantilla de la ETSII de la URJC
-% (github.com/codeurjc-students/tfg-template, licencia MIT: LICENSE-plantilla).
-%
-% Compilar: latexmk -pdf tfg.tex   (o guardar en VS Code con LaTeX Workshop)
-% Las notas \alumno{} y \tutor{} solo se ven con \drafttrue (config/config.tex).
-
 % Clase del documento
-\documentclass[12pt,twoside,titlepage,openright]{report}
+\documentclass[12pt,twoside,titlepage]{report}
 
 % Configuración
-\input{config/config.tex}
-\input{figuras/generadas/cifras} % \cifra{clave}: las cifras salen de docs/metrics (GUIA.md, apartado 2)
-\usepackage{emptypage} % sin cabeceras en las páginas en blanco antes de cada capítulo
+\include{config/config.tex}
 
-% Datos del trabajo (tal como figuran en la plataforma de TFG)
-\newcommand{\nombreautor}{Jorge Sánchez Aguilar}
-\newcommand{\nombretutor}{Isaac Martín de Diego}
-\newcommand{\nombrecotutor}{Víctor Aceña Gil}
-\newcommand{\titulotrabajo}{Análisis automatizado de vídeo deportivo mediante visión por computador}
-\newcommand{\grado}{Grado en Ingeniería Informática}
-\newcommand{\curso}{2026/2027}
+% A rellenar por el estudiante
+\newcommand{\nombreautor}{Nombre Apellsido1 Apellido2}
+\newcommand{\nombretutor}{NombreTutor Apellido1 Apellido2}
+\newcommand{\titulotrabajo}{Título del Trabajo de Fin de Grado}
+\newcommand{\grado}{Grado en Ingeniería XXX}
+\newcommand{\curso}{Curso 202X-202Y}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                           Inicio del documento
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
-\bstctlcite{IEEEtran:BSTcontrol}
 
 \pagestyle{plain}
 
@@ -34,9 +23,12 @@
 
 \include{config/portada}
 
-% Estilo de párrafo de los preliminares
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Estilo de párrafo de los capítulos
 \setlength{\parskip}{0.75em}
 \renewcommand{\baselinestretch}{1.25}
+% Interlineado simple
 \spacing{1}
 
 \pagenumbering{Roman}
@@ -46,57 +38,96 @@
 
 \include{config/licencia}
 
-%%%%%%%%%%%%%%%%%%%%%%%%% Agradecimientos %%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%% Agradecimientos o dedicatoria %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter*{Agradecimientos}
 
-\alumno{Opcional. Breves agradecimientos o dedicatoria.}
+Breves agradecimientos o dedicatoria.
 
 \afterpage{\blankpage}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Resumen %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Resumen %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter*{Resumen}
 
 \input{pages/resumen.tex}
 
+\mbox{} \bigskip
+
+\noindent \textbf{Palabras clave}:
+\begin{compactitem}
+    \item Python
+    \item Ciberseguridad
+    \item Aprendizaje automático (pueden ser varias)
+    \item $\ldots$
+\end{compactitem}
+
 \afterpage{\blankpage}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Abstract %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter*{Abstract}
 
-\input{pages/abstract.tex}
 
-\afterpage{\blankpage}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Índices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Índices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Estilo de párrafo de los Índices
 \setlength{\parskip}{1pt}
 \renewcommand{\baselinestretch}{1}
 \renewcommand{\contentsname}{Índice de contenidos}
 
+% Inicializar minitoc
 \dominitoc
 \setcounter{minitocdepth}{2}
 \setlength{\mtcindent}{0pt}
 
+% Índice de contenidos
 \tableofcontents
 \afterpage{\blankpage}
 
+% Índice de tablas (OPCIONAL)
+\listoftables
+\afterpage{\blankpage}
+\addcontentsline{toc}{chapter}{\noindent \listtablename}
+\adjustmtc
+
+% Índice de figuras (OPCIONAL)
 \listoffigures
 \afterpage{\blankpage}
 \addcontentsline{toc}{chapter}{\listfigurename}
 \adjustmtc
 
-\listoftables
+% Índice de códigos/algoritmos (OPCIONAL).   El término "Códigos" se puede cambiar por "Métodos", "Funciones", "Algoritmos", etc.
+\renewcommand\lstlistlistingname{Códigos}
+\renewcommand\lstlistingname{Código}
+\renewcommand\lstlistlistingname{Índice de códigos}
+
+\lstlistoflistings
 \afterpage{\blankpage}
-\addcontentsline{toc}{chapter}{\listtablename}
+\addcontentsline{toc}{chapter}{\lstlistlistingname}
 \adjustmtc
 
-%%%%%%%%%%%%%%%%%%%%%%% Cabeceras y pies de página %%%%%%%%%%%%%%%%%%%%%%%
 
-\setlength{\headheight}{15pt}
+% En este documento (de momento) no se ha considerado incluir un índice de algoritmos/pseudocódigos, como el que aparece en \ref{AdditionalLouvain}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%% Cabeceras y pies de página (Opcional) %%%%%%%%%%%%%%%%%%%%%%%
+
+%\setlength{\headheight}{15.2pt}
+\pagestyle{fancy}
+
+
 \renewcommand{\chaptermark}[1]{\markboth{Capítulo \thechapter.\ #1}{}}
+
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[LO]{\leftmark}
@@ -105,62 +136,100 @@
 \fancyhead[LE]{}
 \fancyfoot[C]{\thepage}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Capítulos %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% La extensión (40-60 páginas) se cuenta desde la introducción y sin anexos
-% (art. 16 del reglamento de la ETSII).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Capítulos de la memoria %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Estilo resto de páginas
+\pagestyle{fancy}
+
+
+% Estilo de párrafo de los capítulos
 \setlength{\parskip}{0.75em}
 \renewcommand{\baselinestretch}{1.25}
+% Interlineado simple
 \spacing{1}
+% Numeración contenido
 \cleardoublepage
 \pagenumbering{arabic}
 \setcounter{page}{1}
 
-\chapter{Introducción}
-\label{cap:introduccion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Capítulo 1
+\chapter{Introducción y objetivos}
+
 \input{pages/introduccion.tex}
 
-\chapter{Objetivos}
-\label{cap:objetivos}
-\input{pages/objetivos.tex}
+\blankpage
 
-\chapter{Estado del arte y estudio de alternativas}
-\label{cap:estado-del-arte}
-\input{pages/estado-del-arte.tex}
-
+% Capítulo 2
 \chapter{Metodología}
-\label{cap:metodologia}
+
 \input{pages/metodologia.tex}
 
-\chapter{Descripción informática}
-\label{cap:descripcion-informatica}
+\blankpage
+
+% Capítulo 3
+\chapter{Descripción funcional}
+
+\input{pages/descripcion-funcional.tex}
+
+\blankpage
+
+% Capítulo 4
+\chapter{Descripción Informática}
+\label{sec:descripcionInformatica}
+
+\raggedbottom
+\minitoc
+\clearpage
+\flushbottom
+
 \input{pages/descripcion-informatica.tex}
 
-\chapter{Experimentos y validación}
-\label{cap:experimentos}
-\input{pages/experimentos.tex}
+\blankpage
 
-\chapter{Conclusiones y trabajo futuro}
-\label{cap:conclusiones}
+% Capítulo 5
+
+\chapter{Conclusiones y trabajos futuros}
+
 \input{pages/conclusiones.tex}
+
+\blankpage
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Bibliografía %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{Bibliografía}
 
 \footnotesize{
+%\bibliographystyle{hispa}
 \bibliographystyle{IEEEtran}
 \bibliography{bibliografia}
 }
 
 \normalsize
+
+% No expandir elementos para llenar toda la página
 \raggedbottom
+\afterpage{\blankpage}
+
+\newpage
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Anexos %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\cleardoublepage
 \appendix
 
 \phantomsection
@@ -182,20 +251,27 @@
 \thispagestyle{empty}
 \newpage
 
-\chapter{Reproducibilidad}
-\label{anexo:reproducibilidad}
-\input{pages/anexos/reproducibilidad.tex}
 
-\chapter{Registro de decisiones}
-\label{anexo:decisiones}
-\input{pages/anexos/decisiones.tex}
+% Primer anexo
+\chapter{Funcionalidades detalladas}
+\label{anexo:funcionalidades-detalladas}
+\input{pages/appendixes/anexo-1.tex}
 
-\chapter{Herramientas de etiquetado}
-\label{anexo:etiquetado}
-\input{pages/anexos/etiquetado.tex}
+% Segundo anexo
+\chapter{Instrucciones para ejecutar la aplicación}
+\label{anexo:instrucciones-ejecutar-aplicacion}
+\input{pages/appendixes/anexo-2.tex}
 
-\chapter{Visor web}
-\label{anexo:visor-web}
-\input{pages/anexos/visor-web.tex}
+% Tercer anexo
+\chapter{Ejecución y edición de código}
+\label{anexo:ejecucion-edicion-codigo}
+\input{pages/appendixes/anexo-3.tex}
 
+% Cuarto anexo
+\chapter{Documentación LaTeX}
+\label{anexo:latex}
+\tutor{Este anexo DEBE borrarse al terminar la memoria, solo contiene ejemplos de uso de LaTeX}
+\input{pages/appendixes/anexo-4.tex}
+
+% Fin del documento
 \end{document}

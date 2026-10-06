@@ -1,10 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%% Paquetes %%%%%%%%%%%%%%%%%%%%%%%
 
-% Citas al estilo IEEE: \cite{a,b} -> [1], [2]; tres o más seguidas -> [3]--[5]
-\usepackage{cite}
-\renewcommand{\citepunct}{], [}
-\renewcommand{\citedash}{]--[}
-
 \usepackage[a4paper,bindingoffset=3mm,bottom=35mm]{geometry}
 
 
@@ -21,10 +16,6 @@
 %\usepackage[latin1]{inputenc} % Usad en WinEdt/MikTex
 \ifPDFTeX
   \usepackage[utf8]{inputenc} % Usad en overleaf
-  % T1: letras con tilde como un solo carácter (bien partidas al final de
-  % línea) y caracteres que OT1 no tiene, como la «ę» de un autor citado.
-  \usepackage[T1]{fontenc}
-  \usepackage{lmodern}
   \newcommand{\codefont}{\ttfamily}
 \else
   \usepackage{fontspec}
@@ -39,6 +30,8 @@
 \newcommand{\jsonbasicfont}{\codefont\footnotesize}
 \newcommand{\codeboldfont}{\bfseries\codefont}
 
+%\usepackage[T1]{fontenc}
+
 
 % Algunos paquetes útiles
 
@@ -52,10 +45,6 @@
 \usepackage{paralist}
 \usepackage{enumitem}
 \usepackage{float}
-\usepackage{microtype} % mejor justificado (protrusión y expansión de caracteres)
-\usepackage{booktabs}  % tablas sin líneas verticales: \toprule, \midrule, \bottomrule
-\usepackage{siunitx}   % números y unidades: \num{0.958} -> 0,958; \SI{82.7}{\percent}
-\sisetup{output-decimal-marker={,}}
 \usepackage{setspace}
 \usepackage{minitoc}
 \usepackage{listings}
@@ -106,7 +95,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%% Definiciones básicas %%%%%%%%%%%%%%%%%%%%%%%
 
-\newcommand{\escuela}{Escuela Técnica Superior de Ingeniería Informática}
+\newcommand{\escuela}{Escuela Técnica Superior\\de Ingeniería Informática}
 \newcommand{\escuelalargo}{Escuela Técnica Superior de Ingeniería Informática}
 \newcommand{\universidad}{Universidad Rey Juan Carlos}
 \newcommand{\fecha}{Fecha}
@@ -163,7 +152,6 @@
 \drafttrue
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf}
-\captionsetup[table]{position=top} % el título de las tablas va encima
 \usepackage{subcaption}
 \input{config/macros}
 
@@ -272,20 +260,6 @@ captionpos=b,
 
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%% Bibliografía
-
-% \bstctlcite pasa opciones a IEEEtran.bst (aquí, «et al.» a partir de siete
-% autores, como pide la guía de IEEE). Solo lo define la clase IEEEtran; esta
-% es la definición que da el manual de IEEEtran.bst para otras clases.
-\makeatletter
-\def\bstctlcite{\@ifnextchar[{\@bstctlcite}{\@bstctlcite[@auxout]}}
-\def\@bstctlcite[#1]#2{\@bsphack
-  \@for\@citeb:=#2\do{%
-    \edef\@citeb{\expandafter\@firstofone\@citeb}%
-    \if@filesw\immediate\write\csname #1\endcsname{\string\citation{\@citeb}}\fi}%
-  \@esphack}
-\makeatother
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Comandos definidos por el autor
 

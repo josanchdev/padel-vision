@@ -1,116 +1,39 @@
-% !TEX root = ../tfg.tex
+\tutor{Extensión del capítulo: 4/8 páginas}
+
+Contexto en el que se enmarca el proyecto y la justificación de este.
 
 \section{Contexto}
+Contexto en el que se enmarca el proyecto y la justificación de este. Esta sección explica la utilidad de la aplicación, el contexto en el que sería usada y las funcionalidades principales que tendría y por qué es relevante su implementación, etc. No se especifican aspectos técnicos. \tutor{Debe crearse nueva}
 
-En un punto de pádel profesional se juegan, de mediana, \cifra{dataset-golpes-por-punto} golpes.
-Cada uno lo ejecuta un jugador concreto, en un instante concreto, y es una derecha, un revés, un
-remate o un saque. Esa secuencia de golpes es la base con la que entrenadores y analistas estudian
-la táctica de cada pareja y preparan los entrenamientos~\cite{ramonllin2020stroke}. Obtenerla, sin
-embargo, sigue siendo un trabajo manual.
+\section{Estado del arte}
+Descripción de otras aplicaciones y plataformas web que ofrecen funcionalidad parecida a la que se ha implementado y se destaca en qué aspectos es diferente tu página. \tutor{Debe crearse nueva}
 
-Un ejemplo representativo es el estudio de Ramón-Llin et al.~\cite{ramonllin2020stroke}, que
-comparó los golpes de las parejas ganadoras y perdedoras en nueve partidos. Dos entrenadores con
-experiencia revisaron los vídeos y anotaron uno a uno los \num{8441} golpes. El método es fiable,
-pero cada golpe requiere la atención de un experto, y el coste crece con cada partido que se añade
-al análisis.
+\section{Objetivos}
+Objetivos que se plantearon cuando se inició este trabajo. \tutor{Sección “Objetivos” de la documentación de repositorio}
 
-Ese coste choca con el tamaño que ha alcanzado el deporte. Según la Federación Internacional de
-Pádel (FIP), el pádel se juega ya en 150 países, con más de 35 millones de aficionados y más de
-\num{77000} pistas~\cite{fip2025report}. Con ese volumen, la anotación manual solo puede cubrir una
-parte mínima de los partidos que se juegan.
 
-Buena parte de esos partidos, además, ya se graba. Las retransmisiones profesionales usan casi
-siempre el mismo encuadre: una cámara fija y elevada, situada detrás de uno de los fondos, que
-muestra a los cuatro jugadores y la pelota durante todo el punto~\cite{javadiha2021positions}. Ese
-encuadre no es exclusivo de la televisión: un club o un equipo puede reproducirlo con una cámara o
-incluso un móvil colocados en alto detrás de la pista. Si el análisis pudiera obtenerse de ese
-vídeo, cualquier partido grabado así podría analizarse de forma automática, sin sensores en los
-jugadores ni varias cámaras.
+\subsection{Objetivos funcionales}
 
-Algunos trabajos ya han avanzado en esta dirección. Novillo et al.~\cite{novillo2025padel} localizan
-la pista, los jugadores y la pelota en el vídeo de una sola cámara, y proponen como trabajo futuro
-reconocer los golpes de cada jugador. Decorte et al.~\cite{decorte2024padel} detectan cuándo se
-produce cada golpe, a partir del sonido, y qué jugador lo ejecuta. Ninguno de los dos clasifica los
-golpes: no indican si se trata de una derecha, un revés, un remate o un saque. Este trabajo completa
-esa pieza y la integra con las anteriores en un único sistema que, a partir del vídeo de un punto,
-detecta cada golpe, identifica al jugador que lo ejecuta y lo clasifica.
+Un párrafo resumiendo los objetivos funcionales que se plantearon al comenzar el desarrollo de la aplicación.
 
-\section{El problema}
+Una lista de 3-10 funcionalidades detallando un poco más el párrafo de objetivos funcionales.
 
-La entrada del sistema es el vídeo de un punto, con su audio, grabado con una cámara fija situada
-en alto detrás de la pista. Un punto es el juego que transcurre desde el saque hasta que la pelota
-deja de estar en juego; en los \emph{datasets} con los que se ha trabajado aparece como \emph{rally}.
-Para cada golpe del punto, el sistema debe responder a tres preguntas: cuándo se produce, quién lo
-ejecuta y qué golpe es. La figura~\ref{fig:frame-anotado} muestra el resultado sobre un
-\emph{frame}. Todos los datos con los que se ha desarrollado y evaluado proceden de torneos
-profesionales; su validación con vídeo amateur queda como trabajo futuro.
+\begin{itemize}
+    \item Objetivo funcional 1
+    \item Objetivo funcional 2
+    \item Objetivo funcional 3
+    \item ...
+\end{itemize}
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=\linewidth]{figuras/capturas/frame-anotado.jpg}
-  \caption{Resultado del sistema sobre un \emph{frame} de un punto. Cada jugador aparece con su
-    esqueleto y su identidad (J1 a J4), y la línea amarilla es la trayectoria reciente de la
-    pelota. Sobre el jugador que acaba de golpear se indica el golpe detectado y la confianza del
-    clasificador; arriba a la izquierda, el recuento de golpes del punto.}
-  \label{fig:frame-anotado}
-\end{figure}
+\subsection{Objetivos técnicos}
 
-Responder a esas tres preguntas plantea varias dificultades. La pelota es pequeña y muy rápida, y
-en los golpes fuertes aparece borrosa o desaparece durante varios \emph{frames}. La perspectiva
-complica comparar a los jugadores entre sí: uno situado al fondo se ve más pequeño que uno cercano,
-de modo que la misma distancia en la imagen no equivale a la misma distancia en la pista. En una
-primera versión del sistema, este efecto hacía que los remates se atribuyeran casi siempre al
-jugador del fondo. Cuando los dos jugadores de una pareja se cruzan, uno tapa al otro durante un
-instante y es fácil intercambiar sus identidades. Clasificar el golpe tampoco es inmediato: dura
-décimas de segundo, y una derecha y un revés pueden parecerse mucho. Por último, faltaban datos: el
-\emph{dataset} de Decorte et al.\ indica cuándo se produce cada golpe y quién lo ejecuta, pero no
-qué golpe es, así que ha sido necesario etiquetarlo.
+Un párrafo resumiendo los aspectos tecnológicos que se plantearon al comenzar el desarrollo de la aplicación.
 
-Para responder a las tres preguntas, el sistema combina el sonido y la imagen. El cuándo lo da el
-sonido: el impacto de la pala produce un chasquido breve que una red neuronal reconoce en el audio,
-siguiendo el método de Decorte et al. El quién se decide con la imagen: el sistema estima la pose
-de los cuatro jugadores, sigue a cada uno a lo largo del punto y localiza la pelota; en los
-\emph{frames} que rodean el golpe, lo atribuye al jugador cuya muñeca está más cerca de ella. El qué
-golpe es lo decide un clasificador basado en BST~\cite{chang2026bst}, que observa la pose del
-jugador que golpea y la trayectoria de la pelota en torno al impacto. La única preparación manual es
-marcar seis puntos de la pista sobre la imagen, una vez por cámara.
+Una lista de 3-10 aspectos técnicos detallando un poco más el párrafo de objetivos técnicos.
 
-\section{Aportaciones}
-
-Las principales aportaciones de este trabajo son las siguientes:
-
-\begin{enumerate}
-  \item Un clasificador de golpes de pádel a partir de vídeo, que distingue entre derecha, revés,
-    remate y saque. Se basa en el método BST~\cite{chang2026bst} y combina la pose del jugador, es
-    decir, la posición de sus articulaciones, con la trayectoria de la pelota. En torneos que no vio
-    durante el entrenamiento, clasifica correctamente el \cifra{tipo-accuracy} de los golpes.
-  \item Un \emph{dataset} propio con los \cifra{dataset-golpes} golpes de
-    CVSPORTS~\cite{decorte2024padel} etiquetados como derecha, revés, remate o saque, creado con una
-    herramienta de etiquetado desarrollada para este trabajo.
-  \item Un sistema completo que une la detección del golpe, la identificación del jugador y la
-    clasificación: a partir del vídeo de un punto, devuelve cada golpe con su instante, el jugador
-    que lo ejecuta y qué golpe es. La evaluación, la demostración y el visor web usan exactamente el
-    mismo código.
-  \item Una evaluación en dos niveles. Cada paso se mide por separado y se compara con Decorte et
-    al.\ en las mismas pruebas: la detección de golpes reproduce su resultado y la identificación
-    del jugador obtiene un acierto comparable. El sistema completo se mide por torneos, de modo que
-    cada torneo se evalúa con modelos entrenados sin él. Las cifras principales se acompañan de su
-    intervalo de confianza del 95\,\%.
-  \item Un detector de pelota entrenado y evaluado en pádel con los datos de
-    PadelTracker100~\cite{badanerin2026padeltracker100}. En un partido que no vio durante el
-    entrenamiento, alcanza un F1 de \cifra{pelota-f1}.
-  \item Resultados reproducibles: cada cifra del capítulo de experimentos se genera con un script a
-    partir del código y los datos, y un visor web permite revisar el análisis de cada punto.
-\end{enumerate}
-
-\section{Estructura del documento}
-
-La memoria se organiza en siete capítulos. Tras esta introducción, el
-capítulo~\ref{cap:objetivos} presenta los objetivos y el alcance del trabajo, y el
-capítulo~\ref{cap:estado-del-arte} revisa los trabajos previos y las alternativas estudiadas. El
-capítulo~\ref{cap:metodologia} describe la metodología de desarrollo y de evaluación. El
-capítulo~\ref{cap:descripcion-informatica} explica el sistema: sus requisitos, su arquitectura, los
-datos y cada uno de sus pasos. El capítulo~\ref{cap:experimentos} presenta los experimentos y sus
-resultados, y el capítulo~\ref{cap:conclusiones} recoge las conclusiones y el trabajo futuro. Los
-anexos incluyen las instrucciones para reproducir los resultados, el registro de decisiones de
-diseño, las herramientas de etiquetado y el visor web.
+\begin{itemize}
+    \item Objetivo técnico 1
+    \item Objetivo técnico 2
+    \item Objetivo técnico 3
+    \item ...
+\end{itemize}

@@ -1,59 +1,77 @@
-% Portada según el modelo del Anexo I del Reglamento Específico del TFG de la
-% ETSII (Junta de Escuela, 16 de enero de 2026).
+%\pagenumbering{gobble}
+%\pagenumbering{arabic}
 
+% Universidad, Facultad
 \begin{titlepage}
 \selectlanguage{spanish}
 
-% Logo
+
+% logo
 \begin{center}
     \includegraphics[scale=0.7]{\logoUniversidad}
 \end{center}
 
-\vspace{1.5cm}
+\bigskip
 
-% Escuela, grado y curso
 \begin{center}
-    % One line, as in the official model: centred, allowed into the margins
-    \makebox[0pt][c]{\textbf{\MakeUppercase{\escuela}}}
-
-    \vspace{1cm}
-
-    \textbf{\MakeUppercase{\grado}}
-
-    \vspace{0.4cm}
-
-    \textbf{Curso Académico \curso}
-
-    \vspace{1.2cm}
-
-    \textbf{Trabajo de Fin de Grado}
+\begin{LARGE}
+\escuela \\
+\end{LARGE}
 \end{center}
 
-\vspace{1.8cm}
+\bigskip
+\bigskip
 
-% Título
+% Grado
 \begin{center}
-    \begin{large}
-        \textbf{\MakeUppercase{\titulotrabajo}}
-    \end{large}
+\begin{large}
+\textbf{\grado}\\
+\end{large}
 \end{center}
 
-\vfill
-
-% Autor y tutores
+% Curso
 \begin{center}
-    \begin{tabular}{@{}l@{\hspace{1.5em}}l@{}}
-        \textbf{Autor:}   & \nombreautor \\[1.2em]
-        \textbf{Tutores:} & \nombretutor \\
-                          & \nombrecotutor \\
-    \end{tabular}
+\begin{large}
+\textbf{\curso}\\
+\end{large}
 \end{center}
 
-\vspace{2cm}
+\bigskip
 
+\textbf{\begin{center}
+\begin{large}
+\textbf{Trabajo Fin de Grado}
+\end{large}
+\end{center}}
+
+\bigskip
+\bigskip
+\bigskip
+
+% Nombre del TFG
+\begin{center}
+\textbf{\begin{large}
+\MakeUppercase{\titulotrabajo}\\
+\end{large}}
+\end{center}
+
+% Nombre del autor
+\vspace{\fill}
+\begin{center}
+\textbf{Autor: \nombreautor}\\ \smallskip
+% Tutor
+\textbf{Tutor: \nombretutor}\\
+% Añadir segundo tutor si hubiera
+
+
+\bigskip
+
+% Fecha
+%\textbf{\fecha}\\
+\end{center}
 \end{titlepage}
 
 \hypersetup{pageanchor=true}
 
 \normalsize
-\afterpage{\blankpage} % Página en blanco para que las secciones siguientes empiecen en página impar
+\afterpage{\blankpage} % Se deben añadir página en blanco para que lo capítulos de la memoria o estas secciones introductorias empiecen en páginas impares
