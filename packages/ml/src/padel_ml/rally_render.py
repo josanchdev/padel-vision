@@ -54,7 +54,7 @@ def render_rally(
                 flash_until, current = index + FLASH_FRAMES, shots[index]
                 if current.shot_type:
                     counts[current.shot_type] = counts.get(current.shot_type, 0) + 1
-            _draw_frame(image, index, analysis, current if index <= flash_until else None, counts)
+            draw_frame(image, index, analysis, current if index <= flash_until else None, counts)
             writer.write(image)
             index += 1
             if on_progress is not None and analysis.n_frames and index % 25 == 0:
@@ -62,13 +62,43 @@ def render_rally(
     capture.release()
 
 
-def _draw_frame(
+def annotated_frame(analysis: RallyAnalysis, index: int) -> ImageArray:
+    """Frame `index` drawn exactly as `render_rally` draws it, for a still figure.
+
+    Read from the original video, so the image goes through one compression (the
+    source's) instead of two: a frame taken from the rendered H.264 file would
+    carry its re-encoding as well. Read sequentially, because seeking in an MP4
+    lands on the nearest keyframe rather than on `index`."""
+    capture = cv2.VideoCapture(str(analysis.video))
+    frame = None
+    for _ in range(index + 1):
+        ok, frame = capture.read()
+        if not ok:
+            capture.release()
+            raise ValueError(f"{analysis.video.name} has no frame {index}")
+    capture.release()
+    image = cast(ImageArray, frame)
+    past = sorted(
+        (s for s in analysis.shots if s.frame_index <= index), key=lambda s: s.frame_index
+    )
+    counts: dict[str, int] = {}
+    for shot in past:
+        if shot.shot_type:
+            counts[shot.shot_type] = counts.get(shot.shot_type, 0) + 1
+    active = past[-1] if past and index <= past[-1].frame_index + FLASH_FRAMES else None
+    draw_frame(image, index, analysis, active, counts)
+    return image
+
+
+def draw_frame(
     image: ImageArray,
     index: int,
     analysis: RallyAnalysis,
     active: Shot | None,
     counts: dict[str, int],
 ) -> None:
+    """Draw frame `index` in place: the four skeletons, the ball trail, `active`
+    (the shot still on screen, if any) over its hitter, and the running `counts`."""
     hitter = active.player_id if active is not None else None
     hitter_pose = None
     for pose in analysis.players.get(index, []):

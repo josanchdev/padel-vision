@@ -1,15 +1,106 @@
 % !TEX root = ../tfg.tex
 
-\alumno{Extensión prevista: unas 5 páginas.}
-
 \section{Contexto}
-\alumno{El análisis de rendimiento en pádel y lo que ofrece el vídeo de retransmisión de cámara fija.}
+
+En el análisis del rendimiento en pádel, el golpe es la unidad con la que se describe un partido:
+qué golpes juega cada jugador, desde dónde y con qué resultado. Con esos datos se comparan
+parejas, se estudia la táctica y se diseñan entrenamientos. Obtenerlos, sin embargo, sigue siendo
+un trabajo manual. Ramón-Llin et al.~\cite{ramonllin2020stroke}, por ejemplo, analizaron
+\num{8441} golpes de nueve partidos de primera categoría nacional para comparar los golpes de las
+parejas ganadoras y perdedoras. Cada golpe lo registraron dos observadores, licenciados en
+Ciencias de la Actividad Física y del Deporte y entrenadores de pádel con más de diez años de
+experiencia, que vieron el vídeo con un programa de análisis después de recibir un entrenamiento
+específico para la tarea y midieron el grado de acuerdo entre ambos. El procedimiento es fiable,
+pero cada golpe exige la atención de un experto, de modo que el coste crece con cada partido que
+se añade al estudio.
+
+Con el volumen actual del deporte, ese enfoque difícilmente puede ir más allá de estudios
+concretos. Según la Federación Internacional de Pádel (FIP), el pádel se juega ya en 150 países,
+con más de 35 millones de aficionados y más de \num{77000} pistas, y la propia federación tenía
+290 torneos en su calendario de 2025~\cite{fip2025report}.
+
+Parte de la información necesaria, en cambio, ya existe. Los partidos profesionales se graban con
+una cámara principal fija y elevada, situada tras uno de los fondos de la pista, con un encuadre
+que se ha convertido en un estándar de hecho en las retransmisiones~\cite{javadiha2021positions}.
+Desde esa posición se ven los cuatro jugadores y la pelota durante todo el punto. Un sistema que
+extraiga los golpes de ese vídeo permitiría analizar cualquier partido ya grabado, sin equipar a
+los jugadores con sensores ni instalar cámaras adicionales.
+
+Este trabajo continúa la línea de Novillo et al.~\cite{novillo2025padel}, que detectan la pista,
+los jugadores y la pelota en el vídeo de una sola cámara, proyectan la posición de los jugadores
+sobre un plano de la pista y plantean como trabajo futuro incorporar el tipo de golpe que ejecuta
+cada uno. Por su parte, Decorte et al.~\cite{decorte2024padel} detectan sobre vídeo de
+retransmisión el instante de cada golpe, a partir del sonido, y el jugador que lo ejecuta, pero no
+su tipo. Este trabajo aborda la pieza que falta, la clasificación del tipo de golpe, y la integra
+con la detección del instante y del jugador en un único sistema.
 
 \section{El problema}
-\alumno{Para cada golpe de un punto: cuándo se produce, quién lo da y de qué tipo es. Por qué es difícil.}
+
+Dado el vídeo de un punto grabado con la cámara de retransmisión, el objetivo es obtener tres
+datos de cada golpe: cuándo se produce, quién lo ejecuta (uno de los cuatro jugadores, numerados
+de J1 a J4) y de qué tipo es (derecha, revés, remate o saque). Un punto es el intervalo de juego
+que va del saque hasta que la pelota deja de estar en juego; los \emph{datasets} con los que se ha
+trabajado lo llaman \emph{rally}. La figura~\ref{fig:frame-anotado} muestra el resultado sobre un
+\emph{frame} de la retransmisión.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figuras/capturas/frame-anotado.jpg}
+  \caption{Resultado del sistema sobre un \emph{frame} de la retransmisión: el esqueleto de cada
+    jugador con su identidad (J1 a J4), la trayectoria reciente de la pelota y, sobre el jugador
+    que acaba de golpear, el tipo de golpe con la confianza del clasificador. Arriba a la
+    izquierda, el recuento de los golpes detectados en el punto hasta ese momento.}
+  \label{fig:frame-anotado}
+\end{figure}
+
+El problema reúne varias dificultades que el sistema ha tenido que resolver. La pelota es pequeña
+y rápida: ocupa pocos píxeles y, en los golpes fuertes, aparece borrosa o deja de verse durante
+varios \emph{frames}. La perspectiva complica la comparación entre jugadores, porque uno situado
+al fondo de la pista ocupa menos píxeles que uno cercano y una misma distancia en la imagen no
+significa lo mismo para los dos; en una primera versión de la asignación, los remates, con la
+pelota alta, se atribuían sistemáticamente al jugador del fondo. Cuando dos jugadores se cruzan,
+casi siempre los de una misma pareja, uno tapa al otro durante un instante y es fácil intercambiar
+sus identidades. El golpe dura décimas de segundo, y algunos tipos se parecen mucho entre sí: una
+derecha y un revés se diferencian sobre todo en el lado del cuerpo por el que pasa la pala. Por
+último, faltaban datos: el \emph{dataset} de Decorte et al.\ anota el instante y el jugador de
+cada golpe, pero no su tipo, de modo que ha sido necesario etiquetarlo.
 
 \section{Aportaciones}
-\alumno{Lo propio del trabajo: el clasificador de tipo de golpe, el dataset de 2.377 golpes etiquetados, el sistema completo evaluado por torneos, el detector de pelota entrenado en pádel, el visor web y la reproducibilidad de cada cifra. Fuente: docs/sistema.md.}
+
+Las aportaciones de este trabajo son las siguientes:
+
+\begin{enumerate}
+  \item Un sistema completo que, a partir del vídeo de un punto, devuelve la lista de sus golpes
+    con el instante, el jugador que lo ejecuta y el tipo. La evaluación, la demostración y el
+    visor web usan exactamente el mismo código.
+  \item La clasificación del tipo de golpe sobre vídeo de retransmisión, basada en el método de
+    BST~\cite{chang2026bst}, que combina la pose del jugador con la trayectoria de la pelota.
+    Acierta el tipo del \cifra{tipo-accuracy} de los golpes en torneos que el clasificador no vio
+    durante el entrenamiento.
+  \item Un \emph{dataset} propio con el tipo de los \cifra{dataset-golpes} golpes de
+    CVSPORTS~\cite{decorte2024padel}, etiquetados con una herramienta desarrollada para este
+    trabajo.
+  \item Una evaluación de cada paso por separado, comparada con la de Decorte et
+    al.~\cite{decorte2024padel} en las mismas pruebas, y del sistema completo con validación por
+    torneos, en la que cada torneo se mide con modelos entrenados sin él. Las cifras principales
+    llevan su intervalo de confianza del 95\,\%. La detección del golpe reproduce el resultado de
+    Decorte et al.\ y la asignación del jugador obtiene un acierto comparable.
+  \item Un detector de pelota entrenado y medido en pádel con los datos de
+    PadelTracker100~\cite{badanerin2026padeltracker100}, que alcanza un F1 de \cifra{pelota-f1}
+    en un partido que no vio durante el entrenamiento.
+  \item La reproducibilidad de los resultados: cada cifra del capítulo de experimentos se
+    regenera con un script a partir del código y los datos, y un visor web permite revisar el
+    análisis de cada punto.
+\end{enumerate}
 
 \section{Estructura del documento}
-\alumno{Un párrafo por capítulo.}
+
+El resto de la memoria se organiza como sigue. El capítulo~\ref{cap:objetivos} fija los objetivos
+y el alcance del trabajo. El capítulo~\ref{cap:estado-del-arte} revisa los trabajos previos y las
+alternativas que se estudiaron. El capítulo~\ref{cap:metodologia} describe cómo se ha organizado el
+desarrollo y cómo se han evaluado los resultados. El capítulo~\ref{cap:descripcion-informatica}
+presenta el sistema: sus requisitos, su arquitectura, los datos y cada uno de sus pasos. El
+capítulo~\ref{cap:experimentos} recoge los experimentos y sus resultados, y el
+capítulo~\ref{cap:conclusiones}, las conclusiones y el trabajo futuro. Por último, los anexos
+reúnen las instrucciones para reproducir cada resultado, el registro de las decisiones de diseño,
+las herramientas de etiquetado y el visor web.
