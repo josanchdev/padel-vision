@@ -80,6 +80,10 @@ El tutor validó esta estructura el 5 de octubre de 2026, sin anexo de uso de IA
   `\cite{a,b}` → «[1], [2]»; tres o más seguidas → «[3]–[5]». Cada número enlaza con la
   bibliografía.
 - Estilo IEEE: con más de seis autores, el primero y «et al.»; ya está configurado.
+- **Nombrar o solo numerar.** Si la frase habla del trabajo citado (qué hicieron, en qué se basa
+  este), se nombra: «Decorte et al.~\cite{...} detectan…». Si la fuente solo respalda un dato, basta
+  el número al final: «…un estándar de hecho en las retransmisiones~\cite{...}». No nombrar autores
+  en cada frase: el texto no debe convertirse en una lista de artículos.
 
 ## 4. Estilo y vocabulario
 
