@@ -44,7 +44,7 @@ Rúbrica del acta de calificación de la ETSII (Aula Virtual). La memoria decide
 
 ## Estructura
 
-La validada por el tutor: Introducción; Objetivos; Estado del arte y alternativas; Metodología; Descripción informática; Experimentos y validación; Conclusiones y trabajo futuro; Bibliografía; Anexos (reproducibilidad, herramientas de etiquetado y visor web). Antes de los capítulos: portada, licencia, agradecimientos, resumen con palabras clave, índice, índices de figuras y tablas, y siglas.
+Introducción; Objetivos; Estado del arte y alternativas; Metodología; Datos; Descripción informática; Experimentos y validación; Conclusiones y trabajo futuro; Bibliografía; Anexos (reproducibilidad, herramientas de etiquetado y visor web). Es la estructura validada por el tutor con un capítulo propio para los datos, que estaban dentro de Descripción informática: el conjunto de datos etiquetado es una aportación del trabajo y lo usan tanto el sistema como la evaluación. Antes de los capítulos: portada, licencia, agradecimientos, resumen con palabras clave, índice, índices de figuras y tablas, y siglas.
 
 ## Decisiones
 
