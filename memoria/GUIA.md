@@ -105,7 +105,7 @@ El tutor validó esta estructura el 5 de octubre de 2026, sin anexo de uso de IA
 | Usar | No usar | Nota |
 |---|---|---|
 | punto | rally, peloteo | Avisar una vez de que los datasets los llaman *rallies* |
-| golpe; tipo de golpe | — | Clases: derecha, revés, remate, saque |
+| golpe; clasificar los golpes; qué golpe es | tipo de golpe | La primera vez, las cuatro clases: «si es una derecha, un revés, un remate o un saque» |
 | jugador J1–J4 | — | |
 | pareja | equipo | Los dos jugadores del mismo lado |
 | pelota | bola | |
@@ -122,6 +122,17 @@ Lo primero es la calidad. Estas reglas existen para que el texto sea propio y pr
 justifica explicar algo peor. Coincidir con otros textos en un hecho («el pádel crece») o en la
 forma estándar de explicar algo técnico (la pose, una red convolucional) no es plagio: plagio es
 copiar texto o ideas sin citarlos.
+
+**Claridad** (lo primero que se nota: el texto debe entenderse a la primera, también por quien no
+conoce el trabajo).
+- Una idea por frase y una idea por párrafo, con la idea principal en la primera frase.
+- Orden natural: sujeto, verbo y complemento («Dos entrenadores anotaron cada golpe», no «Cada
+  golpe lo registraron dos entrenadores»). Frases de unas 25-30 palabras como máximo, con una
+  subordinada a lo sumo.
+- Solo el detalle que el lector necesita en ese punto; el resto va al capítulo que lo explica.
+- Conectores que llevan el argumento de un párrafo al siguiente («sin embargo», «a esto se suma»,
+  «por eso»): el lector debe saber siempre por qué viene lo que viene.
+- Lo concreto antes que lo abstracto.
 
 **Voz y tiempos.**
 - Impersonal con «se» («se ha entrenado», «se midió») o con un sujeto concreto («el sistema
