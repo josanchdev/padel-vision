@@ -52,9 +52,10 @@ La validada por el tutor: Introducción; Objetivos; Estado del arte y alternativ
 
 - **Latin Modern 11 pt, márgenes de 2,5 cm, interlineado de 1,5 líneas y párrafos separados por un espacio, sin sangría.** Se lee mejor que el formato de la plantilla (12 pt y márgenes de unos 3 cm), cuyos márgenes dejan un 20 % menos de superficie de texto por página; 11 pt queda cerca del ejemplo de la normativa sin apretar el texto como 10 pt.
 - **Dos caras, con cada capítulo en página impar.** La memoria se imprimirá, además de entregarse en PDF. Los márgenes son iguales en las dos caras, así que en pantalla no se nota.
-- **Cabecera y pie como en una memoria impresa**: capítulo en la cabecera de las páginas pares y sección en la de las impares; número de página por fuera, autor en el pie de las impares y escuela en el de las pares. Las páginas en blanco solo llevan el pie.
+- **Cabecera y pie como en una memoria impresa**: capítulo en la cabecera de las páginas pares y sección en la de las impares; número de página por fuera, autor en el pie de las impares y escuela en el de las pares. La primera página de cada capítulo lleva solo el número de página, centrado; las páginas en blanco, solo el pie.
+- **Títulos de capítulo grandes**, con los tamaños y posiciones medidos en la memoria de referencia: «Capítulo N» a 40 pt y el título a 35 pt; los capítulos sin número (índices, resumen, siglas, bibliografía) a 40 pt. Las secciones, al tamaño estándar (14,4 pt). La normativa no dice nada sobre los títulos; «Capítulo N» es lo que hacen las plantillas de la Escuela.
+- **Índices a interlineado sencillo** y sin mini índice al principio de cada capítulo.
 - **Enlaces sin color**, para que la versión impresa salga en negro; siguen siendo clicables en el PDF.
-- **Sin mini índice por capítulo ni el estilo de capítulos de la plantilla**: el índice y los títulos son los estándar de LaTeX.
 - **Portada de la plantilla** (ya sigue el anexo I) con los dos tutores; la licencia, en el reverso.
 
 **Técnicas:**
