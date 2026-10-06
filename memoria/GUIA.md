@@ -116,23 +116,11 @@ El tutor validó esta estructura el 5 de octubre de 2026, sin anexo de uso de IA
 | *accuracy*, *precision*, *recall*, F1, macro-F1 | acierto, exactitud, precisión, exhaustividad | Nombres de métricas, en inglés para ser consistentes. En sentido general («no publican su precisión») se escribe en español |
 | puntos clave | *keypoints* | Los 17 puntos de la pose |
 
-### Redacción
+### Normas de redacción
 
-Lo primero es la calidad. Estas reglas existen para que el texto sea propio y profesional; ninguna
-justifica explicar algo peor. Coincidir con otros textos en un hecho («el pádel crece») o en la
-forma estándar de explicar algo técnico (la pose, una red convolucional) no es plagio: plagio es
-copiar texto o ideas sin citarlos.
-
-**Claridad** (lo primero que se nota: el texto debe entenderse a la primera, también por quien no
-conoce el trabajo).
-- Una idea por frase y una idea por párrafo, con la idea principal en la primera frase.
-- Orden natural: sujeto, verbo y complemento («Dos entrenadores anotaron cada golpe», no «Cada
-  golpe lo registraron dos entrenadores»). Frases de unas 25-30 palabras como máximo, con una
-  subordinada a lo sumo.
-- Solo el detalle que el lector necesita en ese punto; el resto va al capítulo que lo explica.
-- Conectores que llevan el argumento de un párrafo al siguiente («sin embargo», «a esto se suma»,
-  «por eso»): el lector debe saber siempre por qué viene lo que viene.
-- Lo concreto antes que lo abstracto.
+Son normas de la memoria, las cumple el texto final, lo escriba quien lo escriba. Fuera de ellas no
+hay restricciones de estilo: el borrador se escribe con total libertad para que sea claro, fluido y
+profesional.
 
 **Voz y tiempos.**
 - Impersonal con «se» («se ha entrenado», «se midió») o con un sujeto concreto («el sistema
@@ -142,30 +130,16 @@ conoce el trabajo).
   lo hecho en este trabajo («se ha etiquetado»); pasado simple para trabajos ajenos («Decorte et
   al. propusieron»); futuro solo en el trabajo futuro.
 
-**Texto propio.**
-- Nunca se escribe con un artículo abierto delante: las notas de `notas_citas.md` dicen qué
-  afirma cada fuente y en qué página, y la frase se escribe desde nuestros datos. Las ideas ajenas
-  llevan cita aunque estén reescritas; no hay citas literales.
-- Las afirmaciones generales se apoyan en un dato concreto con su fuente y, cuando aporta, en algo
-  propio del trabajo (los 2377 golpes, VIGO, la cámara de retransmisión). Sin convertirlo en
-  fórmula: no todos los párrafos acaban en «por eso este trabajo».
-- `docs/sistema.md` y los ADR son fuente de contenido, no texto que se copia.
-
-**Lo que delata un texto automático.**
-- Muletillas vacías: «cabe destacar», «es importante señalar», «en este sentido», «juega un
-  papel crucial», «en el panorama actual», «no solo… sino también», «robusto», «innovador», «sin
-  precedentes», tríos de adjetivos, párrafos que acaban repitiendo lo que acaban de decir. Se usan
-  solo si en esa frase concreta dicen algo.
-- Formato de chat: listas con negritas al empezar cada punto en mitad del texto, exceso de rayas
-  (—), preguntas como título.
-- Restos de la conversación: «como se acordó», la guía, nombres de personas, notas internas.
-  Ficheros y funciones del repositorio, solo cuando hacen falta (sobre todo en el anexo de
-  reproducibilidad).
+**Texto propio.** No se copia texto de ninguna fuente: las notas de `notas_citas.md` dicen qué
+afirma cada una y en qué página. Las ideas ajenas llevan cita aunque estén reescritas; no hay citas
+literales. `docs/sistema.md` y los ADR son fuente de contenido, no texto que se copia. Coincidir con
+otros textos en un hecho o en la forma estándar de explicar algo técnico no es plagio.
 
 **Coherencia.** Cada cifra con `\cifra{}`; cada cita con su página en `notas_citas.md`; cada
 afirmación sobre el código comprobada contra el código (función, parámetro, valor); el glosario,
-igual en todos los capítulos. Si una frase no se sabría defender ante el tribunal, se reescribe o
-se quita.
+igual en todos los capítulos. Nada inventado y nada que no se sepa defender ante el tribunal. Sin
+restos de la conversación («como se acordó», notas internas) y con ficheros o funciones del
+repositorio solo cuando hagan falta (sobre todo en el anexo de reproducibilidad).
 
 ## 5. Figuras: formatos, carpetas y cómo se hacen
 
@@ -263,16 +237,19 @@ Configurado en `config/config.tex`: T1 + Latin Modern, `microtype`, `booktabs`, 
 
 ## 8. Cómo trabajamos
 
-1. Capítulo a capítulo. Primero acordamos qué va, en puntos, sin escribir nada.
-2. Borrador del capítulo, ya con la calidad final y las figuras y tablas que necesite.
-3. Jorge lo revisa: cambia lo que quiera con sus palabras y deja lo que le convence. Sus
-   comentarios van en el propio `.tex`, en una línea propia encima de la frase:
-   `% JORGE: …` (no salen en el PDF). Al decir «listo», se responden y se aplican uno a uno, y
-   cada comentario resuelto se borra.
-4. Comprobación de cifras, citas, afirmaciones sobre el código, glosario y muletillas
-   (búsqueda en los `.tex`); compila sin avisos y se hace el commit.
+1. **Contenido.** Capítulo a capítulo, primero se acuerda qué va, en puntos, sin escribir nada.
+2. **Borrador.** Claude escribe el capítulo completo, con la mejor calidad posible y las figuras y
+   tablas que necesite.
+3. **Debate.** Jorge lo comenta en el propio `.tex`, en una línea propia encima de la frase:
+   `% JORGE: …` (no sale en el PDF). Al decir «listo», se discute cada comentario y el borrador se
+   ajusta hasta que Jorge lo valida.
+4. **Versión de Jorge.** Jorge escribe su versión a partir del borrador validado, a su manera, y la
+   sustituye en el `.tex`. El texto final es suyo.
+5. **Revisión.** Claude revisa esa versión: que no haya nada inventado ni incorrecto, que todo
+   tenga sentido y se entienda, y que cumpla las normas del apartado 4. Solo sugiere; los cambios
+   los hace Jorge. Después compila sin avisos y se hace el commit.
 
-Nada se escribe sin acuerdo previo. El tutor dio el visto bueno a esta forma de trabajar.
+El tutor dio el visto bueno a esta forma de trabajar.
 
 ## 9. Revisión antes de entregar
 
@@ -285,7 +262,7 @@ Nada se escribe sin acuerdo previo. El tutor dio el visto bueno a esta forma de 
 - [ ] Portada y datos iguales que en la plataforma de TFG.
 - [ ] Notas `\alumno{}` y `\tutor{}` eliminadas o desactivadas (`\draftfalse`); ningún
   `% JORGE` pendiente en los `.tex`.
-- [ ] Sin «hemos» ni «nosotros», sin muletillas vacías ni restos de la conversación (apartado 4).
+- [ ] Sin «hemos» ni «nosotros» y sin restos de la conversación (apartado 4).
 - [ ] Revisión ortográfica.
 - [ ] La comprobación de plagio que indique el tutor.
 
