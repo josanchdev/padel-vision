@@ -265,7 +265,10 @@ Configurado en `config/config.tex`: T1 + Latin Modern, `microtype`, `booktabs`, 
 
 1. Capítulo a capítulo. Primero acordamos qué va, en puntos, sin escribir nada.
 2. Borrador del capítulo, ya con la calidad final y las figuras y tablas que necesite.
-3. Jorge lo revisa: cambia lo que quiera con sus palabras y deja lo que le convence.
+3. Jorge lo revisa: cambia lo que quiera con sus palabras y deja lo que le convence. Sus
+   comentarios van en el propio `.tex`, en una línea propia encima de la frase:
+   `% JORGE: …` (no salen en el PDF). Al decir «listo», se responden y se aplican uno a uno, y
+   cada comentario resuelto se borra.
 4. Comprobación de cifras, citas, afirmaciones sobre el código, glosario y muletillas
    (búsqueda en los `.tex`); compila sin avisos y se hace el commit.
 
@@ -280,7 +283,8 @@ Nada se escribe sin acuerdo previo. El tutor dio el visto bueno a esta forma de 
 - [ ] Redacciones acordadas del apartado 2 respetadas.
 - [ ] Entre 40 y 60 páginas desde la introducción, sin anexos.
 - [ ] Portada y datos iguales que en la plataforma de TFG.
-- [ ] Notas `\alumno{}` y `\tutor{}` eliminadas o desactivadas (`\draftfalse`).
+- [ ] Notas `\alumno{}` y `\tutor{}` eliminadas o desactivadas (`\draftfalse`); ningún
+  `% JORGE` pendiente en los `.tex`.
 - [ ] Sin «hemos» ni «nosotros», sin muletillas vacías ni restos de la conversación (apartado 4).
 - [ ] Revisión ortográfica.
 - [ ] La comprobación de plagio que indique el tutor.
