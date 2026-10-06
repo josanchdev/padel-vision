@@ -1,7 +1,7 @@
 # Guía para escribir la memoria
 
 Reglas para que todos los capítulos sigan el mismo criterio. Recoge lo que se ha ido
-acordando (fecha de esta versión: 5 de octubre de 2026). Si una regla cambia, se cambia
+acordando (fecha de esta versión: 6 de octubre de 2026). Si una regla cambia, se cambia
 aquí primero.
 
 Compilar: `latexmk -pdf tfg.tex` dentro de `memoria/`. Las notas `\alumno{}` y
@@ -17,7 +17,7 @@ páginas, contadas desde la introducción y sin los anexos.**
 
 | Capítulo | Págs. | Qué va | De dónde sale |
 |---|---|---|---|
-| Introducción | ~5 | Contexto, el problema (cuándo, quién y qué tipo de golpe), aportaciones, estructura | `docs/sistema.md` |
+| Introducción | ~5 | Se replantea desde cero (6 oct): qué contar y cómo, en debate | `docs/sistema.md` |
 | Objetivos | ~3 | Objetivo general, específicos (se retoman uno a uno en las conclusiones), alcance | `docs/sistema.md` |
 | Estado del arte y alternativas | ~8 | Raqueta y pádel, instante del golpe, personas/seguimiento/pelota, acciones por esqueleto, alternativas descartadas con su medida | `notas_citas.md`, `docs/experiments.md` |
 | Metodología | ~4 | Desarrollo por niveles, ADR y bitácora, metodología experimental, herramientas, planificación | ADR, `docs/experiments.md` |
@@ -53,7 +53,8 @@ El tutor validó esta estructura el 5 de octubre de 2026, sin anexo de uso de IA
 - Los resultados de clasificadores retirados (ST-GCN, PoseConv3D) no se comparan con el
   final: otro dataset y otras clases.
 
-**Redacciones acordadas (no cambiar sin hablarlo):**
+**Redacciones acordadas (no cambiar sin hablarlo).** Fijan qué se afirma, no la frase: cada
+capítulo lo redacta a su manera.
 
 | Tema | Se dice | No se dice |
 |---|---|---|
@@ -87,8 +88,7 @@ El tutor validó esta estructura el 5 de octubre de 2026, sin anexo de uso de IA
 
 ## 4. Estilo y vocabulario
 
-- Español, frases cortas, un término por concepto. Nada que no se pueda defender ante el
-  tribunal.
+- Español, un término por concepto. Nada que no se pueda defender ante el tribunal.
 - **Números (RAE):** coma decimal; millares sin punto: «2377 golpes», «77 300 pistas» (los de
   cuatro cifras, juntos; desde cinco, con espacio fino); símbolos separados de la cifra:
   «82,7 %», «48 kHz», «15 px». En LaTeX, con `\num{}` y `\SI{}{}` (apartado 7), que lo hacen
@@ -104,8 +104,8 @@ El tutor validó esta estructura el 5 de octubre de 2026, sin anexo de uso de IA
 
 | Usar | No usar | Nota |
 |---|---|---|
-| punto | rally, peloteo | Avisar una vez de que los datasets los llaman *rallies* |
-| golpe; clasificar los golpes; qué golpe es | tipo de golpe | La primera vez, las cuatro clases: «si es una derecha, un revés, un remate o un saque» |
+| punto | rally, peloteo | Los datasets los llaman *rallies*; se dice donde se describan los datos |
+| golpe; clasificar los golpes; qué golpe es | tipo de golpe | El pádel tiene muchos más golpes que las cuatro clases del sistema: no presentarlas como si fueran todos |
 | jugador J1–J4 | — | |
 | pareja | equipo | Los dos jugadores del mismo lado |
 | pelota | bola | |
@@ -184,8 +184,8 @@ los modelos finales, para poder rehacerlas igual:
 
 **Reglas de uso:**
 
-- **Título:** debajo en las figuras, encima en las tablas (estilo IEEE; ya configurado). Que se
-  entienda sin leer el texto.
+- **Título:** debajo en las figuras, encima en las tablas (estilo IEEE; ya configurado). Un
+  título breve; no se explica lo que ya se ve.
 - Cada figura y tabla se cita en el texto antes de aparecer. Dejar que LaTeX las coloque
   (`[htbp]`); no forzar con `[H]`.
 
