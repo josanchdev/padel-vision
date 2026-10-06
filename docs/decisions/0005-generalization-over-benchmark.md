@@ -1,6 +1,10 @@
 # ADR-0005: Generalización a cualquier vídeo como requisito de diseño
 
-**Estado:** aceptada · 2026-07-12
+**Estado:** SUPERADA en parte · 2026-10-06 — sigue el principio de no construir
+el sistema contra un dataset concreto (se evalúa dejando torneos enteros fuera
+del entrenamiento), pero la pista se marca a mano una vez por torneo
+([ADR-0018](0018-court-manual-only.md)) y no se llegó a evaluar con vídeos
+grabados fuera de las retransmisiones (trabajo futuro)
 
 ## Contexto
 

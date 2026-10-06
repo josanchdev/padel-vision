@@ -1,6 +1,8 @@
 # ADR-0002: Alcance — clasificación de golpes basada en pose
 
-**Estado:** aceptada · 2026-07-12
+**Estado:** aceptada · 2026-07-12 — vigente; el clasificador final usa la pose
+y además la pelota ([ADR-0016](0016-shot-type-classifier.md)), y el instante
+del golpe lo resuelve el audio ([ADR-0015](0015-shot-audio-detect-rgb-classify.md))
 
 ## Contexto
 
