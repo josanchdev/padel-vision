@@ -1,22 +1,12 @@
-% Bibliografía de la memoria. Una entrada por referencia revisada en
-% notas_citas.md; BibTeX solo imprime las que se citan con \cite.
+% Bibliografía de la memoria (biblatex + biber, estilo IEEE). Una entrada por
+% referencia revisada en notas_citas.md; solo se imprimen las que se citan.
 % Origen de cada entrada: el .bib del editor (o escrito a mano para webs),
 % con las correcciones anotadas en notas_citas.md.
 % Criterios comunes:
-%   - Títulos tal cual; IEEEtran los pasa a minúsculas, así que siglas y
-%     nombres propios van entre llaves.
-%   - Caracteres no ASCII escritos como comandos de LaTeX.
-%   - DOI en todas las que lo tienen (IEEEtran 1.12 no lo imprime).
-%   - URL solo en recursos web.
-%   - Número de artículo en «note» (IEEEtran no tiene campo propio).
-
-% Opciones de IEEEtran.bst (se activan con \bstctlcite en tfg.tex): con más
-% de seis autores, solo el primero y «et al.», como pide la guía de IEEE.
-@IEEEtranBSTCTL{IEEEtran:BSTcontrol,
-  CTLuse_forced_etal       = {yes},
-  CTLmax_names_forced_etal = {6},
-  CTLnames_show_etal       = {1}
-}
+%   - Títulos tal cual; siglas y nombres propios entre llaves.
+%   - DOI en todas las que lo tienen; URL solo en recursos web, con la fecha
+%     de consulta en «urldate».
+%   - Número de artículo en «eid» y preprints de arXiv en «eprint».
 
 % ---------------------------------------------------------------------------
 % Pádel
@@ -28,7 +18,7 @@
   month  = dec,
   year   = {2025},
   url    = {https://www.padelfip.com/wp-content/uploads/2025/12/FIP-WPR-2025_DIGITAL.pdf},
-  note   = {{Accessed}: Oct. 5, 2026}
+  urldate = {2026-10-05}
 }
 
 @article{ramonllin2020stroke,
@@ -38,7 +28,7 @@
   volume  = {17},
   number  = {21},
   year    = {2020},
-  note    = {Art. no. 7838},
+  eid     = {7838},
   doi     = {10.3390/ijerph17217838}
 }
 
@@ -60,7 +50,7 @@
   volume  = {21},
   number  = {10},
   year    = {2021},
-  note    = {Art. no. 3368},
+  eid     = {3368},
   doi     = {10.3390/s21103368}
 }
 
@@ -83,7 +73,7 @@
   journal = {Data in Brief},
   volume  = {65},
   year    = {2026},
-  note    = {Art. no. 112546},
+  eid     = {112546},
   doi     = {10.1016/j.dib.2026.112546}
 }
 
@@ -102,19 +92,19 @@
   title        = {aiball -- {AI} for p{\`a}del},
   howpublished = {App Store, Aiball Lovelace S.L.},
   url          = {https://apps.apple.com/app/id6450213118},
-  note         = {{Accessed}: Oct. 5, 2026}
+  urldate      = {2026-10-05}
 }
 
 @misc{padelytics,
   title = {{Padelytics}},
   url   = {https://www.padelytics.ai/},
-  note  = {{Accessed}: Oct. 5, 2026}
+  urldate = {2026-10-05}
 }
 
 @misc{padelai,
   title = {{Padel AI}: {AI} Padel Coach and Video Analysis App},
   url   = {https://padelaiapp.com/},
-  note  = {{Accessed}: Oct. 5, 2026}
+  urldate = {2026-10-05}
 }
 
 % ---------------------------------------------------------------------------
@@ -297,7 +287,7 @@
   volume  = {6},
   number  = {6},
   year    = {2016},
-  note    = {Art. no. 162},
+  eid     = {162},
   doi     = {10.3390/app6060162}
 }
 
@@ -312,7 +302,7 @@
   month        = nov,
   year         = {2011},
   url          = {https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions},
-  note         = {{Accessed}: Oct. 4, 2026}
+  urldate      = {2026-10-04}
 }
 
 % ---------------------------------------------------------------------------
@@ -359,7 +349,8 @@
 @misc{jocher2026yolo26,
   author       = {Jocher, Glenn and Qiu, Jing and Liu, Mengyu and Lyu, Shuai and Akyon, Fatih Cagatay and Kalfaoglu, Muhammet Esat},
   title        = {{Ultralytics YOLO26}: Unified Real-Time End-to-End Vision Models},
-  howpublished = {arXiv:2606.03748},
+  eprint       = {2606.03748},
+  eprinttype   = {arxiv},
   year         = {2026},
   doi          = {10.48550/arXiv.2606.03748}
 }
@@ -382,6 +373,7 @@
 @misc{xu2025survey,
   author       = {Xu, Hao and Baniya, Arbind Agrahari and Wells, Sam and Bouadjenek, Mohamed Reda and Dazeley, Richard and Aryal, Sunil},
   title        = {Deep Learning for Sports Video Event Detection: Tasks, Datasets, Methods, and Challenges},
-  howpublished = {arXiv:2505.03991},
+  eprint       = {2505.03991},
+  eprinttype   = {arxiv},
   year         = {2025}
 }

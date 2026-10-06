@@ -1,266 +1,142 @@
-%%%%%%%%%%%%%%%%%%%%%%% Paquetes %%%%%%%%%%%%%%%%%%%%%%%
+% Preámbulo de la memoria. El motivo de cada decisión está en README.md.
 
-\usepackage[a4paper,bindingoffset=3mm,bottom=35mm]{geometry}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Página, letra e idioma %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\usepackage[a4paper,margin=2.5cm,headheight=14pt]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[spanish,es-tabla,es-nosectiondot,es-noshorthands]{babel}
+\usepackage{microtype}
+\usepackage{csquotes}
 
-% Usad \usepackage[dvips]{graphicx} o \usepackage[pdftex]{graphicx} (no ambos)
-%\usepackage[dvips]{graphicx} %%% para LaTeX. Las figuras deben estar en formato eps
-
-\usepackage[colorlinks=true,pdftex]{hyperref}   %%% Opcional. Para incluir marcadores y enlaces en el pdf
-\usepackage[pdftex]{graphicx}  %%% para pdflatex. Las figuras pueden estar en pdf, jpg, svg y otros formatos
-
-
-\usepackage[spanish, provide=*]{babel}
-\usepackage{iftex}
-
-%\usepackage[latin1]{inputenc} % Usad en WinEdt/MikTex
-\ifPDFTeX
-  \usepackage[utf8]{inputenc} % Usad en overleaf
-  \newcommand{\codefont}{\ttfamily}
-\else
-  \usepackage{fontspec}
-  \IfFontExistsTF{Consolas}{
-    \newfontfamily\ConsolasFont{Consolas}
-  }{
-    \newfontfamily\ConsolasFont{Latin Modern Mono}
-  }
-  \newcommand{\codefont}{\ConsolasFont}
-\fi
-
-\newcommand{\jsonbasicfont}{\codefont\footnotesize}
-\newcommand{\codeboldfont}{\bfseries\codefont}
-
-%\usepackage[T1]{fontenc}
-
-
-% Algunos paquetes útiles
-
-\usepackage{amsmath,amssymb}
-\usepackage{hyperref}
-\usepackage{xcolor}
-\usepackage{afterpage}
-\usepackage{paralist}
-\usepackage{array}
-\usepackage{enumerate}
-\usepackage{paralist}
-\usepackage{enumitem}
-\usepackage{float}
+% Interlineado de 1,5 líneas; párrafos separados por un espacio y sin sangría
 \usepackage{setspace}
-\usepackage{minitoc}
-\usepackage{listings}
-\lstset{language=Java,
-  showspaces=false,
-  showtabs=false,
-  breaklines=true,
-  showstringspaces=false,
-  breakatwhitespace=true,
-  commentstyle=\color{pgrey},
-  keywordstyle=\color{pred},
-  stringstyle=\color{pdarkblue},
-  numbers=left,
-  stepnumber=1,
-  basicstyle=\codefont\scriptsize,
-  captionpos=b,
-  % For annotations
-  % moredelim=**[s][\color{pblue}]{@}{\ },
-  % For enums (manually)
-  moredelim=**[is][\color{pblue}]{~}{~},
-  % For functions
-  %moredelim=**[n][\color{pviolet}]{.}{\(}
-}
-\usepackage{algorithm}
-\usepackage{algorithmic}
-\usepackage{fancyhdr}
-\usepackage{rotating}
+\onehalfspacing
+\usepackage{parskip}
+\raggedbottom
+\clubpenalty=10000
+\widowpenalty=10000
+
+\addto\captionsspanish{%
+  \renewcommand{\contentsname}{Índice}%
+  \renewcommand{\appendixname}{Anexo}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Figuras, tablas y números %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
 \usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+\captionsetup[table]{position=top}
+\usepackage{subcaption}
 
-\definecolor{pblue}{RGB}{5,80,174}
-\definecolor{pdarkblue}{RGB}{10, 48, 105}
-\definecolor{pgreen}{RGB}{0,0.5,0}
-\definecolor{pred}{RGB}{207, 34, 46}
-\definecolor{pgrey}{RGB}{89, 99, 110}
-\definecolor{pviolet}{RGB}{102, 57, 186}
+% Números según la RAE: coma decimal, espacio antes de las unidades y del %,
+% y separación de miles solo a partir de cinco cifras (2377, pero 10 000)
+\usepackage{siunitx}
+\sisetup{
+  output-decimal-marker = {,},
+  group-separator = {\,},
+  group-minimum-digits = 5,
+}
 
-% Otros paquetes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Bibliografía %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\usepackage{quotchap}
-\usepackage{lipsum}
+% Estilo IEEE (numérico, con las citas seguidas agrupadas: [1]-[4]) y los textos
+% de la bibliografía en español
+\usepackage[style=ieee,citestyle=ieee-comp,backend=biber]{biblatex}
+\addbibresource{bibliografia.bib}
+\renewcommand*{\bibfont}{\small}
+\stdpunctuation % la coma tras las comillas, como en español («…», y no «…,»)
+\DefineBibliographyStrings{spanish}{
+  artno   = {art\adddot\addnbspace n\sptext{o}},
+  jourser = {col\adddot},
+  url     = {[En línea]\adddot\addspace Disponible en},
+  urlseen = {Consultado el},
+}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Siglas y acrónimos %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% La primera vez que se usa una sigla se escribe completa; después, solo la sigla
+\usepackage{acro}
+\acsetup{
+  make-links = true,
+  list/name = {Siglas y acrónimos},
+  list/heading = capitulo-en-indice,
+}
+\NewAcroTemplate[heading]{capitulo-en-indice}{%
+  \chapter*{\acrolistname}%
+  \addcontentsline{toc}{chapter}{\acrolistname}}
+\input{config/acronimos}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Cabeceras y pies de página %%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Como en una memoria impresa: capítulo en la cabecera de las páginas pares y
+% sección en la de las impares; en el pie, número de página por fuera, autor en
+% las impares y escuela en las pares
+\usepackage{fancyhdr}
+\newcommand{\piesdepagina}{%
+  \fancyfoot[LE,RO]{\small\thepage}%
+  \fancyfoot[RE]{\small\escuelalargo\ (URJC)}%
+  \fancyfoot[LO]{\small\nombreautor}%
+  \renewcommand{\footrulewidth}{0.4pt}}
+\renewcommand{\chaptermark}[1]{\markboth{\MakeUppercase{\chaptername\ \thechapter.\ #1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancypagestyle{fancy}{%
+  \fancyhf{}%
+  \fancyhead[LE]{\small\leftmark}%
+  \fancyhead[RO]{\small\rightmark}%
+  \renewcommand{\headrulewidth}{0.4pt}%
+  \piesdepagina}
+% Primera página de cada capítulo y páginas en blanco: solo el pie
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \piesdepagina}
 
+% Cada capítulo empieza en página impar; la página en blanco que queda antes
+% lleva el pie pero no la cabecera
+\makeatletter
+\renewcommand{\cleardoublepage}{%
+  \clearpage
+  \if@twoside\ifodd\c@page\else
+    \hbox{}\thispagestyle{plain}\newpage
+  \fi\fi}
+\makeatother
 
-
-%%%%%%%%%%%%%%%%%%%%%%% Definiciones básicas %%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Datos fijos %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\escuela}{Escuela Técnica Superior\\de Ingeniería Informática}
 \newcommand{\escuelalargo}{Escuela Técnica Superior de Ingeniería Informática}
 \newcommand{\universidad}{Universidad Rey Juan Carlos}
-\newcommand{\fecha}{Fecha}
-\newcommand{\logoUniversidad}{config/logos/logoURJC.pdf} % logoURJC.eps
+\newcommand{\logoUniversidad}{config/logos/logoURJC.pdf}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Comentarios de revisión %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%% Otras definiciones %%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Definiciones de colores (para hidelinks)
-\definecolor{BlueLink}{rgb}{0.165,0.322,0.745}
-\definecolor{PinkLink}{rgb}{0.8,0.22,0.5}
-\definecolor{gray}{rgb}{0.6,0.6,0.6}
-
-
-% Enlaces
-\hypersetup{hidelinks,pageanchor=true,colorlinks,citecolor=PinkLink,urlcolor=black,linkcolor=BlueLink}
-
-
-\newcommand\blankpage{%
-    \newpage
-    \null
-    \thispagestyle{empty}%
-    %\addtocounter{page}{-1}%
-    \newpage}
-
-
-% Texto referencias
-\addto{\captionsspanish}{\renewcommand{\bibname}{Bibliografía}}
-
-% Texto Índice de tablas
-\addto\captionsspanish{
-\def\tablename{Tabla}
-\def\listtablename{\'{I}ndice de tablas}
-}
-
-% Configuración de minitoc
-\mtcsetdepth{minitoc}{2}
-\mtcsettitle{minitoc}{Contenido del capítulo}
-\renewcommand{\mtifont}{\large\bf}
-\mtcsetfont{minitoc}{*}{\small}
-
-\floatname{algorithm}{Algoritmo}
-
-\newfloat{algorithm}{t}{lop}
-
-%% Etiquetas de comentarios (tutor/alumno)
+% \tutor{}, \cotutor{} y \alumno{} solo se ven con \drafttrue
 \newif\ifdraft
 \drafttrue
-\usepackage{caption}
-\captionsetup{font=small,labelfont=bf}
-\usepackage{subcaption}
 \input{config/macros}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Enlaces y referencias cruzadas %%%%%%%%%%%%%%%%%%%%%%%
 
-%\newenvironment{pseudocodigo}[1][htb]
-%  {\renewcommand{\algorithmcfname}{Pseudocódig}% Update algorithm name
-%   \begin{algorithm}[#1]%
-%  }{\end{algorithm}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%% Estilo de código (en Python) %%%%%%%%%%%%%%%%%%%%%%%
-
-\definecolor{bg}{rgb}{0.95,0.95,0.95}
-\definecolor{mydeepteal}{rgb}{0.16,0.22,0.23}
-\definecolor{myteal}{rgb}{0.31,0.44,0.46}
-\definecolor{mymediumteal}{rgb}{0.41,0.58,0.60}
-
-%\newcommand*{\FormatDigit}[1]{\textcolor{mydeepteal}{#1}}
-\newcommand*{\FormatDigit}[1]{\textcolor{black}{#1}}
-
-% Python style for highlighting
-\newcommand\mypythonstyle{\lstset{
-language=Python,
-basicstyle=\codefont\footnotesize,
-%basicstyle=\linespread{1.0}\footnotesize\ttm,
-otherkeywords={self},             % Add keywords here
-keywordstyle=\codeboldfont\color{myteal},
-%keywordstyle=\ttb\color{myteal},
-commentstyle=\itshape\color{myteal},
-stringstyle=\color{mydeepteal},
-emph={MyClass,__init__},          % Custom highlighting
-emphstyle=\codeboldfont\color{mydeepteal},    % Custom highlighting style
-% Any extra options here
-showstringspaces=false,            %
-backgroundcolor=\color{bg},
-rulecolor = \color{bg},
-%identifierstyle=\color{deepgreen},
-breaklines=true,
-numbers=left,
-numbersep=5pt,
-numberstyle=\tiny,
-tabsize=4,
-xleftmargin=1em,
-frame = single,
-framesep = 3pt,
-framextopmargin=0pt,
-framexbottommargin=0pt,
-framexleftmargin=0pt,
-framexrightmargin=0pt,
-fontadjust=true,
-basewidth=0.55em, % compactness of code
-upquote=true,
-captionpos=b,
-}}
-
-% Python environment
-\lstnewenvironment{mypython}[1][]
-{
-\mypythonstyle
-\lstset{#1}
+% Enlaces sin color, para que la versión impresa salga en negro
+\usepackage{hyperref}
+\hypersetup{
+  hidelinks,
+  bookmarksnumbered,
+  pdftitle  = {\titulotrabajo},
+  pdfauthor = {\nombreautor},
+  pdflang   = {es-ES},
 }
-{}
 
-\newcommand\mypythonstylenormalinline{\lstset{
-language=Python,
-basicstyle=\codefont\normalsize,
-%basicstyle=\linespread{1.0}\footnotesize\ttm,
-otherkeywords={self},            % Add keywords here
-keywordstyle=\codeboldfont\color{myteal},
-%keywordstyle=\ttb\color{myteal},
-commentstyle=\itshape\color{mymediumteal},
-stringstyle=\color{mydeepteal},
-emph={MyClass,__init__},          % Custom highlighting
-emphstyle=\codeboldfont\color{mydeepteal},    % Custom highlighting style
-% Any extra options here
-showstringspaces=false,            %
-backgroundcolor=\color{bg},
-rulecolor = \color{bg},
-%identifierstyle=\color{deepgreen},
-breaklines=false,
-numbers=left,
-numbersep=5pt,
-numberstyle=\tiny,
-tabsize=4,
-xleftmargin=0em,
-frame = single,
-framesep = 3pt,
-framextopmargin=0pt,
-framexbottommargin=0pt,
-framexleftmargin=0pt,
-framexrightmargin=0pt,
-fontadjust=true,
-%basewidth=0.55em, % compactness of code
-upquote=true,
-captionpos=b,
-}}
-
-\newcommand\mypythoninline[1]{{\mypythonstylenormalinline\lstinline!#1!}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%% Comandos definidos por el autor
-
-\newcommand{\transpuesta}{\mbox{\tiny $\mathsf{T}$}}
+% \cref{fig:x} escribe «figura 2.4» con el enlace; \Cref, a principio de frase
+\usepackage[spanish]{cleveref}
+\crefname{table}{tabla}{tablas}
+\Crefname{table}{Tabla}{Tablas}
+\crefname{appendix}{anexo}{anexos}
+\Crefname{appendix}{Anexo}{Anexos}

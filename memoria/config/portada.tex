@@ -1,12 +1,6 @@
-%\pagenumbering{gobble}
-%\pagenumbering{arabic}
-
-% Universidad, Facultad
+% Portada según el modelo del anexo I del reglamento de TFG de la ETSII
 \begin{titlepage}
-\selectlanguage{spanish}
 
-
-% logo
 \begin{center}
     \includegraphics[scale=0.7]{\logoUniversidad}
 \end{center}
@@ -22,14 +16,12 @@
 \bigskip
 \bigskip
 
-% Grado
 \begin{center}
 \begin{large}
 \textbf{\grado}\\
 \end{large}
 \end{center}
 
-% Curso
 \begin{center}
 \begin{large}
 \textbf{\curso}\\
@@ -38,40 +30,30 @@
 
 \bigskip
 
-\textbf{\begin{center}
+\begin{center}
 \begin{large}
 \textbf{Trabajo Fin de Grado}
 \end{large}
-\end{center}}
+\end{center}
 
 \bigskip
 \bigskip
 \bigskip
 
-% Nombre del TFG
 \begin{center}
 \textbf{\begin{large}
 \MakeUppercase{\titulotrabajo}\\
 \end{large}}
 \end{center}
 
-% Nombre del autor
 \vspace{\fill}
+
 \begin{center}
-\textbf{Autor: \nombreautor}\\ \smallskip
-% Tutor
-\textbf{Tutor: \nombretutor}\\
-% Añadir segundo tutor si hubiera
-
-
-\bigskip
-
-% Fecha
-%\textbf{\fecha}\\
+\begin{tabular}{@{}rl@{}}
+  \textbf{Autor:}   & \textbf{\nombreautor} \\[\smallskipamount]
+  \textbf{Tutores:} & \textbf{\nombretutor} \\
+                    & \textbf{\nombrecotutor} \\
+\end{tabular}
 \end{center}
+
 \end{titlepage}
-
-\hypersetup{pageanchor=true}
-
-\normalsize
-\afterpage{\blankpage} % Se deben añadir página en blanco para que lo capítulos de la memoria o estas secciones introductorias empiecen en páginas impares

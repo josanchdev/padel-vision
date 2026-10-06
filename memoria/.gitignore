@@ -258,10 +258,12 @@ TSWLatexianTemp*
 # standalone packages
 *.sta
 
-!tfg.pdf
 tfg.lol
 out/
 
-# Ficheros generados por el sistema de web (./scripts/build.sh)
-.venv/
-__pycache__/
+## Propios de esta memoria
+# El PDF se genera al compilar; no se versiona
+tfg.pdf
+# Documentos de la universidad descargados del Aula Virtual
+Datos_uni_Esco/
+*Zone.Identifier

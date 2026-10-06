@@ -1,19 +1,11 @@
-\newcommand{\nb}[2]{
-	{
-		{\color{black}{
-				\small\fbox{\bfseries\sffamily\scriptsize#1}
-				{\sffamily\small$\triangleright~${\it\sffamily\small #2}$~\triangleleft$}
-	}}}
-}
-
-\usepackage{todonotes}
+% Comentarios de revisión: se ven en el borrador (\drafttrue) y desaparecen en
+% la versión final (\draftfalse)
 \ifdraft
-
-% Commands for comments
-\newcommand{\tutor}[1]{\todo[color=red!40, inline]{\footnotesize \textbf{Tutor:} #1}}
-\newcommand{\alumno}[1]{\todo[color=blue!40, inline]{\footnotesize \textbf{Alumno:} #1}}
-\newcommand{\cotutor}[1]{\todo[color=green!40, inline]{\footnotesize \textbf{Co-tutor:} #1}}
-
+  \usepackage{todonotes}
 \else
-\usepackage[disable]{todonotes}
+  \usepackage[disable]{todonotes}
 \fi
+
+\newcommand{\tutor}[1]{\todo[color=red!40, inline]{\footnotesize \textbf{Tutor:} #1}}
+\newcommand{\cotutor}[1]{\todo[color=green!40, inline]{\footnotesize \textbf{Cotutor:} #1}}
+\newcommand{\alumno}[1]{\todo[color=blue!40, inline]{\footnotesize \textbf{Alumno:} #1}}
