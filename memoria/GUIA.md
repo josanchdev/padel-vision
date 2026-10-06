@@ -112,6 +112,46 @@ El tutor validó esta estructura el 5 de octubre de 2026, sin anexo de uso de IA
 | *accuracy*, *precision*, *recall*, F1, macro-F1 | acierto, exactitud, precisión, exhaustividad | Nombres de métricas, en inglés para ser consistentes. En sentido general («no publican su precisión») se escribe en español |
 | puntos clave | *keypoints* | Los 17 puntos de la pose |
 
+### Redacción
+
+Lo primero es la calidad. Estas reglas existen para que el texto sea propio y profesional; ninguna
+justifica explicar algo peor. Coincidir con otros textos en un hecho («el pádel crece») o en la
+forma estándar de explicar algo técnico (la pose, una red convolucional) no es plagio: plagio es
+copiar texto o ideas sin citarlos.
+
+**Voz y tiempos.**
+- Impersonal con «se» («se ha entrenado», «se midió») o con un sujeto concreto («el sistema
+  detecta», «el clasificador recibe»). Nunca «hemos» ni «nosotros»; el trabajo es de una persona.
+  Para referirse a él, «este trabajo».
+- Presente para describir el sistema y lo que muestran tablas y figuras; pretérito perfecto para
+  lo hecho en este trabajo («se ha etiquetado»); pasado simple para trabajos ajenos («Decorte et
+  al. propusieron»); futuro solo en el trabajo futuro.
+
+**Texto propio.**
+- Nunca se escribe con un artículo abierto delante: las notas de `notas_citas.md` dicen qué
+  afirma cada fuente y en qué página, y la frase se escribe desde nuestros datos. Las ideas ajenas
+  llevan cita aunque estén reescritas; no hay citas literales.
+- Las afirmaciones generales se apoyan en un dato concreto con su fuente y, cuando aporta, en algo
+  propio del trabajo (los 2377 golpes, VIGO, la cámara de retransmisión). Sin convertirlo en
+  fórmula: no todos los párrafos acaban en «por eso este trabajo».
+- `docs/sistema.md` y los ADR son fuente de contenido, no texto que se copia.
+
+**Lo que delata un texto automático.**
+- Muletillas vacías: «cabe destacar», «es importante señalar», «en este sentido», «juega un
+  papel crucial», «en el panorama actual», «no solo… sino también», «robusto», «innovador», «sin
+  precedentes», tríos de adjetivos, párrafos que acaban repitiendo lo que acaban de decir. Se usan
+  solo si en esa frase concreta dicen algo.
+- Formato de chat: listas con negritas al empezar cada punto en mitad del texto, exceso de rayas
+  (—), preguntas como título.
+- Restos de la conversación: «como se acordó», la guía, nombres de personas, notas internas.
+  Ficheros y funciones del repositorio, solo cuando hacen falta (sobre todo en el anexo de
+  reproducibilidad).
+
+**Coherencia.** Cada cifra con `\cifra{}`; cada cita con su página en `notas_citas.md`; cada
+afirmación sobre el código comprobada contra el código (función, parámetro, valor); el glosario,
+igual en todos los capítulos. Si una frase no se sabría defender ante el tribunal, se reescribe o
+se quita.
+
 ## 5. Figuras: formatos, carpetas y cómo se hacen
 
 **Carpetas** (`memoria/figuras/`), separadas por cómo se crea cada cosa:
@@ -209,9 +249,10 @@ Configurado en `config/config.tex`: T1 + Latin Modern, `microtype`, `booktabs`, 
 ## 8. Cómo trabajamos
 
 1. Capítulo a capítulo. Primero acordamos qué va, en puntos, sin escribir nada.
-2. Borrador del capítulo.
-3. Jorge lo revisa y lo reescribe con sus palabras.
-4. Compila sin avisos y se hace el commit.
+2. Borrador del capítulo, ya con la calidad final y las figuras y tablas que necesite.
+3. Jorge lo revisa: cambia lo que quiera con sus palabras y deja lo que le convence.
+4. Comprobación de cifras, citas, afirmaciones sobre el código, glosario y muletillas
+   (búsqueda en los `.tex`); compila sin avisos y se hace el commit.
 
 Nada se escribe sin acuerdo previo. El tutor dio el visto bueno a esta forma de trabajar.
 
@@ -225,6 +266,7 @@ Nada se escribe sin acuerdo previo. El tutor dio el visto bueno a esta forma de 
 - [ ] Entre 40 y 60 páginas desde la introducción, sin anexos.
 - [ ] Portada y datos iguales que en la plataforma de TFG.
 - [ ] Notas `\alumno{}` y `\tutor{}` eliminadas o desactivadas (`\draftfalse`).
+- [ ] Sin «hemos» ni «nosotros», sin muletillas vacías ni restos de la conversación (apartado 4).
 - [ ] Revisión ortográfica.
 - [ ] La comprobación de plagio que indique el tutor.
 
