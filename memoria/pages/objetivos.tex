@@ -1,5 +1,35 @@
 % !TEX root = ../tfg.tex
 
+% IDEAS (borrar antes de pasar la memoria al tutor)
+% - Para quién: clubes que quieran este análisis y tengan, o pongan, una cámara
+%   fija al fondo de la pista, en alto.
+% - Entra: el vídeo crudo de un punto, con audio, sin ninguna anotación. Única
+%   preparación: marcar la pista a mano una vez por cámara.
+% - Sale: por cada golpe, instante, jugador y tipo (derecha, revés, remate,
+%   saque; agrupados por gesto: una volea de derecha es derecha).
+% - El tipo no va solo: sin cuándo y quién no hay estadísticas por jugador.
+%   Cadena; la pieza nueva es la última.
+% - Listón: que funcione lo bastante bien para usarse de verdad, no una cifra
+%   fijada de antemano.
+% - Decorte et al., base del cuándo y el quién: no reinventar un método que
+%   funcionaba; compararse solo para comprobar la reimplementación.
+% - Visor: estadísticas de juego por jugador (golpes por tipo, total, mapa de
+%   calor) y saltar al instante de cada golpe. Que sea útil.
+% - Objetivos: detectar el instante; identificar al jugador; clasificar el tipo;
+%   el visor.
+% - No son objetivos: los datos etiquetados (medio: no existían; una línea en el
+%   problema, el resto en Datos); la evaluación por torneos (metodología).
+% - Fuera: marcador y resultado; bandeja, víbora, dejada; cámaras móviles o a ras
+%   de pista; partidos completos (trabaja por puntos). Evaluado con
+%   retransmisiones (únicas grabaciones anotadas, cumplen la condición de
+%   cámara); otras alturas = trabajo futuro (PADELVIC, cuatro alturas).
+% - Figura en el problema, de ejemplo y sin flechas: (a) fotograma crudo de un
+%   punto; (b) lo que sale: línea de tiempo con todos los golpes y, sobre el
+%   mismo fotograma, quién da el golpe de ese instante y de qué tipo. Punto de
+%   VIGO, salida de los modelos entrenados sin ese torneo (chain_cv), golpe
+%   correcto en instante, jugador y tipo.
+% - Citas: Decorte et al.; CVSPORTS en el pie de la figura.
+
 \section{Descripción del problema}
 \label{sec:problema}
 

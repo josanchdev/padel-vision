@@ -73,5 +73,5 @@ Introducción; Objetivos; Estado del arte y alternativas; Metodología; Datos; D
 
 - **Licencia** de la memoria (y del código), a acordar con el tutor; por ahora, la CC BY-SA de la plantilla.
 - **Resumen en inglés**: la normativa no lo exige; se decide al escribir el resumen.
-- **Revisión del tutor**: Overleaf o PDF, cuando haya borrador.
+- **Revisión del tutor**: Overleaf o PDF, cuando haya borrador. Antes de pasarle los `.tex`, borrar los comentarios `% IDEAS` del principio de cada capítulo.
 - **Versión final**: `\draftfalse` para quitar los comentarios de revisión.
