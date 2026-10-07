@@ -54,9 +54,16 @@
 \usepackage{multirow}
 \usepackage{enumitem}
 \usepackage{caption}
-\captionsetup{font=small,labelfont=bf}
+\captionsetup{font=small,labelfont=bf,skip=8pt}
 \captionsetup[table]{position=top}
 \usepackage{subcaption}
+
+% Cada figura deja un pequeño margen propio por encima, para que no quede pegada
+% al título o al texto que la precede, y su pie va junto a ella: el espacio
+% entre párrafos no se aplica dentro de figuras ni tablas
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\AtBeginEnvironment{figure}{\setlength{\parskip}{0pt}\vspace*{14pt}}
+\AtBeginEnvironment{table}{\setlength{\parskip}{0pt}}
 
 % Números según la RAE: coma decimal, espacio antes de las unidades y del %,
 % y separación de miles solo a partir de cinco cifras (2377, pero 10 000)
