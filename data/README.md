@@ -26,3 +26,14 @@ Las rutas que usa el código están en `packages/cv/src/padel_cv/paths.py`.
   7,1 GB); los enlaces de YouTube de la versión actual son los partidos completos y
   no coinciden frame a frame con las anotaciones. Los `*_ball.json` son idénticos
   en las dos versiones.
+
+## Lo que hay que saber de CVSPORTS_Padel
+
+- **El grupo «VIGO» son dos torneos.** Los puntos `20230528_VIGO_00` a `_08`
+  son del Vigo Open (pabellón rojo) y `_09` a `_16`, del Danish Padel Open 2023
+  (pabellón oscuro, con sus carteles). Comprobado viendo un fotograma de cada
+  punto. No cambia nada de lo medido: la cámara de retransmisión está en la
+  misma posición en las dos sedes, así que la pista marcada en `VIGO_00` encaja
+  también en los daneses (dibujada sobre `VIGO_14`), y entre los 11 grupos no
+  hay otro danés, de modo que dejar «VIGO» fuera del entrenamiento sigue sin
+  fugas. En la memoria se habla de 11 grupos de torneos, uno con puntos de dos.
