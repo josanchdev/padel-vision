@@ -1,22 +1,23 @@
 % Flujo de procesamiento de un punto (sección «Flujo de procesamiento»).
 % Colores y estilos en config/config.tex. Las tres entradas llegan por separado
 % a «¿Quién?»; el voto pasa al clasificador el golpeador, cuya pose y pelota
-% clasifica, como hace resolve_shots en padel_ml.rally_analysis.
+% clasifica, como hace resolve_shots en padel_ml.rally_analysis. Subtítulo en
+% una caja solo si añade algo: el modelo o el método.
 \begin{tikzpicture}
   % Entrada
   \node[entrada, text width=15mm] (P) at (-0.1,1.0) {Punto grabado\subcaja{vídeo y audio}};
   % Audio
   \node[caja] (A1) at (2.6,3.3) {Espectrograma\subcaja{log-Mel}};
-  \node[caja] (A2) at (5.05,3.3) {Red CRNN\subcaja{detecta el golpe}};
+  \node[caja] (A2) at (5.05,3.3) {Red CRNN};
   % Imagen
   \node[caja] (J1) at (2.6,1.0) {Personas y pose\subcaja{YOLO26-pose}};
-  \node[caja] (J2) at (5.05,1.0) {Jugadores\subcaja{solo en la pista}};
+  \node[caja] (J2) at (5.05,1.0) {Jugadores};
   \node[caja] (J3) at (7.5,1.0) {Identidad\subcaja{J1--J4}};
-  \node[caja] (B1) at (2.6,-0.45) {Pelota\subcaja{tipo TrackNet}};
-  \node[caja] (B2) at (5.05,-0.45) {Trayectoria\subcaja{limpieza física}};
+  \node[caja] (B1) at (2.6,-0.45) {Pelota\subcaja{TrackNet}};
+  \node[caja] (B2) at (5.05,-0.45) {Trayectoria};
   % Por cada golpe
   \node[caja, text width=20mm] (Q) at (11.2,2.05) {¿Quién?\subcaja{voto por cercanía}};
-  \node[aporta, text width=20mm] (T) at (11.2,0.0) {¿Qué golpe?\subcaja{su pose y la pelota\\clasificador BST}};
+  \node[aporta, text width=20mm] (T) at (11.2,0.0) {¿Qué golpe?\subcaja{BST}};
   % Salida: lo que lee el visor (vídeo procesado y point.json)
   \node[caja, text width=17mm] (R) at (13.95,0.0) {Vídeo procesado y datos de cada golpe};
   \node[caja, text width=17mm] (W) at (13.95,-1.75) {Visor web};
