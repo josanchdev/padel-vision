@@ -3,9 +3,6 @@
 \section{Arquitectura}
 \label{sec:arquitectura}
 
-\subsection{Flujo de procesamiento}
-\label{sec:flujo}
-
 \begin{figure}[htbp]
   \centering
   \input{figuras/flujo}
@@ -51,9 +48,6 @@ Una vez el sistema tiene todo lo necesario el trabajo se divide en dos ramas. La
 %   resultado.
 
 
-\subsection{Organización del código}
-\label{sec:organizacion}
-
 \section{Componentes del sistema}
 \label{sec:componentes}
 
@@ -77,3 +71,14 @@ Una vez el sistema tiene todo lo necesario el trabajo se divide en dos ramas. La
 
 \section{Implementación y pruebas}
 \label{sec:implementacion}
+
+% IDEAS (borrar antes de pasar la memoria al tutor)
+% - Organización del código (antes era una subsección de Arquitectura): un
+%   repositorio con tres paquetes, padel_cv (visión: pose, pista, vídeo,
+%   herramientas de etiquetado), padel_ml (modelos, asignación, análisis del
+%   punto, vídeo procesado, exportación a la web, evaluación) y web (visor).
+% - Una sola función, analyze_rally, que usan igual el vídeo procesado, la
+%   evaluación y la web: lo que se mide es exactamente lo que se entrega.
+% - Tecnologías del sistema y tabla pequeña del entorno (Jorge la escribe).
+% - Pruebas y calidad: tests automáticos, tipado estricto, comprobaciones en
+%   cada commit; cada cifra y figura se regenera con un script.
