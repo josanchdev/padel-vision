@@ -43,16 +43,75 @@
 %   entregados, que vieron este punto al entrenar: la figura ilustra la salida,
 %   no demuestra el acierto (eso, en Experimentos); aun así, los modelos
 %   entrenados sin VIGO también aciertan este golpe y los de alrededor.
-% - Citas: Decorte et al.; CVSPORTS en el pie de la figura.
+% - Citas: Decorte et al. En el pie de la figura, solo el torneo (CVSPORTS se
+%   cita en Datos).
+
+% BORRADOR DE CLAUDE (ejemplo de redacción; Jorge escribe la versión final)
 
 \section{Descripción del problema}
 \label{sec:problema}
 
+El sistema trabaja sobre un punto grabado con una cámara fija, situada al fondo de la pista y en alto, como la que emplean las retransmisiones de los torneos profesionales.
+Esa grabación, con su audio, es todo lo que recibe: no necesita anotaciones ni marcas sobre los jugadores, y la única preparación que exige es indicar a mano, una vez por cámara, dónde están las cuatro esquinas de la pista y los extremos de la red.
+El punto llega ya separado del resto del partido, bien porque se ha recortado, bien porque se ha grabado por separado.
+
+A partir de ella, el sistema devuelve los golpes del punto y, para cada uno, el instante en que se produce, el jugador que lo ejecuta y su tipo.
+El tipo se elige entre cuatro, derecha, revés, remate y saque, que agrupan los golpes por su gesto, de modo que una volea de derecha cuenta como derecha.
+Todo golpe recibe uno de estos cuatro tipos, también los que en rigor no pertenecen a ninguno, como la bandeja o los golpes defensivos sin un gesto definido.
+
+Las tres respuestas no son independientes.
+El tipo de un golpe solo sirve para el análisis si se sabe quién lo ha dado, y para saberlo hay que conocer antes el instante en que la pala toca la pelota: un error en el instante arrastra al jugador, y un error en el jugador entrega al clasificador el gesto de otra persona.
+Por eso el sistema resuelve los tres problemas encadenados, aunque la parte nueva de este trabajo sea la última.
+Para el instante y el jugador parte del método de Decorte et al.~\cite{decorte2024padel}, que detecta los golpes por su sonido y los atribuye al jugador más cercano a la pelota en ese momento; el tipo de golpe, que ese trabajo no clasifica, es lo que este añade.
+
+Los jugadores se identifican por su posición dentro del punto: J1 y J2 forman la pareja del fondo, y J3 y J4 la más cercana a la cámara.
+Esa numeración se mantiene durante todo el punto, pero no reconoce a las personas, así que las estadísticas por jugador se refieren a un punto.
+Como las parejas cambian de lado a lo largo del partido, el J3 de un punto puede ser otro jugador en el siguiente.
+
+Clasificar el tipo de golpe exige además ejemplos etiquetados, y el conjunto de datos de referencia para estas grabaciones indica cuándo se produce cada golpe, pero no de qué tipo es.
+Ese etiquetado forma parte del trabajo y se describe en el \cref{cap:datos}.
+
+La \cref{fig:problema} muestra un punto antes y después de procesarlo.
+Sobre la grabación original, el sistema dibuja el esqueleto y el número de cada jugador, sigue la trayectoria de la pelota y, en el momento del golpe, indica quién lo ha dado y de qué tipo es.
+Los datos de cada golpe se guardan, además, para analizarlos después.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics{figuras/problema}
+  \caption{Un punto del Danish Padel Open 2023, original y procesado, con el detalle del golpe.}
+  \label{fig:problema}
+\end{figure}
+
 \section{Objetivo general}
 \label{sec:objetivo-general}
+
+El objetivo general de este trabajo es que un club de pádel que disponga de una cámara fija al fondo de la pista pueda analizar los golpes de los puntos que graba sin tener que anotarlos a mano: saber, en cada punto, qué golpes se han jugado, quién los ha dado y de qué tipo eran.
+El sistema debe hacerlo de forma automática y con la fiabilidad suficiente para que esa información se pueda usar en la práctica, por ejemplo para preparar un entrenamiento o revisar los puntos de un partido.
 
 \section{Objetivos específicos}
 \label{sec:objetivos-especificos}
 
+Para alcanzarlo se plantean cuatro objetivos específicos:
+
+\begin{itemize}
+  \item Detectar el instante de cada golpe del punto, que marca los momentos que el resto del sistema tiene que analizar.
+  \item Identificar qué jugador ejecuta cada golpe, sin lo cual no es posible ninguna estadística por jugador.
+  \item Clasificar cada golpe como derecha, revés, remate o saque, que es lo que convierte la lista de golpes en un análisis del juego.
+  \item Ofrecer un visor web en el que consultar cada punto: los golpes de cada jugador por tipo, sus desplazamientos sobre la pista y el acceso directo al momento de cada golpe en la grabación.
+\end{itemize}
+
+Los tres primeros se evalúan con medidas cuantitativas en el \cref{cap:experimentos}; el cuarto, por lo que el visor permite hacer, que se describe en el \cref{cap:descripcion-informatica}.
+
 \section{Alcance}
 \label{sec:alcance}
+
+Algunos aspectos del análisis de un partido quedan fuera de este trabajo de forma deliberada.
+El sistema no lleva el marcador ni determina quién gana el punto, y trabaja sobre puntos ya separados, no sobre partidos completos: dividir un partido en puntos y distinguir el juego real de las repeticiones que intercalan las retransmisiones es un problema distinto, que queda para trabajos futuros.
+
+Tampoco distingue golpes como la bandeja, la víbora o la dejada.
+Se ha preferido un conjunto de cuatro tipos bien separados por su gesto a uno más amplio, con clases que se parecen entre sí y con pocos ejemplos de cada una.
+
+Las grabaciones deben proceder de una cámara fija al fondo de la pista y en alto; no se contemplan cámaras en movimiento ni situadas a la altura de la pista, y el sistema no reconoce a los jugadores de un punto a otro.
+
+Por último, aunque está pensado para grabaciones de club, el sistema se ha evaluado con retransmisiones profesionales, porque son las grabaciones con golpes anotados de que se dispone y su cámara cumple las condiciones anteriores.
+Comprobar cómo se comporta con otras alturas y posiciones de la cámara queda como trabajo futuro.
