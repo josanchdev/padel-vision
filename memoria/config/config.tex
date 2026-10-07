@@ -67,6 +67,35 @@
   group-minimum-digits = 5,
 }
 
+% Diagramas (TikZ): cajas neutras, paneles de color suave por etapa y un solo
+% acento, el azul, para la aportación del trabajo. Cada diagrama, en figuras/
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,arrows.meta,calc,backgrounds}
+\definecolor{tinta}{HTML}{0b0b0b}
+\definecolor{tinta2}{HTML}{52514e}
+\definecolor{tenue}{HTML}{898781}
+\definecolor{borde}{HTML}{b5b4aa}
+\definecolor{fondo}{HTML}{f4f4f1}
+\definecolor{acento}{HTML}{1b7fe0}
+\definecolor{acentofondo}{HTML}{e6f0fc}
+\definecolor{panelaudio}{HTML}{eef3f9}
+\definecolor{panelimagen}{HTML}{eef6f1}
+\definecolor{panelgolpe}{HTML}{fbf4ea}
+\tikzset{
+  caja/.style={draw=borde, fill=white, rounded corners=2pt, align=center,
+    font=\footnotesize, inner sep=3.5pt, minimum height=9mm, text width=21mm, text=tinta},
+  aporta/.style={caja, draw=acento, fill=acentofondo, line width=0.8pt},
+  entrada/.style={caja, fill=fondo},
+  linea/.style={draw=tinta2, line width=0.55pt},
+  flecha/.style={linea, -{Stealth[length=1.8mm]}},
+  dato/.style={font=\scriptsize\itshape, text=tinta2, inner sep=1pt},
+  panel/.style={rounded corners=6pt, inner sep=7pt},
+  titulopanel/.style={font=\scriptsize\bfseries, text=tinta2, anchor=south west, inner sep=2pt},
+  seccion/.style={font=\tiny, text=tenue, anchor=north east, inner sep=1.5pt},
+}
+% Segunda línea, más pequeña y gris, dentro de una caja
+\newcommand{\subcaja}[1]{\\[-1pt]{\scriptsize\color{tenue}#1}}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Bibliografía %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Estilo IEEE (numérico, con las citas seguidas agrupadas: [1]-[4]) y los textos

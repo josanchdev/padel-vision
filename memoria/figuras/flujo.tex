@@ -1,0 +1,59 @@
+% Flujo de procesamiento de un punto (sección «Flujo de procesamiento»).
+% Colores y estilos en config/config.tex. Las tres entradas llegan por separado
+% a «¿Quién?»; el voto pasa al clasificador el golpeador, cuya pose y pelota
+% clasifica, como hace resolve_shots en padel_ml.rally_analysis.
+\begin{tikzpicture}
+  % Entrada
+  \node[entrada, text width=15mm] (P) at (-0.1,1.0) {Punto grabado\subcaja{vídeo y audio}};
+  % Audio
+  \node[caja] (A1) at (2.6,3.3) {Espectrograma\subcaja{log-Mel}};
+  \node[caja] (A2) at (5.05,3.3) {Red CRNN\subcaja{detecta el golpe}};
+  % Imagen
+  \node[caja] (J1) at (2.6,1.0) {Personas y pose\subcaja{YOLO26-pose}};
+  \node[caja] (J2) at (5.05,1.0) {Jugadores\subcaja{solo en la pista}};
+  \node[caja] (J3) at (7.5,1.0) {Identidad\subcaja{J1--J4}};
+  \node[caja] (B1) at (2.6,-0.45) {Pelota\subcaja{tipo TrackNet}};
+  \node[caja] (B2) at (5.05,-0.45) {Trayectoria\subcaja{limpieza física}};
+  % Por cada golpe
+  \node[caja, text width=20mm] (Q) at (11.2,2.05) {¿Quién?\subcaja{voto por cercanía}};
+  \node[aporta, text width=20mm] (T) at (11.2,0.0) {¿Qué golpe?\subcaja{su pose y la pelota\\clasificador BST}};
+  % Salidas
+  \node[caja, text width=17mm] (V) at (13.95,2.05) {Vídeo procesado};
+  \node[caja, text width=17mm] (D) at (13.95,0.0) {Datos de cada golpe};
+  \node[caja, text width=17mm] (W) at (13.95,-1.55) {Visor web};
+
+  \begin{scope}[on background layer]
+    \node[panel, fill=panelaudio, fit=(A1)(A2)] (gA) {};
+    \node[panel, fill=panelimagen, fit=(J1)(J2)(J3)(B1)(B2)] (gI) {};
+    \node[panel, fill=panelgolpe, fit=(Q)(T)] (gG) {};
+  \end{scope}
+  \node[titulopanel] at (gA.north west) {AUDIO \textperiodcentered{} cuándo};
+  \node[seccion] at (gA.south east) {4.2.1};
+  \node[titulopanel] at (gI.north west) {IMAGEN \textperiodcentered{} fotograma a fotograma};
+  \node[seccion] at (gI.south east) {4.2.2 y 4.2.3};
+  \node[titulopanel] at (gG.north west) {POR CADA GOLPE};
+  \node[seccion] at (gG.south east) {4.2.4 y 4.2.5};
+
+  % Del punto a las tres ramas
+  \draw[flecha] (P.east) -- ++(1.6mm,0) |- (A1.west);
+  \draw[flecha] (P.east) -- (J1.west);
+  \draw[flecha] (P.east) -- ++(1.6mm,0) |- (B1.west);
+  \draw[flecha] (A1) -- (A2);
+  \draw[flecha] (J1) -- (J2);
+  \draw[flecha] (J2) -- (J3);
+  \draw[flecha] (B1) -- (B2);
+  % Las tres entradas llegan por separado a «¿Quién?»
+  \coordinate (xa) at ($(gG.west)+(-7.5mm,0)$);
+  \coordinate (xj) at ($(gG.west)+(-5mm,0)$);
+  \coordinate (xb) at ($(gG.west)+(-2.5mm,0)$);
+  \draw[flecha] (A2.east) -- (A2.east -| xa) node[dato, pos=0.5, above] {instantes}
+    |- ($(Q.west)+(0,2.7mm)$);
+  \draw[flecha] (J3.east) -- (J3.east -| xj) |- (Q.west);
+  \draw[flecha] (B2.east) -- (B2.east -| xb) |- ($(Q.west)+(0,-2.7mm)$);
+  % El voto pasa el golpeador al clasificador
+  \draw[flecha] (Q) -- (T) node[dato, midway, right] {golpeador};
+  % Salidas
+  \draw[flecha] (gG.east |- V) -- (V);
+  \draw[flecha] (gG.east |- D) -- (D);
+  \draw[flecha] (D) -- (W);
+\end{tikzpicture}

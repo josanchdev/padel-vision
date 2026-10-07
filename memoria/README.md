@@ -10,7 +10,7 @@ Fuente LaTeX de la memoria. Se compila con `latexmk` dentro de esta carpeta (con
 - **Referencias**: `\cref{fig:x}` escribe «figura 2.4» y `\Cref` lo pone en mayúscula a principio de frase. Prefijos de etiqueta: `cap:`, `sec:`, `fig:`, `tab:`, `anexo:`.
 - **Siglas**: se declaran en `config/acronimos.tex` y se usan con `\ac{clave}`; la primera vez sale la forma larga y la lista se genera sola. El desarrollo corresponde letra a letra con la sigla, como pide la RAE: si la sigla es inglesa, en inglés y en cursiva (*convolutional recurrent neural network*, CRNN); si es española, en español (ETSII). No se traduce: solo se explica en el texto cuando el propio término no dice lo que es.
 - **Números**: `\num{0.958}` y `\qty{82.7}{\percent}` los escriben como pide la RAE (0,958 y 82,7 %).
-- **Figuras**: en `figuras/`, cada una generada por un script del repositorio, que dice de qué datos sale (por ejemplo, `scripts/build_problem_figure.py` para `figuras/problema.pdf`). No se editan a mano: se cambia el script y se regenera.
+- **Figuras**: en `figuras/`, cada una generada por un script del repositorio, que dice de qué datos sale (por ejemplo, `scripts/build_problem_figure.py` para `figuras/problema.pdf`). No se editan a mano: se cambia el script y se regenera. Los diagramas son código TikZ en `figuras/*.tex` (por ejemplo, `figuras/flujo.tex`), que se compila con la memoria; sus colores y estilos están en `config/config.tex`.
 - **Comentarios de revisión**: `\tutor{}`, `\cotutor{}` y `\alumno{}`; desaparecen al poner `\draftfalse` en `config/config.tex`.
 - **Corrector**: extensión LTeX+ de VS Code, configurada en español.
 
