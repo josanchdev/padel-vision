@@ -45,7 +45,16 @@ Rúbrica del acta de calificación de la ETSII (Aula Virtual). La memoria decide
 
 ## Estructura
 
-Introducción; Objetivos; Estado del arte y alternativas; Metodología; Datos; Descripción informática; Experimentos y validación; Conclusiones y trabajo futuro; Bibliografía; Anexos (reproducibilidad, herramientas de etiquetado y visor web). Es la estructura validada por el tutor con un capítulo propio para los datos, que estaban dentro de Descripción informática: el conjunto de datos etiquetado es una aportación del trabajo y lo usan tanto el sistema como la evaluación. Antes de los capítulos: portada, licencia, agradecimientos, resumen con palabras clave, índice, índices de figuras y tablas, y siglas.
+1. **Introducción**: motivación y antecedentes, objetivos generales y específicos, y metodología del trabajo.
+2. **Estado del arte**.
+3. **Datos**.
+4. **Descripción informática**.
+5. **Experimentos y validación**.
+6. **Conclusiones y trabajo futuro**.
+
+Después, la bibliografía y los anexos (reproducibilidad, herramientas de etiquetado y visor web). Antes de los capítulos: portada, licencia, agradecimientos, resumen con palabras clave, índice, índices de tablas y de figuras, y siglas.
+
+Parte de la estructura validada por el tutor, con dos cambios. Los objetivos y la metodología van dentro de la introducción y no como capítulos propios: la normativa solo exige la introducción, la rúbrica pide objetivos explícitos y no un capítulo, y así quedan páginas para la descripción del sistema y los experimentos. El protocolo de evaluación (torneos fuera del entrenamiento, intervalos de confianza) se cuenta en Experimentos. Y los datos tienen capítulo propio, en lugar de una sección de Descripción informática: el conjunto de datos etiquetado es una aportación del trabajo y lo usan tanto el sistema como la evaluación.
 
 ## Decisiones
 
