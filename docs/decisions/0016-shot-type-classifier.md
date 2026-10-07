@@ -1,7 +1,10 @@
 # ADR-0016: Clasificador de TIPO de golpe = pose+pelota (BST), 4 clases con rechazo
 
-**Estado:** aceptada · 2026-09-07 · **corrige la Decisión B de ADR-0015**
-(que asumía RGB) · amplía ADR-0014 (taxonomía)
+**Estado:** aceptada en parte · 2026-09-07 · **corrige la Decisión B de ADR-0015**
+(que asumía RGB) · amplía ADR-0014 (taxonomía) — el rechazo por umbral
+(Decisiones D y E) no llegó a usarse: el umbral no se calibró con los `Other`
+y está a 0 en el demo y en la web, así que todo golpe con jugador asignado
+recibe uno de los cuatro tipos (2026-10-07)
 
 ## Contexto
 

@@ -10,6 +10,7 @@ Fuente LaTeX de la memoria. Se compila con `latexmk` dentro de esta carpeta (con
 - **Referencias**: `\cref{fig:x}` escribe «figura 2.4» y `\Cref` lo pone en mayúscula a principio de frase. Prefijos de etiqueta: `cap:`, `sec:`, `fig:`, `tab:`, `anexo:`.
 - **Siglas**: se declaran en `config/acronimos.tex` y se usan con `\ac{clave}`; la primera vez sale la forma larga y la lista se genera sola.
 - **Números**: `\num{0.958}` y `\qty{82.7}{\percent}` los escriben como pide la RAE (0,958 y 82,7 %).
+- **Figuras**: en `figuras/`, cada una generada por un script del repositorio, que dice de qué datos sale (por ejemplo, `scripts/build_problem_figure.py` para `figuras/problema.pdf`). No se editan a mano: se cambia el script y se regenera.
 - **Comentarios de revisión**: `\tutor{}`, `\cotutor{}` y `\alumno{}`; desaparecen al poner `\draftfalse` en `config/config.tex`.
 - **Corrector**: extensión LTeX+ de VS Code, configurada en español.
 

@@ -4,9 +4,19 @@
 % - Para quién: clubes que quieran este análisis y tengan, o pongan, una cámara
 %   fija al fondo de la pista, en alto.
 % - Entra: el vídeo crudo de un punto, con audio, sin ninguna anotación. Única
-%   preparación: marcar la pista a mano una vez por cámara.
+%   preparación: marcar la pista a mano una vez por cámara. El punto llega ya
+%   cortado: alguien corta el partido en puntos o se graba punto a punto.
 % - Sale: por cada golpe, instante, jugador y tipo (derecha, revés, remate,
 %   saque; agrupados por gesto: una volea de derecha es derecha).
+% - Todo golpe recibe uno de los cuatro tipos, también los que no son ninguno
+%   (bandeja, víbora, golpes defensivos sin gesto claro: un 7 % de los
+%   etiquetados). No hay «sin clasificar». Decirlo así y listo.
+% - J1-J4 son posiciones dentro del punto (J1-J2 al fondo, J3-J4 cerca de la
+%   cámara), no personas: el sistema no reconoce quién es quién y las parejas
+%   cambian de lado durante el partido. Estadísticas por jugador = por punto.
+% - Posible, solo si encaja: por qué es difícil (el golpe dura un instante,
+%   pelota pequeña y rápida, jugadores del fondo diminutos, compañeros vestidos
+%   igual, cristal y red tapan).
 % - El tipo no va solo: sin cuándo y quién no hay estadísticas por jugador.
 %   Cadena; la pieza nueva es la última.
 % - Listón: que funcione lo bastante bien para usarse de verdad, no una cifra
@@ -20,14 +30,16 @@
 % - No son objetivos: los datos etiquetados (medio: no existían; una línea en el
 %   problema, el resto en Datos); la evaluación por torneos (metodología).
 % - Fuera: marcador y resultado; bandeja, víbora, dejada; cámaras móviles o a ras
-%   de pista; partidos completos (trabaja por puntos). Evaluado con
-%   retransmisiones (únicas grabaciones anotadas, cumplen la condición de
-%   cámara); otras alturas = trabajo futuro (PADELVIC, cuatro alturas).
-% - Figura en el problema, de ejemplo y sin flechas: (a) fotograma crudo de un
-%   punto; (b) lo que sale: línea de tiempo con todos los golpes y, sobre el
-%   mismo fotograma, quién da el golpe de ese instante y de qué tipo. Punto de
-%   VIGO, salida de los modelos entrenados sin ese torneo (chain_cv), golpe
-%   correcto en instante, jugador y tipo.
+%   de pista; partidos completos (trabaja por puntos); saber quién es cada
+%   jugador entre puntos. Evaluado con retransmisiones (únicas grabaciones
+%   anotadas, cumplen la condición de cámara); otras alturas = trabajo futuro
+%   (PADELVIC, cuatro alturas).
+% - Figura en el problema: figuras/problema.pdf (scripts/build_problem_figure.py),
+%   se incluye con \includegraphics{figuras/problema}. Entrada (fotograma sin
+%   anotar) y salida (mismo fotograma con J1-J4 y «J3 · Revés») y debajo el
+%   comienzo del punto con un golpe por marca. VIGO_14 (Danish Padel Open),
+%   salida de los modelos entrenados sin ese torneo (chain_cv); los cinco
+%   golpes de la línea, correctos en instante, jugador y tipo.
 % - Citas: Decorte et al.; CVSPORTS en el pie de la figura.
 
 \section{Descripción del problema}

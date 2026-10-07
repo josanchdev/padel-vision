@@ -20,7 +20,7 @@ conservan: el camino recorrido también explica el sistema final.
 | [0013](0013-shot-two-stage-learned.md) | Golpes con dos modelos aprendidos | superada por 0015 |
 | [0014](0014-shot-labeling-quick-mark.md) | Etiquetado por marca rápida | superada en parte |
 | [0015](0015-shot-audio-detect-rgb-classify.md) | El audio detecta el golpe; la asignación replica el paper | vigente; el tipo lo corrige 0016 y la pista 0018 |
-| [0016](0016-shot-type-classifier.md) | Clasificador de tipo BST sobre pose y pelota | vigente |
+| [0016](0016-shot-type-classifier.md) | Clasificador de tipo BST sobre pose y pelota | vigente, sin el rechazo por umbral: todo golpe recibe uno de los cuatro tipos |
 | [0017](0017-static-web-viewer.md) | La web es un visor estático | vigente |
 | [0018](0018-court-manual-only.md) | La pista se marca a mano | vigente |
 
