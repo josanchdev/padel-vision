@@ -1,4 +1,4 @@
-"""Video writing that browsers can actually play.
+"""Reading one exact frame, and video writing that browsers can actually play.
 
 OpenCV's VideoWriter emits MPEG-4 Part 2 (mp4v/FMP4), which HTML5 <video> does
 not decode. This writer encodes H.264 (yuv420p) with a moved MOOV atom
@@ -10,11 +10,28 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import TracebackType
+from typing import cast
 
 import cv2
 import imageio.v2 as imageio
 
 from padel_cv.arrays import ImageArray
+
+
+def read_frame(video: Path, index: int) -> ImageArray:
+    """Frame `index` of `video` (BGR), read sequentially from the start.
+
+    Seeking in an MP4 lands on the nearest keyframe rather than on `index`, so
+    a still meant to match the analysis of that frame is read in order."""
+    capture = cv2.VideoCapture(str(video))
+    frame = None
+    for _ in range(index + 1):
+        ok, frame = capture.read()
+        if not ok:
+            capture.release()
+            raise ValueError(f"{video.name} has no frame {index}")
+    capture.release()
+    return cast(ImageArray, frame)
 
 
 class H264VideoWriter:

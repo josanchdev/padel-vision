@@ -1,8 +1,7 @@
 """Write the problem figure of chapter 2: memoria/figuras/problema.pdf.
 
-Needs the CVSPORTS video of the point and its cached detections
-(data/cache/rally_features), but no models or GPU: the hits are those the full
-system returned in its evaluation (docs/metrics/chain_cv_hits.csv).
+Runs the delivered system (the trained models under runs/) over one CVSPORTS
+point, so it needs the video and takes about half a minute on a GPU.
 
     uv run python scripts/build_problem_figure.py
 """
@@ -11,46 +10,44 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import cast
 
 import cv2
-from padel_ml.rally_features import load_rally_features
-from padel_ml.thesis.problem import Crop, draw_problem_figure, system_hits
+import torch
+from padel_ml.rally_analysis import ModelPaths, RallyModels, analyze_rally
+from padel_ml.rally_render import annotated_frame
+from padel_ml.thesis.problem import draw_problem_figure
 
-from padel_cv.arrays import ImageArray
-from padel_cv.paths import CVSPORTS_RALLIES, METRICS, RALLY_FEATURES, REPO
+from padel_cv.court_registry import court_file_for
+from padel_cv.paths import CVSPORTS_RALLIES, REPO, RUNS
+from padel_cv.video_io import read_frame
 
 OUT = REPO / "memoria" / "figuras" / "problema.pdf"
 
 RALLY = "20230528_VIGO_14"
 SHOWN_S = 4.52
-"""J3's backhand. VIGO is the only tournament with the hitter annotated, so the
-hit can be checked whole: instant, player and type are right, and so are the
-four hits before and the one after it."""
-CROP = Crop(x0=170, y0=180, x1=1750, y1=965)
-"""The court with its glass walls; the stands and the broadcast banners are left out."""
+"""J3's backhand, near the camera, with the ball trail arriving at the racket.
+The system gets it right (instant, player and type), as it does with the hits
+around it."""
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=OUT)
+    parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
 
-    hits = system_hits(RALLY, METRICS / "chain_cv_hits.csv")
-    shown = min(hits, key=lambda hit: abs(hit.time_s - SHOWN_S))
-    features = load_rally_features(RALLY_FEATURES / f"{RALLY}.npz")
-    index = round(shown.time_s * features.fps)
+    court = court_file_for(RALLY)
+    if court is None:
+        raise SystemExit(f"{RALLY}: sin pista marcada")
+    device = args.device if torch.cuda.is_available() else "cpu"
+    video = CVSPORTS_RALLIES / f"{RALLY}.mp4"
+    analysis = analyze_rally(video, RallyModels(ModelPaths.under(RUNS), device=device), court)
+    shot = min(analysis.shots, key=lambda shot: abs(shot.timestamp_s - SHOWN_S))
 
-    capture = cv2.VideoCapture(str(CVSPORTS_RALLIES / f"{RALLY}.mp4"))
-    capture.set(cv2.CAP_PROP_POS_FRAMES, index)
-    ok, frame = capture.read()
-    capture.release()
-    if not ok:
-        raise SystemExit(f"{RALLY}: no se pudo leer el fotograma {index}")
-
-    rgb = cast(ImageArray, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-    draw_problem_figure(rgb, features.players[index], hits, shown, CROP, args.out)
-    print(args.out)
+    raw = cv2.cvtColor(read_frame(video, shot.frame_index), cv2.COLOR_BGR2RGB)
+    processed = cv2.cvtColor(annotated_frame(analysis, shot.frame_index), cv2.COLOR_BGR2RGB)
+    draw_problem_figure(raw, processed, args.out)
+    print(f"{args.out}: J{shot.player_id} {shot.shot_type} en el fotograma {shot.frame_index}")
 
 
 if __name__ == "__main__":

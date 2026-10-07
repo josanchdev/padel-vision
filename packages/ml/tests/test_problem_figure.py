@@ -1,39 +1,27 @@
 from pathlib import Path
 
+import cv2
 import numpy as np
-from padel_ml.thesis.problem import Crop, Hit, spotlight, system_hits
+import pytest
+from padel_ml.thesis.problem import draw_problem_figure
 
-from padel_cv.detections import PoseDetection
-
-HEADER = "rally;tournament;truth_s;detected_s;truth_type;truth_player;player;shot_type\n"
-
-
-def test_system_hits_keeps_only_what_the_system_returned_for_that_rally(tmp_path: Path) -> None:
-    csv = tmp_path / "hits.csv"
-    csv.write_text(
-        HEADER
-        + "R_01;R;2.7;2.73;Smash;2;2;Smash\n"
-        + "R_01;R;0.3;0.30;Serve;1;1;Serve\n"
-        + "R_01;R;5.0;;Forehand;4;;\n"  # missed by the audio: nothing to draw
-        + "R_02;R;1.0;1.01;Backhand;3;3;Backhand\n"
-    )
-    assert system_hits("R_01", csv) == [Hit(0.30, 1, "Serve"), Hit(2.73, 2, "Smash")]
+from padel_cv.video_io import read_frame
 
 
-def test_crop_moves_a_player_box_into_the_shown_region() -> None:
-    crop = Crop(x0=100, y0=50, x1=1100, y1=550)
-    player = PoseDetection(
-        bbox_xyxy=(300.0, 150.0, 400.0, 350.0),
-        confidence=1.0,
-        keypoints=np.zeros((17, 3), np.float32),
-        player_id=3,
-    )
-    assert crop.aspect == 2.0
-    assert crop.box(player) == (200.0, 100.0, 300.0, 300.0)
+def test_read_frame_returns_exactly_the_frame_asked_for(tmp_path: Path) -> None:
+    # Each frame carries its index as its grey level, so a wrong frame shows.
+    video = tmp_path / "counter.avi"
+    writer = cv2.VideoWriter(str(video), cv2.VideoWriter.fourcc(*"MJPG"), 25, (64, 48))
+    for index in range(30):
+        writer.write(np.full((48, 64, 3), index * 8, np.uint8))
+    writer.release()
+
+    assert abs(int(read_frame(video, 17).mean()) - 17 * 8) <= 2
+    with pytest.raises(ValueError, match="no frame 30"):
+        read_frame(video, 30)
 
 
-def test_spotlight_keeps_the_hitter_and_dims_the_rest() -> None:
-    image = np.full((200, 400, 3), 200, np.uint8)
-    lit = spotlight(image, (180.0, 80.0, 220.0, 160.0))
-    assert lit[120, 200, 0] > 190  # the hitter keeps his brightness
-    assert lit[10, 10, 0] < 120  # a corner far from him is dimmed
+def test_the_two_frames_must_be_the_same_size(tmp_path: Path) -> None:
+    raw = np.zeros((1080, 1920, 3), np.uint8)
+    with pytest.raises(ValueError, match="differ in size"):
+        draw_problem_figure(raw, raw[:540], tmp_path / "problema.pdf")

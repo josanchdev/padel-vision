@@ -20,7 +20,7 @@ import cv2
 
 from padel_cv import overlay
 from padel_cv.arrays import ImageArray
-from padel_cv.video_io import H264VideoWriter
+from padel_cv.video_io import H264VideoWriter, read_frame
 from padel_ml.rally_analysis import RallyAnalysis, Shot
 from padel_ml.shot_type_dataset import CLASSES
 
@@ -67,17 +67,8 @@ def annotated_frame(analysis: RallyAnalysis, index: int) -> ImageArray:
 
     Read from the original video, so the image goes through one compression (the
     source's) instead of two: a frame taken from the rendered H.264 file would
-    carry its re-encoding as well. Read sequentially, because seeking in an MP4
-    lands on the nearest keyframe rather than on `index`."""
-    capture = cv2.VideoCapture(str(analysis.video))
-    frame = None
-    for _ in range(index + 1):
-        ok, frame = capture.read()
-        if not ok:
-            capture.release()
-            raise ValueError(f"{analysis.video.name} has no frame {index}")
-    capture.release()
-    image = cast(ImageArray, frame)
+    carry its re-encoding as well."""
+    image = read_frame(analysis.video, index)
     past = sorted(
         (s for s in analysis.shots if s.frame_index <= index), key=lambda s: s.frame_index
     )
