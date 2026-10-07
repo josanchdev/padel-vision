@@ -15,7 +15,7 @@ import cv2
 import torch
 from padel_ml.rally_analysis import ModelPaths, RallyModels, analyze_rally
 from padel_ml.rally_render import annotated_frame
-from padel_ml.thesis.problem import draw_problem_figure
+from padel_ml.thesis.problem import Region, draw_problem_figure
 
 from padel_cv.court_registry import court_file_for
 from padel_cv.paths import CVSPORTS_RALLIES, REPO, RUNS
@@ -28,6 +28,8 @@ SHOWN_S = 4.52
 """J3's backhand, near the camera, with the ball trail arriving at the racket.
 The system gets it right (instant, player and type), as it does with the hits
 around it."""
+DETAIL = Region(x0=395, y0=595, x1=690, y1=935)
+"""What the renderer draws for that hit: the label, J3's skeleton and the ball trail."""
 
 
 def main() -> None:
@@ -46,7 +48,7 @@ def main() -> None:
 
     raw = cv2.cvtColor(read_frame(video, shot.frame_index), cv2.COLOR_BGR2RGB)
     processed = cv2.cvtColor(annotated_frame(analysis, shot.frame_index), cv2.COLOR_BGR2RGB)
-    draw_problem_figure(raw, processed, args.out)
+    draw_problem_figure(raw, processed, DETAIL, args.out)
     print(f"{args.out}: J{shot.player_id} {shot.shot_type} en el fotograma {shot.frame_index}")
 
 
