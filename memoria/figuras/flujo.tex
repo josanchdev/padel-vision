@@ -18,8 +18,8 @@
   \node[caja, text width=20mm] (Q) at (11.2,2.05) {¿Quién?\subcaja{voto por cercanía}};
   \node[aporta, text width=20mm] (T) at (11.2,0.0) {¿Qué golpe?\subcaja{su pose y la pelota\\clasificador BST}};
   % Salida: lo que lee el visor (vídeo procesado y point.json)
-  \node[caja, text width=17mm] (R) at (13.95,1.0) {Vídeo procesado y datos de cada golpe};
-  \node[caja, text width=17mm] (W) at (13.95,-0.85) {Visor web};
+  \node[caja, text width=17mm] (R) at (13.95,0.0) {Vídeo procesado y datos de cada golpe};
+  \node[caja, text width=17mm] (W) at (13.95,-1.75) {Visor web};
 
   \begin{scope}[on background layer]
     \node[panel, fill=panelaudio, fit=(A1)(A2)] (gA) {};
@@ -49,10 +49,10 @@
     |- ($(Q.west)+(0,2.7mm)$);
   \draw[flecha] (J3.east) -- (J3.east -| xj) |- (Q.west);
   \draw[flecha] (B2.east) -- (B2.east -| xb) |- ($(Q.west)+(0,-2.7mm)$);
-  % El voto pasa el golpeador al clasificador
+  % El voto pasa el golpeador al clasificador, y de este sale el golpe completo
   \draw[flecha] (Q) -- (T) node[dato, midway, left] {golpeador};
   % Salidas
-  \draw[flecha] (gG.east |- R) -- (R);
+  \draw[flecha] (T) -- (R);
   \draw[flecha] (R) -- (W);
   \node[seccion] at (W.south east) {4.3};
 \end{tikzpicture}
