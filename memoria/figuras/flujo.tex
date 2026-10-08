@@ -32,9 +32,16 @@
   \node[titulopanel] at (gI.north west) {\textbf{IMAGEN} \textperiodcentered{} fotograma a fotograma};
   \node[titulopanel] at (gG.north west) {\textbf{POR CADA GOLPE}};
 
-  % Del punto a las dos ramas: una flecha a cada una
-  \draw[flecha] (P.east) -- ++(2.5mm,0) |- (gA.west);
-  \draw[flecha] (P.east) -- ++(2.5mm,0) |- (gI.west);
+  % Del punto a las dos ramas: una flecha a cada una. La de la imagen se reparte,
+  % dentro de su panel, entre las dos cajas por las que empieza esa rama
+  \coordinate (tronco) at ($(P.east)+(2.2mm,0)$);
+  \coordinate (reparto) at ($(J1.west)+(-2.6mm,0)$);
+  \draw[flecha] (tronco) |- (A1.west);
+  \draw[linea] (P.east) -- (tronco);
+  \draw[linea] (tronco) -- (reparto |- tronco) -- (reparto |- J1.west);
+  \draw[linea] (reparto |- tronco) -- (reparto |- B1.west);
+  \draw[flecha] (reparto |- J1.west) -- (J1.west);
+  \draw[flecha] (reparto |- B1.west) -- (B1.west);
   \draw[flecha] (A1) -- (A2);
   \draw[flecha] (J1) -- (J2);
   \draw[flecha] (J2) -- (J3);
