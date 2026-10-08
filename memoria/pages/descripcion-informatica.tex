@@ -10,43 +10,36 @@
   \label{fig:flujo}
 \end{figure}
 
-El flujo de procesamiento del sistema requiere como entrada un vídeo con audio de un punto de pádel y una notación manual de la pista utilizada
-Una vez el sistema tiene todo lo necesario el trabajo se divide en dos ramas. La primera rama usa el sonido del video que se convierte en un espectograma log-Mel y una red CRNN (esto hay que añadir a siglas) detecta cuando se golpea la pelota. El otro camino del proceso es por fotograma a fotograma, donde un modelo yolo26-pose detecta las personas dentro del campo y les asigna un id durante todo el punto. Por paralelo un modelo tracknet localiza la pelota en cada fotograma. Una vez terminen ambas ramas se pasa cada instante de golpe el resultado anterior para poder decidir quien de los cuatro jugadores es quien golpea a la pelota. Esto se hace por la muñeca mas cercana a la pelota (no se si entrar aqui en tanto detalle) lo voy a contar luego todo mucho mas metido. Entonces una vez sabemos el instante del golpe, el jugador que ha golpeado y el esqueleto y la pelota, toca clasificar el golpe que mira una ventana alrededor del golpe y decide que clase es; el saque solo puede ser el primer golpe del punto. Una vez termine (o este resultado( no se cual me gusta mas)) se obtendria el video procesado con los esqueletos, pelota y tipo de golpe pintado. Tambien se obtiene los datos en crudo que luego lee el visor web.
+El sistema recibe un punto de pádel grabado con su audio desde una cámara fija, situada al fondo de la pista y en alto.
+La única preparación que necesita es marcar a mano las cuatro esquinas de la pista y los extremos de la red, y basta con hacerlo una vez por cámara.
+Con esa marca, el sistema distingue a los jugadores del público y puede situarlos en metros sobre la pista.
+A partir de ahí, determina para cada golpe del punto el instante en que se produce, el jugador que lo ejecuta y su tipo: derecha, revés, remate o saque.
+La \cref{fig:flujo} resume el recorrido que sigue el punto hasta obtener ese resultado.
 
-% REVISIÓN (Claude, 7 oct; borrar al corregir)
-% Contenido:
-% - Falta el arranque: qué recibe el sistema (el punto con su audio y la pista
-%   marcada a mano UNA VEZ POR CÁMARA, no por vídeo) y qué devuelve. «Una vez el
-%   sistema tiene todo lo necesario» no dice qué es «todo».
-% - Citar la figura una vez: «(\cref{fig:flujo})».
-% - YOLO26-pose no asigna los identificadores: detecta a todas las personas
-%   (público incluido) con su pose; después se quedan las que pisan la pista y
-%   otro componente les asigna J1-J4 durante el punto. Son las tres cajas del
-%   diagrama, y aquí aparece el esqueleto que luego usa el clasificador.
-% - «campo» -> «pista».
-% - Usar las palabras del diagrama: «voto» (el golpeador es el jugador cuya
-%   muñeca está más cerca de la pelota en los fotogramas que rodean al golpe),
-%   «trayectoria», «golpeador».
-% - Clasificador: nombrar BST y los cuatro tipos (derecha, revés, remate, saque)
-%   en lugar de «qué clase es».
-% - El vídeo procesado dibuja los esqueletos con el identificador de cada
-%   jugador, la pelota y, en cada golpe, quién lo da y de qué tipo es.
-% - «datos en crudo» -> «los datos de cada golpe (instante, jugador y tipo)».
-% - Cerrar con una frase que remita a la \cref{sec:componentes}.
-% Citas (primera mención): Decorte et al. \cite{decorte2024padel} (audio con CRNN
-%   y voto por cercanía); YOLO26 \cite{jocher2026yolo26}; TrackNet
-%   \cite{huang2019tracknet}; BST \cite{chang2026bst}.
-% Siglas: \ac{crnn} y \ac{bst} (ya declaradas en config/acronimos.tex).
-% Forma:
-% - Falta el punto tras «utilizada»: LaTeX une esa línea con la siguiente.
-% - «espectograma» -> «espectrograma»; «Por paralelo» -> «En paralelo»;
-%   «se obtiene los datos» -> «se obtienen»; «pintado» -> «dibujados»;
-%   «video» -> «vídeo»; «mas» -> «más»; «quien» -> «quién» (interrogativa).
-% - Impersonal en lugar de «una vez sabemos», «toca clasificar»: «una vez
-%   conocidos…», «a continuación se clasifica…». Presente, no «se obtendría».
-% - Dividir en 3-4 párrafos: entrada y salida; las dos ramas; cada golpe;
-%   resultado.
+El procesamiento se divide en dos ramas que trabajan por separado.
+La primera usa solo el sonido y responde a cuándo hay un golpe.
+El audio se convierte en un espectrograma log-Mel, que muestra cómo se reparte la energía del sonido entre las frecuencias a lo largo del tiempo.
+Sobre él, una \ac{crnn} marca los instantes en que suena un golpe de pala, siguiendo el método de Decorte et al.~\cite{decorte2024padel}.
+La segunda rama recorre el vídeo fotograma a fotograma.
+En cada uno, el modelo YOLO26-pose~\cite{jocher2026yolo26} detecta a todas las personas, público incluido, junto con su pose, es decir, la posición de las articulaciones que forman su esqueleto.
+De ellas se conservan solo las que están dentro de la pista, y a cada jugador se le asigna una identidad, de J1 a J4, que se mantiene durante todo el punto.
+Al mismo tiempo, un detector basado en TrackNet~\cite{huang2019tracknet} localiza la pelota en cada fotograma, y su trayectoria se limpia después para descartar las detecciones que no corresponden a un vuelo real.
 
+Las dos ramas se encuentran en cada instante de golpe que ha detectado el audio.
+En primer lugar hay que saber quién lo ha dado, y para ello se recurre a un voto basado también en Decorte et al.: en los fotogramas que rodean al golpe, gana el jugador cuya muñeca está más cerca de la pelota.
+Una vez conocido el golpeador, el clasificador \ac{bst}~\cite{chang2026bst} observa su pose y la trayectoria de la pelota en una ventana alrededor del golpe, y decide de qué tipo es.
+Como el saque es siempre el golpe que abre el punto, solo el primero puede clasificarse como saque.
+
+El resultado se entrega de dos formas.
+Por un lado, el vídeo procesado del punto, en el que se dibujan los esqueletos con el identificador de cada jugador, la trayectoria de la pelota y, en cada golpe, quién lo ha dado y de qué tipo es.
+Por otro, los datos del punto: cada golpe con su instante, su jugador y su tipo, y la posición de los jugadores sobre la pista.
+Son estos datos los que lee el visor web (\cref{sec:visor}).
+La \cref{sec:componentes} explica con detalle cada uno de estos pasos.
+
+% TEXTO ANTERIOR DE JORGE (comentado el 8 oct; la versión de arriba aplica las
+% correcciones que se le hicieron)
+% El flujo de procesamiento del sistema requiere como entrada un vídeo con audio de un punto de pádel y una notación manual de la pista utilizada
+% Una vez el sistema tiene todo lo necesario el trabajo se divide en dos ramas. La primera rama usa el sonido del video que se convierte en un espectograma log-Mel y una red CRNN (esto hay que añadir a siglas) detecta cuando se golpea la pelota. El otro camino del proceso es por fotograma a fotograma, donde un modelo yolo26-pose detecta las personas dentro del campo y les asigna un id durante todo el punto. Por paralelo un modelo tracknet localiza la pelota en cada fotograma. Una vez terminen ambas ramas se pasa cada instante de golpe el resultado anterior para poder decidir quien de los cuatro jugadores es quien golpea a la pelota. Esto se hace por la muñeca mas cercana a la pelota (no se si entrar aqui en tanto detalle) lo voy a contar luego todo mucho mas metido. Entonces una vez sabemos el instante del golpe, el jugador que ha golpeado y el esqueleto y la pelota, toca clasificar el golpe que mira una ventana alrededor del golpe y decide que clase es; el saque solo puede ser el primer golpe del punto. Una vez termine (o este resultado( no se cual me gusta mas)) se obtendria el video procesado con los esqueletos, pelota y tipo de golpe pintado. Tambien se obtiene los datos en crudo que luego lee el visor web.
 
 \section{Componentes del sistema}
 \label{sec:componentes}
