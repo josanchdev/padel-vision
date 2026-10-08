@@ -47,6 +47,33 @@ La \cref{sec:componentes} explica con detalle cada uno de estos pasos.
 \subsection{Instante del golpe}
 \label{sec:instante}
 
+% IDEAS (borrar antes de pasar la memoria al tutor)
+% - Por qué audio: el golpe de pala suena seco y característico y se oye aunque
+%   la pelota no se vea. Método de Decorte et al. Se probó a detectarlo por pose y
+%   pelota y salió peor (la cifra, en Experimentos).
+% - Del sonido a una imagen: espectrograma log-Mel de 40 bandas, ventanas de unos
+%   21 ms (audio a 48 kHz, 2048 muestras con solape del 50 %). El golpe es una
+%   raya vertical breve. Arriba no hay energía: el audio viene comprimido.
+% - La red CRNN (~109 000 parámetros, réplica de la tabla 2 de Decorte): tres
+%   capas convolucionales que solo comprimen la frecuencia, nunca el tiempo; dos
+%   GRU bidireccionales que miran antes y después; probabilidad de golpe en cada
+%   instante.
+% - Entrenamiento: instantes anotados en CVSPORTS (ventanas de inicio y fin);
+%   pérdida focal porque los instantes con golpe son muy pocos; AdamW.
+% - De la curva a los golpes: cada pico por encima de 0,5 es un golpe, con al
+%   menos 8 ventanas (~170 ms) entre dos; umbral medido, estable entre 0,3 y 0,7.
+% - Figura: figuras/audio.pdf (scripts/build_audio_figure.py), primeros 9 s del
+%   punto de la figura del problema, con la red entrenada sin VIGO.
+% - Citas: \cite{decorte2024padel}, \cite{lin2017focal}, \cite{cho2014gru},
+%   \cite{loshchilov2019adamw}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics{figuras/audio}
+  \caption{Detección de los golpes de un punto a partir del audio.}
+  \label{fig:audio}
+\end{figure}
+
 \subsection{Jugadores}
 \label{sec:jugadores}
 
