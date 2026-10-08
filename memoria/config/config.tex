@@ -76,6 +76,7 @@
 
 % Diagramas (TikZ): cajas neutras, paneles de color suave por etapa y un solo
 % acento, el azul, para la aportación del trabajo. Cada diagrama, en figuras/
+\usepackage{adjustbox} % reduce un diagrama que se pase del ancho del texto
 \usepackage{tikz}
 \usetikzlibrary{positioning,fit,arrows.meta,calc,backgrounds}
 \definecolor{tinta}{HTML}{0b0b0b}
@@ -90,14 +91,14 @@
 \definecolor{panelgolpe}{HTML}{fbf4ea}
 \tikzset{
   caja/.style={draw=borde, fill=white, rounded corners=2pt, align=center,
-    font=\footnotesize, inner sep=3.5pt, minimum height=9mm, text width=21mm, text=tinta},
+    font=\footnotesize, inner xsep=5pt, inner ysep=3.5pt, minimum height=9mm, text width=21mm, text=tinta},
   aporta/.style={caja, draw=acento, fill=acentofondo, line width=0.8pt},
   entrada/.style={caja, fill=fondo},
   linea/.style={draw=tinta2, line width=0.55pt},
   flecha/.style={linea, -{Stealth[length=1.8mm]}},
   dato/.style={font=\scriptsize\itshape, text=tinta2, inner sep=1pt},
   panel/.style={rounded corners=6pt, inner sep=7pt},
-  titulopanel/.style={font=\scriptsize\bfseries, text=tinta2, anchor=south west, inner sep=2pt},
+  titulopanel/.style={font=\footnotesize\bfseries, text=tinta, anchor=south west, inner sep=2pt},
   seccion/.style={font=\tiny, text=tenue, anchor=north east, inner sep=1.5pt},
 }
 % Segunda línea, más pequeña y gris, dentro de una caja
