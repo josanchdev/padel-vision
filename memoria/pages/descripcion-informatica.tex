@@ -64,6 +64,12 @@ La \cref{sec:componentes} explica con detalle cada uno de estos pasos.
 %   menos 8 ventanas (~170 ms) entre dos; umbral medido, estable entre 0,3 y 0,7.
 % - Figura: figuras/audio.pdf (scripts/build_audio_figure.py), primeros 9 s del
 %   punto de la figura del problema, con la red entrenada sin VIGO.
+% - Lo que enseña la figura: cada sonido breve y seco (golpe, bote de la
+%   pelota, paso, público) deja una raya vertical en el espectrograma, así que
+%   «raya = golpe» no sirve. La red aprende cómo suena la pala y solo se dispara
+%   en los golpes: seis triángulos naranjas sobre seis rayas, y las demás rayas
+%   (hacia 1,05 s, 3,3 s, 7,6 s) quedan por debajo del umbral. Por eso hace
+%   falta una red y no basta con medir el volumen.
 % - Citas: \cite{decorte2024padel}, \cite{lin2017focal}, \cite{cho2014gru},
 %   \cite{loshchilov2019adamw}.
 

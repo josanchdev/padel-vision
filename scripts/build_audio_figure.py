@@ -13,7 +13,7 @@ import argparse
 from pathlib import Path
 
 import numpy as np
-from padel_ml.audio_dataset import build_rally, frame_time
+from padel_ml.audio_dataset import SAMPLE_RATE, build_rally, frame_time
 from padel_ml.audio_train import DEFAULT_THRESHOLD, hit_probabilities, peaks_from_frames
 from padel_ml.thesis.audio_figure import AudioTrace, draw_audio_figure
 
@@ -47,6 +47,7 @@ def main() -> None:
         probability,
         [frame_time(p) for p in peaks],
         load_hits_csv(CVSPORTS_HITS)[f"{RALLY}.mp4"],
+        SAMPLE_RATE,
     )
     draw_audio_figure(trace.window(START_S, END_S), DEFAULT_THRESHOLD, args.out)
     print(args.out)

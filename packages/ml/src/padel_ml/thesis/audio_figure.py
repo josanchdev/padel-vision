@@ -42,6 +42,7 @@ ANNOTATED = "#e4e1d8"
 """Neutral warm grey for the annotated hit windows: a reference, not our output."""
 DETECTED = "#eb6834"
 """The hits the system reports: the one accent of the figure."""
+FREQUENCY_TICKS_KHZ = (1, 2, 5, 10, 20)
 
 
 @dataclass(frozen=True)
@@ -57,6 +58,8 @@ class AudioTrace:
     detected_s: list[float]
     annotated: list[tuple[float, float]]
     """The hit windows annotated in the dataset, (start, end) in seconds."""
+    sample_rate: int
+    """Of the audio the spectrogram was computed from."""
 
     def window(self, start_s: float, end_s: float) -> AudioTrace:
         """The part of the trace between `start_s` and `end_s`."""
@@ -67,7 +70,20 @@ class AudioTrace:
             self.probability[keep],
             [t for t in self.detected_s if start_s <= t <= end_s],
             [(a, b) for a, b in self.annotated if b >= start_s and a <= end_s],
+            self.sample_rate,
         )
+
+
+def mel_position(frequency_hz: float, n_mels: int, sample_rate: int) -> float:
+    """Where `frequency_hz` falls on the axis of `n_mels` bands (band k at k).
+
+    torchaudio's default (HTK) mel scale, with the bands' centres evenly spaced
+    in mel between 0 Hz and the Nyquist frequency."""
+
+    def mel(hz: float) -> float:
+        return float(2595.0 * np.log10(1.0 + hz / 700.0))
+
+    return mel(frequency_hz) / (mel(sample_rate / 2) / (n_mels + 1))
 
 
 def draw_audio_figure(trace: AudioTrace, threshold: float, out: Path) -> None:
@@ -86,7 +102,7 @@ def draw_audio_figure(trace: AudioTrace, threshold: float, out: Path) -> None:
             height_ratios=(1.25, 1.0),
             hspace=0.12,
             left=0.075,
-            right=0.985,
+            right=0.925,
             top=0.86,
             bottom=0.15,
         )
@@ -94,7 +110,7 @@ def draw_audio_figure(trace: AudioTrace, threshold: float, out: Path) -> None:
         curve = figure.add_subplot(grid[1], sharex=spectrum)
 
         bands = trace.log_mel.shape[1]
-        spectrum.imshow(
+        image = spectrum.imshow(
             trace.log_mel.T,
             origin="lower",
             aspect="auto",
@@ -104,8 +120,32 @@ def draw_audio_figure(trace: AudioTrace, threshold: float, out: Path) -> None:
             extent=(start - step / 2, end + step / 2, 0.5, bands + 0.5),
             interpolation="nearest",
         )
-        spectrum.set_yticks([1, bands // 2, bands])
-        spectrum.set_ylabel("Banda Mel")
+        spectrum.set_ylim(0.5, bands + 0.5)
+        spectrum.set_yticks(
+            [mel_position(khz * 1000, bands, trace.sample_rate) for khz in FREQUENCY_TICKS_KHZ]
+        )
+        spectrum.set_yticklabels([f"{khz:g}".replace(".", ",") for khz in FREQUENCY_TICKS_KHZ])
+        spectrum.set_ylabel("Frecuencia (kHz)")
+        # Each detected hit, on top of its stripe, lined up with its peak below
+        spectrum.plot(
+            trace.detected_s,
+            [bands + 2.2] * len(trace.detected_s),
+            linestyle="none",
+            marker="v",
+            markersize=4.5,
+            color=DETECTED,
+            markeredgecolor="white",
+            markeredgewidth=0.6,
+            clip_on=False,
+        )
+        box = spectrum.get_position()
+        scale = figure.add_axes((0.94, box.y0, 0.012, box.height))
+        bar = figure.colorbar(image, cax=scale, ticks=[low, high])
+        bar.ax.set_yticklabels(["baja", "alta"])
+        bar.ax.tick_params(length=0, labelsize=7)
+        for edge in bar.ax.spines.values():
+            edge.set_visible(False)
+        bar.set_label("Energía", fontsize=7.5, labelpad=-2)
         spectrum.tick_params(labelbottom=False)
         for side in ("left", "bottom"):
             spectrum.spines[side].set_visible(False)
