@@ -1,18 +1,17 @@
-\begin{tabular}{lrr}
+\begin{tabular}{lcc}
 \toprule
-\textbf{Capa} & \textbf{Salida} & \textbf{Parámetros} \\
+\textbf{Tipo de capa} & \textbf{Hiperparámetros} & \textbf{Activación} \\
 \midrule
-Conv2D $1 \to 64$, $3 \times 3$, ReLU & $64 \times 40 \times 256$ & 640 \\
-MaxPool $5 \times 1$ (frecuencia) & $64 \times 8 \times 256$ & 0 \\
-Conv2D $64 \to 64$, $3 \times 3$, ReLU & $64 \times 8 \times 256$ & 36\,928 \\
-MaxPool $2 \times 1$ & $64 \times 4 \times 256$ & 0 \\
-Conv2D $64 \to 64$, $3 \times 3$, ReLU & $64 \times 4 \times 256$ & 36\,928 \\
-MaxPool $2 \times 1$ & $64 \times 2 \times 256$ & 0 \\
-GRU bidireccional, 32 unidades & $256 \times 64$ & 31\,104 \\
-GRU bidireccional, 16 unidades & $256 \times 32$ & 7\,872 \\
-Densa $32 \to 32$, ReLU & $256 \times 32$ & 1\,056 \\
-Densa $32 \to 1$ (sigmoide) & $256 \times 1$ & 33 \\
-\midrule
-\textbf{Total} &  & \textbf{114\,561} \\
+conv2D & $1 \to 64$, $3 \times 3$, $1 \times 1$ & ReLU \\
+maxpool & $5 \times 1$ & - \\
+conv2D & $64 \to 64$, $3 \times 3$, $1 \times 1$ & ReLU \\
+maxpool & $2 \times 1$ & - \\
+conv2D & $64 \to 64$, $3 \times 3$, $1 \times 1$ & ReLU \\
+maxpool & $2 \times 1$ & - \\
+reorganización & $64 \times 2 \times 256 \to 256 \times 128$ & - \\
+GRU bidireccional & $256 \times 128 \to 256 \times 64$ & tanh \\
+GRU bidireccional & $256 \times 64 \to 256 \times 32$ & tanh \\
+densa en el tiempo & $256 \times 32 \to 256 \times 32$ & ReLU \\
+densa en el tiempo & $256 \times 32 \to 256 \times 1$ & sigmoide \\
 \bottomrule
 \end{tabular}
