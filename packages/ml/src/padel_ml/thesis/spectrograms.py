@@ -174,7 +174,7 @@ def draw_spectrogram_figure(
     small_h = 1.0
     gap = 0.8
     """Between the two close-ups: room for the second one's frequency axis."""
-    small_w = (wide - side - 0.1 - gap) / 2 if point is None else 0.38 * wide
+    small_w = 0.30 * wide if point is None else 0.27 * wide
     big_h = 1.2
     with mpl.rc_context(STYLE):
         height = small_h + 0.95 + (big_h + 0.95 if point is not None else 0.0)
@@ -194,7 +194,7 @@ def draw_spectrogram_figure(
                 "Tiempo",
                 "(a)",
             )
-        first = side + ((wide - side - 0.1) - (2 * small_w + gap)) / 2
+        first = (wide - (2 * small_w + gap + side)) / 2 + side
         lefts = [first, first + small_w + gap]
         for left, spec, ticks, caption in zip(
             lefts,
