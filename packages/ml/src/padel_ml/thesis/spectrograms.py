@@ -25,7 +25,7 @@ import torch
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from padel_ml.thesis.figures import MUTED_INK, STYLE
+from padel_ml.thesis.figures import INK, STYLE
 from padel_ml.thesis.problem import TEXT_WIDTH_IN
 
 FloatArray = npt.NDArray[np.float32]
@@ -33,11 +33,15 @@ FloatArray = npt.NDArray[np.float32]
 N_FFT = 2048
 HOP = 256
 """About 5 ms between columns at 48 kHz: sharp enough for a hit's stripe."""
-RANGE_DB = 70.0
-"""Decibels shown below the loudest 0.1 % of the spectrogram."""
+TOP_PERCENTILE = 97.0
+"""The colour scale tops out at this percentile of the sound, not at its loudest
+pixel: the loud low frequencies saturate, and the faint, thin stripe a hit leaves
+up to 17 kHz is still bright enough to see."""
+RANGE_DB = 55.0
+"""Decibels shown below that top."""
 MAX_COLUMNS = 3000
 """A whole point is shrunk to this many columns, keeping the loudest of each block."""
-COLORMAP = "inferno"
+COLORMAP = "magma"
 """Black to yellow, the scale that is read as a spectrogram at a glance."""
 LABEL_ABOVE_HZ = (0.0, 12000.0, 24000.0)
 
@@ -154,7 +158,7 @@ def _panel(
         ha="center",
         va="top",
         fontsize=8.5,
-        color=MUTED_INK,
+        color=INK,
     )
     return axes
 
@@ -167,7 +171,7 @@ def draw_spectrogram_figure(
 ) -> None:
     """Write the figure to `out` (PDF). Without `point`, only the two close-ups."""
     reference = np.concatenate([a.decibels.ravel() for a in (point or hit, hit, no_hit)])
-    top = float(np.percentile(reference, 99.9))
+    top = float(np.percentile(reference, TOP_PERCENTILE))
     limits = (top - RANGE_DB, top)
     wide = TEXT_WIDTH_IN
     side = 0.62
@@ -176,7 +180,7 @@ def draw_spectrogram_figure(
     """Between the two close-ups: room for the second one's frequency axis."""
     small_w = 0.30 * wide if point is None else 0.27 * wide
     big_h = 1.2
-    with mpl.rc_context(STYLE):
+    with mpl.rc_context({**STYLE, "axes.labelcolor": INK, "xtick.color": INK, "ytick.color": INK}):
         height = small_h + 0.95 + (big_h + 0.95 if point is not None else 0.0)
         figure = Figure(figsize=(wide, height))
         small_bottom = 0.6
