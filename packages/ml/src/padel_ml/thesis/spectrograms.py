@@ -45,9 +45,9 @@ HOP = 24
 """Half a millisecond between columns."""
 COLORMAP = "magma"
 """Black to yellow, the scale that is read as a spectrogram at a glance."""
-TOP_PERCENTILE = 99.7
+TOP_PERCENTILE = 99.0
 """The colour scale tops out at this percentile of the sound, not at its loudest pixel."""
-RANGE_DB = 62.0
+RANGE_DB = 50.0
 """Decibels shown below that top."""
 FREQUENCY_TICKS_HZ = (0.0, 12000.0, 24000.0)
 
