@@ -136,7 +136,7 @@ aprendido:
 **Features:** 40 bins **log-Mel** (rango 0-42 kHz), FFT window 2048, 50% overlap,
 en secuencias de 256 frames. (El espectrograma mel = "imagen" tiempo×frecuencia.)
 
-**Arquitectura (SED-net adaptada, CRNN, 109k params):**
+**Arquitectura (SED-net adaptada, CRNN; 109k params según el paper, 114,6k en nuestra implementación):**
 ```
 conv2D 1→64 (3x3) ReLU + maxpool(1x5)
 conv2D 64→64 (3x3) ReLU + maxpool(1x2)

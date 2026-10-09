@@ -40,8 +40,15 @@ Como se indicaba anteriormente, se obtienen el vídeo procesado y lo que es más
 \section{Componentes del sistema}
 \label{sec:componentes}
 
+A lo largo de esta sección se detallará la arquitectura definida para identificar cada golpe.
+Para ello, el sistema utiliza información de audio e imágenes.
+
 \subsection{Instante del golpe}
 \label{sec:instante}
+
+Aunque el enfoque inicial del proyecto consistía en identificar el instante en el que un jugador golpea la pelota basándose exclusivamente en el análisis visual de las imágenes, finalmente fue descartado dada la dificultad que entraña detectar y hacer seguimiento de la trayectoria de la pelota.
+Y esta dificultad viene dada por varios motivos, el tamaño de la pelota, la alta velocidad a la que se mueve y el hecho de que la pelota no permanece siempre visible.
+Se intentó asociar un golpe a la cercanía de la muñeca de un jugador a la pelota cuando esta cambiaba de dirección, pero el  número de falsos positivos era muy elevado y el número de golpes no detectados era también excesivo (ver resultados).
 
 % IDEAS (borrar antes de pasar la memoria al tutor)
 % Fuente: Decorte et al., apartados 4 (Ball hit detection), 4.1 (Audio analysis),
@@ -88,8 +95,13 @@ Como se indicaba anteriormente, se obtienen el vídeo procesado y lo que es más
 %   bidireccionales (32 y 16 unidades); dos capas densas, la última con sigmoide:
 %   una probabilidad de golpe por ventana. Ellos redujeron la original (profundidad
 %   de 128 a 64, segunda GRU a 16, solo dos densas, pérdida focal binaria).
-% - Parámetros: la red de su tabla 2 tiene 109 159 y la nuestra 114 561 (contados
-%   por el código): ligera diferencia, a no decir que son «idénticos».
+% - Parámetros: la nuestra tiene 114 561. NO se compara con los 109 159 del paper:
+%   con los datos de su tabla no se puede reproducir su cifra (probado con las dos
+%   lecturas posibles de las GRU) y no sabemos de dónde viene la diferencia.
+% - Lo que sí es nuestro y se puede decir como descripción (no como «cambio»):
+%   las GRU bidireccionales concatenan los dos sentidos (salen 64 y 32 valores) y
+%   por eso las densas son de 32; en su tabla salen 32 y 16. No sabemos si su
+%   implementación difiere en eso.
 % - Pérdida focal binaria: Lin et al.; GRU: Cho et al.
 % - Entrenamiento: ellos Adam, tasa de 0,001, lotes de 128 secuencias. Nosotros
 %   AdamW (0,001, decaimiento 1e-4), lotes de 32 y 30 épocas. Citar solo si se

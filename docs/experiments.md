@@ -836,7 +836,7 @@ el método publicado, no una versión ingenua. Leído el paper entero
 (Decorte et al., CVPRW 2024) y contrastado punto por punto con lo que teníamos.
 
 **Lo que ya coincidía** (verificado contra el texto, no de memoria): arquitectura
-CRNN (109k params, focal loss, 40 log-Mel, FFT 2048, 50% overlap, seq 256);
+CRNN (114,6k params; el paper da 109k para la suya; focal loss, 40 log-Mel, FFT 2048, 50% overlap, seq 256);
 evaluación event-based con collar 250 ms y split cross-rally 70/30; ventana de
 500 ms / 12 frames con voto mayoritario ponderado por la ec. 1 y desempate por
 distancia mínima; distancia = mínimo de ambas muñecas con fallback al centro de

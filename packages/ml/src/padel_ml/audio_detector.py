@@ -1,16 +1,21 @@
-"""CRNN for audio hit detection — SED-net replica (ADR-0015, Decorte et al. 2024).
+"""CRNN for audio hit detection, after the adapted SED-net of Decorte et al. 2024 (ADR-0015).
 
-Per-frame binary hit detector over log-Mel features. Architecture replicated from
-the paper's Table 2 (adapted SED-net, ~109k params):
+Per-frame binary hit detector over log-Mel features. The layers follow the paper's
+Table 2:
 
-  conv2D 1->64 (3x3) ReLU, maxpool (1x5)     # pool FREQUENCY only, keep time
-  conv2D 64->64 (3x3) ReLU, maxpool (1x2)
-  conv2D 64->64 (3x3) ReLU, maxpool (1x2)
-  reshape -> features per time step
-  bidirectional GRU -> 32
-  bidirectional GRU -> 16
-  time-distributed dense 16 -> 16
-  time-distributed dense 16 -> 1 (sigmoid, per-frame hit prob)
+  conv2D 1->64 (3x3) ReLU, maxpool (5x1)     # pool FREQUENCY only, keep time
+  conv2D 64->64 (3x3) ReLU, maxpool (2x1)
+  conv2D 64->64 (3x3) ReLU, maxpool (2x1)
+  reshape -> 128 features per time step
+  bidirectional GRU, 32 units per direction  -> 64
+  bidirectional GRU, 16 units per direction  -> 32
+  time-distributed dense 32 -> 32 (ReLU)
+  time-distributed dense 32 -> 1 (logit; sigmoid gives the per-frame hit probability)
+
+This network has 114,561 trainable parameters; the paper reports 109,159 for its
+own, and what accounts for the difference cannot be told from the table (we
+concatenate the two directions of each GRU, so the dense layers are 32 wide).
+It is an implementation of the same layer layout, not a bit-for-bit replica.
 
 Pooling is over the mel axis only (1xk), never over time, so the output stays one
 prediction per input frame — that's what makes it a precise per-frame localizer.
