@@ -1,45 +1,41 @@
 % !TEX root = ../tfg.tex
 
+Los puntos que se van a tratar durante este capítulo.
+A lo largo de esta sección se detallará la arquitectura definida para identificar cada golpe. Para ello, el sistema utiliza información de audio e imágenes.
+A lo largo de esta sección se detallará la arquitectura definida para identificar cada golpe. Para ello, el sistema utiliza información de audio e imágenes.
+
 \section{Arquitectura}
 \label{sec:arquitectura}
 
-\begin{figure}[htbp]
+A lo largo de esta sección se detallará la arquitectura definida para identificar cada golpe.
+Para ello, el sistema utiliza información de audio e imágenes.
+
+Como paso previo al tratamiento de vídeo será necesario marcar manualmente las seis referencias espaciales que delimitan el contorno de la pista, así como la ubicación de la red.
+Estas anotaciones se podrán reutilizar siempre y cuando no varíe la ubicación y orientación de la cámara.
+
+El proceso arranca con un punto de pádel grabado desde una cámara fija.
+Esta deberá estar situada al fondo de la pista y con una cierta elevación sobre la misma.
+
+Utilizando los vértices previamente anotados, el sistema es capaz de localizar a los jugadores en la pista, descartando por tanto al resto de personas.
+A continuación, atribuye cada golpe a un jugador y clasifica el mismo.
+Como paso final, devuelve como salida el vídeo procesado y el conjunto de datos.
+
+Todo este flujo de información queda reflejado en la \cref{fig:flujo}.
+
+\begin{figure}[tbp]
   \centering
   \input{figuras/flujo}
   \caption{Flujo de procesamiento de un punto.}
   \label{fig:flujo}
 \end{figure}
 
-El sistema recibe un punto de pádel grabado con su audio desde una cámara fija, situada al fondo de la pista y en alto.
-La única preparación que necesita es marcar a mano las cuatro esquinas de la pista y los extremos de la red, y basta con hacerlo una vez por cámara.
-Con esa marca, el sistema distingue a los jugadores del público y puede situarlos en metros sobre la pista.
-A partir de ahí, determina para cada golpe del punto el instante en que se produce, el jugador que lo ejecuta y su tipo: derecha, revés, remate o saque.
-La \cref{fig:flujo} resume el recorrido que sigue el punto hasta obtener ese resultado.
+Como se observa en la figura, el procesamiento se divide en dos ramas independientes, una para el audio y otra para la imagen.
+La rama de audio \cite{decorte2024padel} utiliza el sonido para detectar el instante en el que se produce el golpe (\cref{sec:instante}). Por otro lado, la rama de imagen se encarga de dos funciones principales, por un lado asigna un identificador a cada jugador (\cref{sec:jugadores}), y por otro lado detecta la pelota (\cref{sec:pelota}).
 
-El procesamiento se divide en dos ramas que trabajan por separado.
-La primera usa solo el sonido y responde a cuándo hay un golpe.
-El audio se convierte en un espectrograma log-Mel, que muestra cómo se reparte la energía del sonido entre las frecuencias a lo largo del tiempo.
-Sobre él, una \ac{crnn} marca los instantes en que suena un golpe de pala, siguiendo el método de Decorte et al.~\cite{decorte2024padel}.
-La segunda rama recorre el vídeo fotograma a fotograma.
-En cada uno, el modelo YOLO26-pose~\cite{jocher2026yolo26} detecta a todas las personas, público incluido, junto con su pose, es decir, la posición de las articulaciones que forman su esqueleto.
-De ellas se conservan solo las que están dentro de la pista, y a cada jugador se le asigna una identidad, de J1 a J4, que se mantiene durante todo el punto.
-Al mismo tiempo, un detector basado en TrackNet~\cite{huang2019tracknet} localiza la pelota en cada fotograma, y su trayectoria se limpia después para descartar las detecciones que no corresponden a un vuelo real.
+Para cada golpe detectado por la rama de audio se recoge un determinado número de fotogramas previos y posteriores a la detección.
+Dichos fotogramas permiten clasificar el golpe y el jugador que lo ha realizado.
 
-Las dos ramas se encuentran en cada instante de golpe que ha detectado el audio.
-En primer lugar hay que saber quién lo ha dado, y para ello se recurre a un voto basado también en Decorte et al.: en los fotogramas que rodean al golpe, gana el jugador cuya muñeca está más cerca de la pelota.
-Una vez conocido el golpeador, el clasificador \ac{bst}~\cite{chang2026bst} observa su pose y la trayectoria de la pelota en una ventana alrededor del golpe, y decide de qué tipo es.
-Como el saque es siempre el golpe que abre el punto, solo el primero puede clasificarse como saque.
-
-El resultado se entrega de dos formas.
-Por un lado, el vídeo procesado del punto, en el que se dibujan los esqueletos con el identificador de cada jugador, la trayectoria de la pelota y, en cada golpe, quién lo ha dado y de qué tipo es.
-Por otro, los datos del punto: cada golpe con su instante, su jugador y su tipo, y la posición de los jugadores sobre la pista.
-Son estos datos los que lee el visor web (\cref{sec:visor}).
-La \cref{sec:componentes} explica con detalle cada uno de estos pasos.
-
-% TEXTO ANTERIOR DE JORGE (comentado el 8 oct; la versión de arriba aplica las
-% correcciones que se le hicieron)
-% El flujo de procesamiento del sistema requiere como entrada un vídeo con audio de un punto de pádel y una notación manual de la pista utilizada
-% Una vez el sistema tiene todo lo necesario el trabajo se divide en dos ramas. La primera rama usa el sonido del video que se convierte en un espectograma log-Mel y una red CRNN (esto hay que añadir a siglas) detecta cuando se golpea la pelota. El otro camino del proceso es por fotograma a fotograma, donde un modelo yolo26-pose detecta las personas dentro del campo y les asigna un id durante todo el punto. Por paralelo un modelo tracknet localiza la pelota en cada fotograma. Una vez terminen ambas ramas se pasa cada instante de golpe el resultado anterior para poder decidir quien de los cuatro jugadores es quien golpea a la pelota. Esto se hace por la muñeca mas cercana a la pelota (no se si entrar aqui en tanto detalle) lo voy a contar luego todo mucho mas metido. Entonces una vez sabemos el instante del golpe, el jugador que ha golpeado y el esqueleto y la pelota, toca clasificar el golpe que mira una ventana alrededor del golpe y decide que clase es; el saque solo puede ser el primer golpe del punto. Una vez termine (o este resultado( no se cual me gusta mas)) se obtendria el video procesado con los esqueletos, pelota y tipo de golpe pintado. Tambien se obtiene los datos en crudo que luego lee el visor web.
+Como se indicaba anteriormente, se obtienen el vídeo procesado y lo que es más importante aún, el conjunto de datos que permiten el análisis del punto y su visualización en el visor web.
 
 \section{Componentes del sistema}
 \label{sec:componentes}
@@ -62,23 +58,31 @@ La \cref{sec:componentes} explica con detalle cada uno de estos pasos.
 %   pérdida focal porque los instantes con golpe son muy pocos; AdamW.
 % - De la curva a los golpes: cada pico por encima de 0,5 es un golpe, con al
 %   menos 8 ventanas (~170 ms) entre dos; umbral medido, estable entre 0,3 y 0,7.
-% - Figura: figuras/audio.pdf (scripts/build_audio_figure.py), primeros 9 s del
-%   punto de la figura del problema, con la red entrenada sin VIGO.
-% - Lo que enseña la figura: cada sonido breve y seco (golpe, bote de la
-%   pelota, paso, público) deja una raya vertical en el espectrograma, así que
-%   «raya = golpe» no sirve. La red aprende cómo suena la pala y solo se dispara
-%   en los golpes: seis triángulos naranjas sobre seis rayas, y las demás rayas
-%   (hacia 1,05 s, 3,3 s, 7,6 s) quedan por debajo del umbral. Por eso hace
-%   falta una red y no basta con medir el volumen.
+% - Figura: figuras/espectrogramas.pdf (scripts/build_spectrogram_figure.py), dos
+%   espectrogramas del audio de VIGO_11: (a) un remate, de 678 ms, con la raya del
+%   golpe en 320 ms; (b) un tramo de 800 ms sin golpe (segundos 5,29 a 6,09; sin
+%   comprobar si ahí habla un jugador). Mismo planteamiento que la figura 1 de
+%   Decorte et al.; el pie, sin cita (se cita en el texto de la sección).
+% - Lo que enseña la figura: un golpe es una raya vertical fina que sube hasta
+%   unos 17 kHz y deja un decaimiento detrás; cualquier otro sonido breve (bote,
+%   paso, voz, público) también deja marcas, y no es un golpe. «Raya = golpe» no
+%   sirve: por eso hace falta una red que aprenda cómo suena la pala.
+% - Lo que NO es el espectrograma de la figura: la red lee una versión comprimida
+%   en 40 bandas Mel (log-Mel), no este de frecuencias lineales; el de la figura
+%   es el que reconoce cualquier lector.
+% - Falta, si se quiere enseñar la salida de la red (la curva de probabilidad con
+%   el umbral y los golpes detectados): estaba en figuras/audio.pdf, en git
+%   (commit 86741cd), borrada del árbol de trabajo.
 % - Citas: \cite{decorte2024padel}, \cite{lin2017focal}, \cite{cho2014gru},
 %   \cite{loshchilov2019adamw}.
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
-  \includegraphics{figuras/audio}
-  \caption{Detección de los golpes de un punto a partir del audio.}
-  \label{fig:audio}
+  \includegraphics{figuras/espectrogramas}
+  \caption{Espectrogramas de un remate (a) y de un tramo sin golpe (b).}
+  \label{fig:espectrogramas}
 \end{figure}
+
 
 \subsection{Jugadores}
 \label{sec:jugadores}
