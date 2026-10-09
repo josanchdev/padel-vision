@@ -1,15 +1,14 @@
 import numpy as np
 from padel_ml.thesis.spectrograms import (
     Spectrogram,
-    clock,
+    colour,
     compute_spectrogram,
     hertz,
     isolated_quiet_stretch,
 )
 
 
-def test_clock_and_hertz_follow_the_figure_axes() -> None:
-    assert [clock(s) for s in (0, 15, 75.4, 3600)] == ["0:00", "0:15", "1:15", "60:00"]
+def test_hertz_follows_the_axis_style() -> None:
     assert hertz(0) == "0" and hertz(12000) == r"12\,000" and hertz(24000) == r"24\,000"
 
 
@@ -19,20 +18,29 @@ def test_a_click_shows_as_a_stripe_at_its_instant() -> None:
     samples[24000] = 1.0
     spectrogram = compute_spectrogram(samples, sample_rate)
     loudest = int(np.argmax(spectrogram.decibels.max(axis=0)))
-    assert abs(loudest * spectrogram.column_s - 0.5) < 0.03
+    assert abs(loudest * spectrogram.column_s - 0.5) < 0.01
     assert spectrogram.nyquist_hz == 24000
 
 
-def test_cut_starts_again_from_zero_and_shrunk_keeps_the_loudest() -> None:
+def test_padding_gives_more_frequency_points_than_the_window_has_samples() -> None:
+    spectrogram = compute_spectrogram(np.zeros(4800, np.float32), 48000)
+    assert spectrogram.decibels.shape[0] > 512
+
+
+def test_cut_starts_again_from_zero() -> None:
     decibels = np.full((4, 1000), -60.0, np.float32)
     decibels[2, 501] = 0.0
-    full = Spectrogram(decibels, 0.01, 24000)
-    part = full.cut(5.0, 6.0)
+    part = Spectrogram(decibels, 0.01, 24000).cut(5.0, 6.0)
     assert part.decibels.shape == (4, 100) and part.duration_s == 1.0
     assert part.decibels.max() == 0.0
-    small = full.shrunk(columns=100)
-    assert small.decibels.shape == (4, 100) and small.column_s == 0.1
-    assert small.decibels.max() == 0.0
+
+
+def test_colour_keeps_every_pixel_of_the_spectrogram_with_the_low_end_at_the_bottom() -> None:
+    decibels = np.zeros((6, 9), np.float32)
+    decibels[0] = 1.0  # lowest frequency, the loudest
+    image = colour(decibels, 0.0, 1.0)
+    assert image.shape == (6, 9, 3) and image.dtype == np.uint8
+    assert image[-1].mean() > image[0].mean()  # bright at the bottom, black at the top
 
 
 def test_the_quiet_stretch_avoids_annotated_hits() -> None:

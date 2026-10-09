@@ -1,13 +1,19 @@
 """The spectrogram figure of section 4.2.1: what a hit looks like in the sound.
 
-A whole point (a), a smash up close (b) and a stretch with no hit (c), the same
-three views the dataset's own paper (Decorte et al.) uses to show that a hit is
-a short, sharp stripe and that not every loud sound is one. Drawn from the audio
-of a CVSPORTS point with our own code; nothing is taken from their figure.
+A smash up close (a) and a stretch with no hit (b), the two views the dataset's
+own paper (Decorte et al.) uses to show that a hit is a short, sharp stripe and
+that not every loud sound is one. Drawn from the audio of a CVSPORTS point with
+our own code; nothing is taken from their figure.
 
-The spectrogram is the plain short-time Fourier transform in decibels with a
-linear frequency axis, the picture the reader knows. The network reads a
-40-band log-Mel version of the same sound (padel_ml.audio_dataset).
+The spectrogram is the short-time Fourier transform in decibels with a linear
+frequency axis, the picture the reader knows. The network reads a 40-band
+log-Mel version of the same sound (padel_ml.audio_dataset).
+
+Two details keep it sharp. The analysis window is short (11 ms), because a hit
+lasts a few milliseconds and a longer window smears its stripe into a blur; and
+it is zero-padded to give more frequency points without lengthening it. The
+image is coloured here and embedded at its own resolution: handed over as raw
+numbers, the plotting library shrinks it to the screen's 100 dpi first.
 
 Set at the memoria's text width through the PGF backend, so its text is set by
 LaTeX in Latin Modern, like the page around it.
@@ -29,30 +35,26 @@ from padel_ml.thesis.figures import INK, STYLE
 from padel_ml.thesis.problem import TEXT_WIDTH_IN
 
 FloatArray = npt.NDArray[np.float32]
+ByteArray = npt.NDArray[np.uint8]
 
-N_FFT = 1024
-HOP = 256
-"""For a whole point: 21 ms windows, a column every 5 ms."""
-CLOSE_N_FFT = 512
-CLOSE_HOP = 32
-"""For the close-ups: 11 ms windows and a column every 0.7 ms. A hit lasts a few
-milliseconds, and a longer window smears its stripe into a blur."""
-TOP_PERCENTILE = 99.7
-"""The colour scale tops out at this percentile of the sound, not at its loudest
-pixel: the loud low frequencies saturate, and the faint, thin stripe a hit leaves
-up to 17 kHz is still bright enough to see."""
-RANGE_DB = 62.0
-"""Decibels shown below that top."""
-MAX_COLUMNS = 3000
-"""A whole point is shrunk to this many columns, keeping the loudest of each block."""
+WINDOW = 512
+"""Samples per analysis window: 11 ms at 48 kHz."""
+N_FFT = 2048
+"""FFT length: the window zero-padded to four times its size, for more frequency points."""
+HOP = 24
+"""Half a millisecond between columns."""
 COLORMAP = "magma"
 """Black to yellow, the scale that is read as a spectrogram at a glance."""
-LABEL_ABOVE_HZ = (0.0, 12000.0, 24000.0)
+TOP_PERCENTILE = 99.7
+"""The colour scale tops out at this percentile of the sound, not at its loudest pixel."""
+RANGE_DB = 62.0
+"""Decibels shown below that top."""
+FREQUENCY_TICKS_HZ = (0.0, 12000.0, 24000.0)
 
 
 @dataclass(frozen=True)
 class Spectrogram:
-    """Decibels over (frequency, time), and where in the sound it starts."""
+    """Decibels over (frequency, time), starting at time zero."""
 
     decibels: FloatArray
     """(frequencies, columns), lowest frequency first."""
@@ -70,33 +72,26 @@ class Spectrogram:
     def duration_s(self) -> float:
         return float(self.decibels.shape[1] * self.column_s)
 
-    def shrunk(self, columns: int = MAX_COLUMNS) -> Spectrogram:
-        """At most `columns` columns, keeping the loudest of each block."""
-        step = int(np.ceil(self.decibels.shape[1] / columns))
-        if step <= 1:
-            return self
-        usable = self.decibels.shape[1] // step * step
-        blocks = self.decibels[:, :usable].reshape(self.decibels.shape[0], -1, step)
-        return Spectrogram(blocks.max(axis=2), self.column_s * step, self.nyquist_hz)
-
 
 def compute_spectrogram(
-    samples: FloatArray, sample_rate: int, n_fft: int = N_FFT, hop: int = HOP
+    samples: FloatArray,
+    sample_rate: int,
+    window: int = WINDOW,
+    n_fft: int = N_FFT,
+    hop: int = HOP,
 ) -> Spectrogram:
     """Short-time Fourier transform of `samples` in decibels."""
-    window = torch.hann_window(n_fft)
     transform = torch.stft(
-        torch.from_numpy(samples), n_fft, hop, window=window, return_complex=True
+        torch.from_numpy(samples),
+        n_fft,
+        hop,
+        win_length=window,
+        window=torch.hann_window(window),
+        return_complex=True,
     )
     power = transform.abs().pow(2).numpy()
     decibels = (10.0 * np.log10(power + 1e-10)).astype(np.float32)
     return Spectrogram(decibels, hop / sample_rate, sample_rate / 2)
-
-
-def clock(seconds: float) -> str:
-    """0 -> 0:00, 75 -> 1:15."""
-    whole = round(seconds)
-    return f"{whole // 60}:{whole % 60:02d}"
 
 
 def hertz(value: float) -> str:
@@ -125,34 +120,35 @@ def isolated_quiet_stretch(
     return best_start
 
 
+def colour(decibels: FloatArray, low: float, high: float) -> ByteArray:
+    """The spectrogram as an RGB image, lowest frequency at the bottom."""
+    scaled = np.clip((decibels - low) / (high - low), 0.0, 1.0)
+    rgba = mpl.colormaps[COLORMAP](scaled[::-1])
+    return np.asarray(rgba[..., :3] * 255, dtype=np.uint8)
+
+
 def _panel(
     figure: Figure,
     box: tuple[float, float, float, float],
     spectrogram: Spectrogram,
     limits: tuple[float, float],
     ticks_s: list[float],
-    tick_labels: list[str],
-    xlabel: str,
     caption: str,
 ) -> Axes:
     left, bottom, width, height = box
     total_w, total_h = figure.get_size_inches()
     axes = figure.add_axes((left / total_w, bottom / total_h, width / total_w, height / total_h))
     axes.imshow(
-        spectrogram.decibels,
-        origin="lower",
+        colour(spectrogram.decibels, *limits),
         aspect="auto",
-        cmap=COLORMAP,
-        vmin=limits[0],
-        vmax=limits[1],
         extent=(0, spectrogram.duration_s, 0, spectrogram.nyquist_hz),
-        interpolation="nearest",
+        interpolation="none",
     )
     axes.set_xticks(ticks_s)
-    axes.set_xticklabels(tick_labels)
-    axes.set_yticks(list(LABEL_ABOVE_HZ))
-    axes.set_yticklabels([hertz(v) for v in LABEL_ABOVE_HZ])
-    axes.set_xlabel(xlabel, labelpad=2)
+    axes.set_xticklabels([f"{round(t * 1000)}" for t in ticks_s])
+    axes.set_yticks(list(FREQUENCY_TICKS_HZ))
+    axes.set_yticklabels([hertz(v) for v in FREQUENCY_TICKS_HZ])
+    axes.set_xlabel("Tiempo (ms)", labelpad=2)
     axes.set_ylabel("Frecuencia (Hz)", labelpad=2)
     axes.tick_params(length=2.5, width=0.5, pad=2)
     for edge in axes.spines.values():
@@ -169,62 +165,24 @@ def _panel(
     return axes
 
 
-def draw_spectrogram_figure(
-    point: Spectrogram | None,
-    hit: Spectrogram,
-    no_hit: Spectrogram,
-    out: Path,
-) -> None:
-    """Write the figure to `out` (PDF). Without `point`, only the two close-ups."""
-    close = np.concatenate([hit.decibels.ravel(), no_hit.decibels.ravel()])
-    close_top = float(np.percentile(close, TOP_PERCENTILE))
-    close_limits = (close_top - RANGE_DB, close_top)
-    if point is not None:
-        point_top = float(np.percentile(point.decibels.ravel(), TOP_PERCENTILE))
-        point_limits = (point_top - RANGE_DB, point_top)
+def draw_spectrogram_figure(hit: Spectrogram, no_hit: Spectrogram, out: Path) -> None:
+    """Write the figure to `out` (PDF): a hit and a stretch with no hit, side by side."""
+    both = np.concatenate([hit.decibels.ravel(), no_hit.decibels.ravel()])
+    top = float(np.percentile(both, TOP_PERCENTILE))
+    limits = (top - RANGE_DB, top)
     wide = TEXT_WIDTH_IN
-    side = 0.62
-    small_h = 1.0
-    gap = 0.8
-    """Between the two close-ups: room for the second one's frequency axis."""
-    small_w = 0.30 * wide if point is None else 0.27 * wide
-    big_h = 1.2
+    side, gap, panel_w, panel_h = 0.62, 0.8, 0.30 * wide, 1.0
+    bottom = 0.6
+    first = (wide - (2 * panel_w + gap + side)) / 2 + side
     with mpl.rc_context({**STYLE, "axes.labelcolor": INK, "xtick.color": INK, "ytick.color": INK}):
-        height = small_h + 0.95 + (big_h + 0.95 if point is not None else 0.0)
-        figure = Figure(figsize=(wide, height))
-        small_bottom = 0.6
-        if point is not None:
-            shown = point.shrunk()
-            seconds = np.arange(0.0, shown.duration_s + 1.0, 15.0)
-            seconds = seconds[seconds <= shown.duration_s + 0.5]
-            _panel(
-                figure,
-                (side, small_bottom + small_h + 1.0, wide - side - 0.1, big_h),
-                shown,
-                point_limits,
-                [float(s) for s in seconds],
-                [clock(s) for s in seconds],
-                "Tiempo",
-                "(a)",
-            )
-        first = (wide - (2 * small_w + gap + side)) / 2 + side
-        lefts = [first, first + small_w + gap]
+        figure = Figure(figsize=(wide, bottom + panel_h + 0.15))
         for left, spec, ticks, caption in zip(
-            lefts,
+            (first, first + panel_w + gap),
             (hit, no_hit),
             ([0.0, 0.32, 0.64], [0.0, 0.4, 0.8]),
-            ("(b)", "(c)"),
+            ("(a)", "(b)"),
             strict=True,
         ):
-            _panel(
-                figure,
-                (left, small_bottom, small_w, small_h),
-                spec,
-                close_limits,
-                ticks,
-                [f"{round(t * 1000)}" for t in ticks],
-                "Tiempo (ms)",
-                caption,
-            )
+            _panel(figure, (left, bottom, panel_w, panel_h), spec, limits, ticks, caption)
         out.parent.mkdir(parents=True, exist_ok=True)
         figure.savefig(out, backend="pgf")
