@@ -16,6 +16,8 @@ from pathlib import Path
 import numpy as np
 from padel_ml.audio_dataset import SAMPLE_RATE, decode_audio
 from padel_ml.thesis.spectrograms import (
+    CLOSE_HOP,
+    CLOSE_N_FFT,
     compute_spectrogram,
     draw_spectrogram_figure,
     isolated_quiet_stretch,
@@ -69,14 +71,19 @@ def main() -> None:
         round((SMASH_S - 0.3) / spectrogram.column_s), round((SMASH_S + 0.3) / spectrogram.column_s)
     )
     stripe_s = (around.start + int(np.argmax(np.diff(band[around])))) * spectrogram.column_s
-    hit = spectrogram.cut(stripe_s - HIT_BEFORE_S, stripe_s - HIT_BEFORE_S + HIT_LENGTH_S)
+
+    def close_up(start_s: float, length_s: float):  # type: ignore[no-untyped-def]
+        part = samples[round(start_s * SAMPLE_RATE) : round((start_s + length_s) * SAMPLE_RATE)]
+        return compute_spectrogram(part, SAMPLE_RATE, CLOSE_N_FFT, CLOSE_HOP)
+
+    hit = close_up(stripe_s - HIT_BEFORE_S, HIT_LENGTH_S)
     quiet = energy.copy()
     quiet[: round(EDGE_S / spectrogram.column_s)] = -np.inf
     quiet[round((spectrogram.duration_s - 4.0) / spectrogram.column_s) :] = -np.inf
     start = isolated_quiet_stretch(
         quiet, spectrogram.column_s, windows, NO_HIT_LENGTH_S, NO_HIT_MARGIN_S
     )
-    no_hit = spectrogram.cut(start, start + NO_HIT_LENGTH_S)
+    no_hit = close_up(start, NO_HIT_LENGTH_S)
     print(f"golpe: {stripe_s:.2f} s · tramo sin golpe: {start:.2f}-{start + NO_HIT_LENGTH_S:.2f} s")
     out = args.out or (OUT_COMPACT if args.compact else OUT)
     draw_spectrogram_figure(None if args.compact else spectrogram, hit, no_hit, out)

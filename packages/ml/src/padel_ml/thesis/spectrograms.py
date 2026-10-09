@@ -30,14 +30,18 @@ from padel_ml.thesis.problem import TEXT_WIDTH_IN
 
 FloatArray = npt.NDArray[np.float32]
 
-N_FFT = 2048
+N_FFT = 1024
 HOP = 256
-"""About 5 ms between columns at 48 kHz: sharp enough for a hit's stripe."""
-TOP_PERCENTILE = 97.0
+"""For a whole point: 21 ms windows, a column every 5 ms."""
+CLOSE_N_FFT = 512
+CLOSE_HOP = 32
+"""For the close-ups: 11 ms windows and a column every 0.7 ms. A hit lasts a few
+milliseconds, and a longer window smears its stripe into a blur."""
+TOP_PERCENTILE = 99.7
 """The colour scale tops out at this percentile of the sound, not at its loudest
 pixel: the loud low frequencies saturate, and the faint, thin stripe a hit leaves
 up to 17 kHz is still bright enough to see."""
-RANGE_DB = 55.0
+RANGE_DB = 62.0
 """Decibels shown below that top."""
 MAX_COLUMNS = 3000
 """A whole point is shrunk to this many columns, keeping the loudest of each block."""
@@ -76,15 +80,17 @@ class Spectrogram:
         return Spectrogram(blocks.max(axis=2), self.column_s * step, self.nyquist_hz)
 
 
-def compute_spectrogram(samples: FloatArray, sample_rate: int) -> Spectrogram:
+def compute_spectrogram(
+    samples: FloatArray, sample_rate: int, n_fft: int = N_FFT, hop: int = HOP
+) -> Spectrogram:
     """Short-time Fourier transform of `samples` in decibels."""
-    window = torch.hann_window(N_FFT)
+    window = torch.hann_window(n_fft)
     transform = torch.stft(
-        torch.from_numpy(samples), N_FFT, HOP, window=window, return_complex=True
+        torch.from_numpy(samples), n_fft, hop, window=window, return_complex=True
     )
     power = transform.abs().pow(2).numpy()
     decibels = (10.0 * np.log10(power + 1e-10)).astype(np.float32)
-    return Spectrogram(decibels, HOP / sample_rate, sample_rate / 2)
+    return Spectrogram(decibels, hop / sample_rate, sample_rate / 2)
 
 
 def clock(seconds: float) -> str:
@@ -170,9 +176,12 @@ def draw_spectrogram_figure(
     out: Path,
 ) -> None:
     """Write the figure to `out` (PDF). Without `point`, only the two close-ups."""
-    reference = np.concatenate([a.decibels.ravel() for a in (point or hit, hit, no_hit)])
-    top = float(np.percentile(reference, TOP_PERCENTILE))
-    limits = (top - RANGE_DB, top)
+    close = np.concatenate([hit.decibels.ravel(), no_hit.decibels.ravel()])
+    close_top = float(np.percentile(close, TOP_PERCENTILE))
+    close_limits = (close_top - RANGE_DB, close_top)
+    if point is not None:
+        point_top = float(np.percentile(point.decibels.ravel(), TOP_PERCENTILE))
+        point_limits = (point_top - RANGE_DB, point_top)
     wide = TEXT_WIDTH_IN
     side = 0.62
     small_h = 1.0
@@ -192,7 +201,7 @@ def draw_spectrogram_figure(
                 figure,
                 (side, small_bottom + small_h + 1.0, wide - side - 0.1, big_h),
                 shown,
-                limits,
+                point_limits,
                 [float(s) for s in seconds],
                 [clock(s) for s in seconds],
                 "Tiempo",
@@ -211,7 +220,7 @@ def draw_spectrogram_figure(
                 figure,
                 (left, small_bottom, small_w, small_h),
                 spec,
-                limits,
+                close_limits,
                 ticks,
                 [f"{round(t * 1000)}" for t in ticks],
                 "Tiempo (ms)",
