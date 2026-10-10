@@ -1,0 +1,36 @@
+{
+  "name": "pose_resolution",
+  "summary": "Tamaño de entrada del modelo de pose: fotogramas con los cuatro jugadores dentro de la máscara a 640, 960, 1280, 1920 px: 0%, 6%, 40%, 94%.",
+  "metrics": {
+    "all_four_640": 0.0004,
+    "far_pair_640": 0.0004,
+    "ms_per_frame_640": 14.3,
+    "all_four_960": 0.0613,
+    "far_pair_960": 0.0492,
+    "ms_per_frame_960": 14.9,
+    "all_four_1280": 0.3976,
+    "far_pair_1280": 0.4005,
+    "ms_per_frame_1280": 16.5,
+    "all_four_1920": 0.9369,
+    "far_pair_1920": 0.9519,
+    "ms_per_frame_1920": 16.9
+  },
+  "dataset": "11 puntos (el «01» de cada torneo), 1 de cada 4 fotogramas (2724 fotogramas)",
+  "method": "YOLO26n-pose sin seguimiento, umbral del sistema, máscara de pista del sistema",
+  "params": {
+    "sizes": [
+      640,
+      960,
+      1280,
+      1920
+    ],
+    "confidence": 0.25,
+    "stride": 4
+  },
+  "per_class": {},
+  "confusion": [],
+  "labels": [],
+  "notes": "«cuatro» = al menos cuatro personas con la base de la caja dentro de la máscara. «pareja del fondo» = al menos dos de ellas por encima de la red. Un fotograma con cuatro no garantiza que sean los cuatro jugadores, pero la máscara ya descarta al público.",
+  "commit": "2681140-dirty",
+  "timestamp": "2026-10-10T22:08:04+00:00"
+}

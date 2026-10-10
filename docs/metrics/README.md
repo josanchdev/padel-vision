@@ -40,6 +40,7 @@ uv run python scripts/evaluate_chain_cv.py             # sistema completo por to
 uv run python scripts/evidence_chain_cv.py             # evidencias y figuras del anterior
 uv run python scripts/evidence_confidence_intervals.py # márgenes de error y comparación emparejada (sin GPU)
 uv run python scripts/evidence_processing_time.py      # coste de procesado por etapa
+uv run python scripts/evidence_pose_resolution.py      # tamaño de entrada del modelo de pose
 ```
 
 ## Tabla 1: cada paso por separado
@@ -75,6 +76,7 @@ uv run python scripts/evidence_processing_time.py      # coste de procesado por 
 |---|---|---|
 | `ball_detector.json` | **Detector de pelota** en un partido que no vio, a 15, 30 y 60 px, con y sin limpieza | `evidence_ball_detector.py` |
 | `processing_time.json` | **Coste de procesado** por etapa (audio, pose, pelota, resto) en un rally | `evidence_processing_time.py` |
+| `pose_resolution.json` | **Tamaño de entrada de la pose** (640 a 1920 px): fotogramas con los cuatro jugadores y coste, en 11 puntos | `evidence_pose_resolution.py` |
 | `dataset_shot_types.json` | **Etiquetado propio**: 2.377 golpes, reparto y desbalance | `evidence_dataset_stats.py` |
 | `dataset_per_tournament.json` | Golpes por torneo y clase (base del split por torneos) | ídem |
 
