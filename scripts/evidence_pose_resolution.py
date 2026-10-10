@@ -62,9 +62,10 @@ def main() -> None:
             capture = cv2.VideoCapture(str(video))
             index = 0
             while True:
-                ok, frame = capture.read()
+                ok, grabbed = capture.read()
                 if not ok:
                     break
+                frame = np.asarray(grabbed, dtype=np.uint8)
                 index += 1
                 if (index - 1) % args.stride:
                     continue
