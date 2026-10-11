@@ -1,7 +1,7 @@
-"""Clean up raw ball detections (Decorte 2024, §4.3) — see ADR-0015.
+"""Clean up raw ball detections — see ADR-0015.
 
-TrackNet emits an independent detection per frame, so its output has two flaws
-the paper explicitly post-processes away:
+TrackNet emits an independent detection per frame, so its output has three flaws
+to clean before anything reads it:
 
 - **Teleportation**: an isolated detection metres away from the trajectory,
   usually a bright distractor (a line, a shoe, a logo). A real ball moves

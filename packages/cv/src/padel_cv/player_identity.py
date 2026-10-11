@@ -1,9 +1,13 @@
-"""Stable player identity 1-4, replicating Decorte 2024 (§5.2) — see ADR-0015.
+"""Stable player identity 1-4 — see ADR-0015.
 
-Three pieces, in the order the paper applies them:
+Three pieces, in the order they run:
 
 1. **Court mask.** Trackers happily follow spectators. Poses are kept only if
-   their bbox overlaps a padded trapezoid built from the court corners.
+   the bottom-centre of their bbox (where the player stands) falls inside a
+   padded trapezoid built from the court corners.
+
+The other two follow Decorte 2024 (§5.2):
+
 2. **Initial assignment.** Average each track's bbox centre over the first 3
    seconds of the rally, then sort: leftmost pair vs rightmost pair by x, and
    within each pair by y. Top team gets 1-2 (left to right), bottom team 3-4.
