@@ -1,0 +1,45 @@
+{
+  "name": "detection_comparison",
+  "summary": "Detección de golpes en los mismos 5 puntos de VIGO: imagen F1 0.821, audio F1 0.941; 52.2 s frente a 0.22 s por minuto de vídeo.",
+  "metrics": {
+    "image_precision": 0.7921,
+    "image_recall": 0.8511,
+    "image_f1": 0.8205,
+    "audio_precision": 0.9462,
+    "audio_recall": 0.9362,
+    "audio_f1": 0.9412,
+    "real_hits": 94,
+    "video_minutes": 2.357,
+    "audio_s_per_min": 0.22,
+    "image_s_per_min": 52.17
+  },
+  "dataset": "CVSPORTS_Padel: 20230528_VIGO_00, 20230528_VIGO_02, 20230528_VIGO_03, 20230528_VIGO_10, 20230528_VIGO_11 (94 golpes reales)",
+  "method": "Imagen: modelo sobre pose y pelota (ADR-0013), medido antes de retirarlo (method_comparison_sweep.json). Audio: el detector de la ronda VIGO de la cadena completa, entrenado sin ningún punto de VIGO (chain_cv_hits.csv).",
+  "params": {
+    "points": [
+      "20230528_VIGO_00",
+      "20230528_VIGO_02",
+      "20230528_VIGO_03",
+      "20230528_VIGO_10",
+      "20230528_VIGO_11"
+    ],
+    "collar_s": 0.25,
+    "image_counts": {
+      "tp": 80,
+      "fp": 21,
+      "fn": 14
+    },
+    "audio_counts": {
+      "tp": 88,
+      "fp": 5,
+      "fn": 6
+    },
+    "gpu": "NVIDIA GeForce RTX 3090"
+  },
+  "per_class": {},
+  "confusion": [],
+  "labels": [],
+  "notes": "Mismos puntos, mismos golpes reales y misma regla de emparejamiento (250 ms, uno a uno). El modelo de imagen se entrenó con los otros 12 puntos de VIGO y su umbral se eligió sobre estos cinco, lo que le favorece; el audio, con los otros 10 torneos. El tiempo de la imagen solo cuenta extraer pose y pelota, sin el modelo retirado, así que es una cota inferior.",
+  "commit": "0f50154-dirty",
+  "timestamp": "2026-10-13T11:53:52+00:00"
+}

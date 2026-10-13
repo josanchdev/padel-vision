@@ -41,6 +41,7 @@ uv run python scripts/evidence_chain_cv.py             # evidencias y figuras de
 uv run python scripts/evidence_confidence_intervals.py # márgenes de error y comparación emparejada (sin GPU)
 uv run python scripts/evidence_processing_time.py      # coste de procesado por etapa
 uv run python scripts/evidence_pose_resolution.py      # tamaño de entrada del modelo de pose
+uv run python scripts/evidence_detection_comparison.py # imagen frente a audio en los mismos 5 puntos
 ```
 
 ## Tabla 1: cada paso por separado
@@ -77,6 +78,7 @@ uv run python scripts/evidence_pose_resolution.py      # tamaño de entrada del 
 | `ball_detector.json` | **Detector de pelota** en un partido que no vio, a 15, 30 y 60 px, con y sin limpieza | `evidence_ball_detector.py` |
 | `processing_time.json` | **Coste de procesado** por etapa (audio, pose, pelota, resto) en un rally | `evidence_processing_time.py` |
 | `pose_resolution.json` | **Tamaño de entrada de la pose** (640 a 1920 px): fotogramas con los cuatro jugadores y coste, en 11 puntos | `evidence_pose_resolution.py` |
+| `detection_comparison.json` | **Imagen frente a audio** para detectar el golpe, en los mismos 5 puntos de VIGO y los mismos 94 golpes: precisión, recall, F1 y segundos por minuto de vídeo | `evidence_detection_comparison.py` |
 | `dataset_shot_types.json` | **Etiquetado propio**: 2.377 golpes, reparto y desbalance | `evidence_dataset_stats.py` |
 | `dataset_per_tournament.json` | Golpes por torneo y clase (base del split por torneos) | ídem |
 
@@ -88,7 +90,7 @@ necesitaban código retirado: se regeneran desde la etiqueta git `pre-limpieza`.
 
 | Fichero | Qué demuestra |
 |---|---|
-| `method_comparison_same_data.json` | Cara a cara en los mismos datos: detector por pose y pelota frente al audio |
+| `method_comparison_same_data.json` | Detector por pose y pelota en 5 puntos de VIGO. Ojo: su F1 del audio (0,956) se copió de otra evaluación sobre los 99 puntos, así que no es la misma base; la comparación en los mismos puntos es `detection_comparison.json` |
 | `method_comparison_sweep.json` | Barrido de umbral del detector por pose y pelota |
 | `shot_baseline_poseonly.json` | Primer clasificador de tipo, solo con pose (julio, ADR-0013) |
 
@@ -98,8 +100,8 @@ necesitaban código retirado: se regeneran desde la etiqueta git `pre-limpieza`.
 |---|---|
 | `audio_threshold_seeds.png` | Por qué 0,5: F1, precisión y recall por umbral, con la dispersión entre ejecuciones |
 | `audio_detector_training.png` | Curva de pérdida y sensibilidad al umbral (una ejecución) |
-| `shot_detection_approaches.png` | Por qué el audio: recall de cada enfoque probado |
-| `method_comparison_same_data.png` | El cara a cara anterior, en igualdad de condiciones |
+| `shot_detection_approaches.png` | Recall de cada enfoque probado, medido en conjuntos de datos distintos: no son comparables entre sí |
+| `method_comparison_same_data.png` | El cara a cara anterior; el audio sale de otra evaluación (ver `detection_comparison.json`) |
 | `hit_assignment_confusion.png` | Matriz de confusión de la asignación |
 | `hit_assignment_vs_paper.png` | Nuestra asignación frente a la publicada |
 | `dataset_shot_types.png` | El dataset propio: clases y reparto por torneo |
