@@ -12,6 +12,7 @@ Para ello, el sistema utiliza información de audio e imágenes.
 
 Como paso previo al tratamiento de vídeo será necesario marcar manualmente las seis referencias espaciales que delimitan el contorno de la pista, así como la ubicación de la red.
 Estas anotaciones se podrán reutilizar siempre y cuando no varíe la ubicación y orientación de la cámara.
+Se probó otra alternativa de detección automática pero los resultados no eran suficientemente fiables.
 
 El proceso arranca con un punto de pádel grabado desde una cámara fija.
 Esta deberá estar situada al fondo de la pista y con una cierta elevación sobre la misma.
@@ -19,7 +20,6 @@ Esta deberá estar situada al fondo de la pista y con una cierta elevación sobr
 Utilizando los vértices previamente anotados, el sistema es capaz de localizar a los jugadores en la pista, descartando por tanto al resto de personas.
 A continuación, atribuye cada golpe a un jugador y clasifica el mismo.
 Como paso final, devuelve como salida el vídeo procesado y el conjunto de datos.
-
 Todo este flujo de información queda reflejado en la \cref{fig:flujo}.
 
 \begin{figure}[tbp]
@@ -30,7 +30,8 @@ Todo este flujo de información queda reflejado en la \cref{fig:flujo}.
 \end{figure}
 
 Como se observa en la figura, el procesamiento se divide en dos ramas independientes, una para el audio y otra para la imagen.
-La rama de audio \cite{decorte2024padel} utiliza el sonido para detectar el instante en el que se produce el golpe (\cref{sec:instante}). Por otro lado, la rama de imagen se encarga de dos funciones principales, por un lado asigna un identificador a cada jugador (\cref{sec:jugadores}), y por otro lado detecta la pelota (\cref{sec:pelota}).
+La rama de audio~\cite{decorte2024padel} utiliza el sonido para detectar el instante en el que se produce el golpe (\cref{sec:instante}).
+Por otro lado, la rama de imagen se encarga de dos funciones principales, por un lado asigna un identificador a cada jugador (\cref{sec:jugadores}), y por otro lado detecta la pelota (\cref{sec:pelota}).
 
 Para cada golpe detectado por la rama de audio se recoge un determinado número de fotogramas previos y posteriores a la detección.
 Dichos fotogramas permiten clasificar el golpe y el jugador que lo ha realizado.
@@ -48,94 +49,150 @@ Para ello, el sistema utiliza información de audio e imágenes.
 
 Aunque el enfoque inicial del proyecto consistía en identificar el instante en el que un jugador golpea la pelota basándose exclusivamente en el análisis visual de las imágenes, finalmente fue descartado dada la dificultad que entraña detectar y hacer seguimiento de la trayectoria de la pelota.
 Y esta dificultad viene dada por varios motivos, el tamaño de la pelota, la alta velocidad a la que se mueve y el hecho de que la pelota no permanece siempre visible.
-Se intentó asociar un golpe a la cercanía de la muñeca de un jugador a la pelota cuando esta cambiaba de dirección, pero el  número de falsos positivos era muy elevado y el número de golpes no detectados era también excesivo (ver resultados).
+Se intentó asociar un golpe a la cercanía de la muñeca de un jugador a la pelota cuando esta cambiaba de dirección, pero el  número de falsos positivos era muy elevado y el número de golpes no detectados era también excesivo.
 
-% IDEAS (borrar antes de pasar la memoria al tutor)
-% Fuente: Decorte et al., apartados 4 (Ball hit detection), 4.1 (Audio analysis),
-% 4.2 (Sound classification) y 4.2.1 (Deep learning based hit detection).
-%
-% POR QUÉ AUDIO (su motivación, que también es la nuestra)
-% - Detectar la pelota a 25 fps es difícil: pequeña, rápida, fuera de plano o
-%   tapada por los jugadores, con falsos positivos. El golpe, en cambio, suena de
-%   forma característica y el micrófono de la retransmisión lo recoge.
-% - Qué hace Decorte con el audio: lo usa para detectar la pelota SOLO en los
-%   fotogramas cercanos a cada golpe. Qué hacemos nosotros: lo usamos para el
-%   instante del golpe, y la pelota se detecta en todos los fotogramas (la rama
-%   de imagen no depende del audio). Es una diferencia real; decirlo.
-% - Nosotros comparamos con detectarlo por pose y pelota y salió peor (la cifra,
-%   en Experimentos).
-%
-% QUÉ NO ES UN GOLPE (la figura de los espectrogramas lo enseña)
-% - No todo sonido breve es un golpe: pasos, gritos, la pala contra el suelo, un
-%   jugador contra el cristal, el público. Y no todos los golpes suenan igual: un
-%   golpe cortado, o una pelota que rebota en la pared de fondo y se golpea en su
-%   dirección, suenan distinto a un remate.
-% - Por eso «raya = golpe» no sirve y hace falta una red que aprenda cómo suena la
-%   pala. Es un problema binario (golpe / no golpe): solo importa el instante, el
-%   origen del sonido no.
-%
-% LOS DATOS
-% - 2377 golpes anotados por Decorte et al. con el inicio y el fin de cada uno
-%   (Label Studio, unas 9 h 53 min de etiquetado), en 99 puntos de 11 torneos.
-%   Las ventanas duran ~0,38 s de media (de 0,08 a 0,91). Es el mismo número que
-%   nuestros 2377 golpes etiquetados por tipo: sobre sus instantes, nosotros
-%   añadimos el tipo.
-% - Se entrena a la red a valer 1 en toda esa ventana, no en un instante: de ahí
-%   que la salida sea una colina ancha y que se tome su máximo como el instante.
-% - Dos efectos de la compresión del vídeo: el audio no tiene energía por encima
-%   de unos 12-13 kHz (el espacio negro de arriba en la figura) y no hay
-%   infrasonidos ni ultrasonidos. El paper lo explica.
-%
-% CÓMO FUNCIONA (y qué hemos replicado)
-% - Entrada: espectrograma log-Mel de 40 bandas, ventana FFT de 2048 muestras con
-%   solape del 50 % (audio a 48 kHz), en secuencias de 256 ventanas. Igual que
-%   ellos.
-% - Red: adaptación de SED-net. Tres capas convolucionales (64 filtros 3x3) que
-%   comprimen solo la frecuencia (1x5, 1x2, 1x2), nunca el tiempo; dos GRU
-%   bidireccionales (32 y 16 unidades); dos capas densas, la última con sigmoide:
-%   una probabilidad de golpe por ventana. Ellos redujeron la original (profundidad
-%   de 128 a 64, segunda GRU a 16, solo dos densas, pérdida focal binaria).
-% - Parámetros: la nuestra tiene 114 561. NO se compara con los 109 159 del paper:
-%   con los datos de su tabla no se puede reproducir su cifra (probado con las dos
-%   lecturas posibles de las GRU) y no sabemos de dónde viene la diferencia.
-% - Lo que sí es nuestro y se puede decir como descripción (no como «cambio»):
-%   las GRU bidireccionales concatenan los dos sentidos (salen 64 y 32 valores) y
-%   por eso las densas son de 32; en su tabla salen 32 y 16. No sabemos si su
-%   implementación difiere en eso.
-% - Pérdida focal binaria: Lin et al.; GRU: Cho et al.
-% - Entrenamiento: ellos Adam, tasa de 0,001, lotes de 128 secuencias. Nosotros
-%   AdamW (0,001, decaimiento 1e-4), lotes de 32 y 30 épocas. Citar solo si se
-%   cuenta; es un detalle menor.
-%
-% DE LA CURVA A LOS INSTANTES (esto es nuestro, no de ellos)
-% - Cada máximo local por encima de 0,5 es un golpe, con al menos 8 ventanas
-%   (~170 ms) entre dos. Umbral medido: estable entre 0,3 y 0,7.
-% - El instante se pasa a la rama de imagen: el voto mira 9 fotogramas en torno a
-%   él (160 ms) y el clasificador, la ventana de pose y pelota.
-%
-% FIGURA: figuras/espectrogramas.pdf (scripts/build_spectrogram_figure.py), dos
-% espectrogramas de VIGO_11: (a) un remate, 678 ms, con la raya en 320 ms; (b) un
-% tramo de 800 ms sin golpe (segundos 5,29 a 6,09; sin comprobar si ahí habla un
-% jugador). Mismo planteamiento que su figura 1. Pie sin cita. Es el espectrograma
-% de frecuencias lineales; la red lee el comprimido en 40 bandas Mel.
-% Si se quiere enseñar la curva de la red: figuras/audio.pdf, en git (86741cd).
-%
-% CITAS: decorte2024padel (primera mención en esta sección), lin2017focal,
-% cho2014gru; loshchilov2019adamw solo si se cuenta el optimizador.
+\begin{table}[tbp]
+  \centering
+  \caption{...}
+  \label{tab:deteccion}
+  \input{figuras/tabla-deteccion}
+\end{table}
+
+Es por ello por lo que se decidió utilizar otro método basado en el reconocimiento de un golpe por el sonido~\cite{decorte2024padel} que es emitido cuando un jugador golpea la pelota.
+
+Un golpe en pádel tiene un sonido característico que el micrófono capta. Esto permite saber en qué momento exacto hay un golpe para poder analizar los fotogramas que rodean al golpe en el siguiente paso del flujo.
+El sonido se analiza con un espectrograma (representación visual del cambio de frecuencia de una señal de audio a lo largo del tiempo) donde los golpes suelen ser representados por rayas verticales, aunque no todos ellos se muestran de la misma manera (un golpe cortado suena distinto a un remate).
+También es importante tener en consideración que existe ruido de fondo, como gritos del público o de los jugadores.
+Esto implica que no se puede asumir que todo pico en el espectrograma es un golpe.
+La \cref{fig:espectrogramas} muestra cómo se ve el espectrograma en dos momentos distintos de un punto.
 
 \begin{figure}[tbp]
   \centering
   \includegraphics{figuras/espectrogramas}
-  \caption{Espectrogramas de un remate (a) y de un tramo sin golpe (b).}
+  \caption{Espectrograma de un remate (a). Espectrograma de un tramo sin golpe (b).}
   \label{fig:espectrogramas}
 \end{figure}
 
+Para poder distinguir entre golpe y ruido de fondo se necesita entrenar un modelo predictivo que aprenda a diferenciar entre ambos.
+Para ello se utiliza un \textit{dataset} previamente anotado~\cite{decorte2024padel} con el inicio y fin del sonido del impacto.
+En total se dispone de 2377 golpes etiquetados distribuidos a lo largo de 99 puntos en distintos torneos.
+
+La entrada del modelo es un espectrograma \textit{log-Mel}, que agrupa las frecuencias similar a la interpretación del sonido que hace el oído humano, de 40 bandas en un rango de 0--24~kHz calculado con un solape de un 50\% y una ventana \acs{fft} (\acl{fft}) de tamaño 2048, dividido en secuencias de 256 \textit{frames}.
+Es importante mencionar que no se dispone de rangos infrasonido y ultrasonido porque los vídeos del \textit{dataset} están comprimidos y el algoritmo de compresión los descartó.
+
+La arquitectura base del modelo utilizado para detectar golpes a partir de su sonido se basa en una adaptación del modelo SED-net~\cite{adavanne2017sed} con dos capas \acs{gru} (\acl{gru}) bidireccionales.
+La red neuronal final tiene un total de 114 561 parámetros y las capas adaptadas se muestran en la \cref{tab:red-audio}. La red neuronal se entrenó con un optimizador AdamW~\cite{loshchilov2019adamw}, con una tasa de aprendizaje de 0,001 y con \textit{batches} de 32 secuencias.
+
+\begin{table}[tbp]
+  \centering
+  \caption{Capas de la red de detección de golpes.}
+  \label{tab:red-audio}
+  \input{figuras/tabla-red-audio}
+\end{table}
+
+La salida de dicha red es la probabilidad entre 0 y 1 de que haya un golpe en cada instante.
+Cada máximo local de esa curva que supere 0,5 se considera un golpe, y como un mismo golpe podría dar dos máximos casi seguidos se descartan los que están a menos de 170~ms del anterior.
 
 \subsection{Jugadores}
 \label{sec:jugadores}
 
+Los vídeos de grabaciones de pádel con los que se ha trabajado tienen la cámara situada en un extremo de la pista.
+Es por ello que la imagen estará siempre en perspectiva y por tanto distorsionada.
+Esto se traduce en que una misma distancia en píxeles equivale a diferentes longitudes reales en función del lugar de la pista en que se encuentre.
+
+Esta distorsión se resuelve utilizando puntos de referencia conocidos, como los vértices de la pista de tamaño estándar $10 \times 20$~m, con los que se calcula una matriz de $3 \times 3$, llamada homografía, que relaciona la imagen con el plano de la pista.
+Esa matriz aplicada a cualquier punto del suelo de la pista en la imagen devuelve su posición real en metros.
+
+El esqueleto de los jugadores, al igual que su \textit{bounding box} correspondiente, se obtiene mediante el modelo YOLO26n-pose~\cite{jocher2026yolo26}.
+Se usan los pesos preentrenados sobre COCO~\cite{lin2014coco}, que detectan 17 \textit{keypoints} del cuerpo humano.
+El esqueleto es necesario tanto para posicionar a los jugadores como para la entrada al clasificador de golpes (\cref{sec:tipo}).
+Por defecto, el modelo reduce el fotograma a 640~px y este tamaño no permite detectar a los jugadores situados al fondo.
+Por lo tanto, fue necesario mantener el tamaño original del fotograma, 1920~px (\cref{tab:pose-resolucion}).
+
+\begin{table}[tbp]
+  \centering
+  \caption{...}
+  \label{tab:pose-resolucion}
+  \input{figuras/tabla-pose-resolucion}
+\end{table}
+
+Para posicionar a los jugadores en el plano real de la pista se utiliza el punto medio de la línea que une los dos tobillos y se le aplica la homografía.
+Se utilizan los tobillos por ser la parte del cuerpo detectada más cercana al suelo.
+Si no están ambos disponibles se utiliza la posición del tobillo detectado, o el centro de la base del \textit{bounding box} en caso de no estar ninguno disponible.
+
+Cabe destacar que el modelo devuelve a todas las personas que aparezcan en los fotogramas, incluidas las que no son jugadores.
+Para descartar a los no jugadores se utiliza una máscara creada con el contorno de la pista agrandado 60~px.
+Una persona se considera jugador si el centro de la base de su \textit{bounding box} cae dentro de la máscara.
+Se agranda ya que en ocasiones los jugadores salen de la pista durante el punto.
+La \cref{fig:jugadores} muestra como es la máscara y el resultado de aplicar la homografía sobre los jugadores.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics{figuras/jugadores}
+  \caption{Fotograma de un punto (a). Resultado de la homografía con las distancias (b).}
+  \label{fig:jugadores}
+\end{figure}
+
+Tras aplicar la máscara, en cada fotograma quedan solo los jugadores, pero falta saber cuál es cuál de un fotograma al siguiente.
+El algoritmo de seguimiento ByteTrack~\cite{zhang2022bytetrack} hace justo esto, asignando un mismo identificador a la misma persona.
+Predice dónde estará cada \textit{bounding box} y empareja por solapamiento.
+Este algoritmo viene incluido en la biblioteca Ultralytics y se ejecuta en la misma llamada que el modelo de pose.
+Cuando pierde a una persona, ByteTrack guarda su seguimiento durante un tiempo por si reaparece (en nuestra configuración, 120 fotogramas).
+Si en ese tiempo no consigue volver a emparejarla, le asigna un identificador nuevo.
+
+Para saber quién da cada golpe, cada jugador necesita que su identidad no cambie durante todo el punto: J1, J2, J3 y J4.
+Estas se asignan durante los 3 primeros segundos del punto usando la posición media de los cuatro identificadores que aparecen en más fotogramas ~\cite{decorte2024padel}.
+La numeración sigue el mismo criterio que las anotaciones del \textit{dataset}, lo que permite comparar con ellas el jugador que da cada golpe.
+
+Cuando ByteTrack pierde a un jugador y le asigna un identificador nuevo, hay que decidir cuál de los cuatro es.
+Como en la pista siempre hay cuatro jugadores, el identificador nuevo hereda la identidad del que falta.
+Si falta más de un jugador, los nuevos heredan la de los jugadores ausentes cuya última posición conocida esté más cerca de donde aparecen.
+
 \subsection{Pelota}
 \label{sec:pelota}
+
+El audio indica cuándo se produce cada golpe, pero no qué jugador lo da ni de qué tipo es.
+Para resolver ambas preguntas es necesario conocer la posición de la pelota, ya que el golpe se asigna al jugador más cercano a ella, y además su trayectoria es una de las entradas del clasificador de golpes.
+Para obtenerla en cada fotograma se utiliza una red propia basada en TrackNet~\cite{huang2019tracknet}, entrenada desde cero con partidos de pádel anotados~\cite{badanerin2026padeltracker100}.
+
+La entrada de la red son tres fotogramas seguidos en los que se puede identificar a la pelota por su movimiento sobre un fondo estático.
+La salida de la red es un mapa de calor donde cada celda indica, con un valor entre 0 y 1, la probabilidad de que la pelota se encuentre ahí.
+La posición de la pelota es el centro de la celda de mayor valor que supere el umbral de 0,5; si ninguna lo supera, se considera que en ese fotograma no hay pelota (\cref{fig:mapa-calor}).
+Cada celda del mapa equivale a un cuadrado de $10 \times 10$ píxeles del vídeo original, por lo que la posición tiene un margen de unos pocos píxeles.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics{figuras/mapa-calor}
+  \caption{...}
+  \label{fig:mapa-calor}
+\end{figure}
+
+La arquitectura base del modelo de detección de la pelota es una red adaptada del tipo U-Net~\cite{ronneberger2015unet}.
+Dado que la U-Net se diseñó para segmentar imágenes biomédicas, una tarea que requiere precisión a nivel de píxel, se ha simplificado su estructura para localizar la pelota, como muestra la \cref{tab:red-pelota}.
+En primer lugar, se ha reducido de cuatro a tres el número de veces que el codificador comprime la imagen.
+En segundo lugar, se ha limitado el decodificador a una sola ampliación, hasta un cuarto del tamaño de entrada, en lugar de cuatro hasta el tamaño completo.
+Por último, se ha reducido a la mitad el número de canales con el que empieza (32 en lugar de 64).
+Estos cambios reducen el número de parámetros de unos 31 millones a 1,76 millones.
+Además, se ha añadido un corrector en el paso final que ajusta el mapa de calor teniendo en cuenta también los fotogramas, pensado para situaciones donde la pelota esté tapada por un jugador.
+
+\begin{table}[tbp]
+  \centering
+  \caption{...}
+  \label{tab:red-pelota}
+  \input{figuras/tabla-red-pelota}
+\end{table}
+
+La red aprende comparando su salida ($p$) con un mapa objetivo ($t$), en el que todas las celdas valen cero salvo una mancha centrada en la pelota.
+El error se mide con una entropía cruzada binaria ponderada, como media sobre las $N$ celdas del mapa:
+\begin{equation}
+  \mathcal{L} = -\frac{1}{N} \sum_{i=1}^{N} w_i \left[ t_i \log p_i + (1 - t_i) \log (1 - p_i) \right],
+  \qquad w_i = 1 + 199\, t_i
+\end{equation}
+donde $w_i$ es el peso de cada celda: 1 en el fondo y hasta 200 en el centro de la pelota.
+Sin estos pesos, como la pelota ocupa muy pocas celdas del mapa, la red podría aprender a devolver 0 en todas partes.
+
+En la práctica, la principal dificultad es que la pelota no siempre está a la vista: en los globos sale del encuadre, en ocasiones la tapa un jugador y en algunos fotogramas no llega a distinguirse aunque esté en juego.
+El sistema lo tolera porque ni la asignación ni el clasificador dependen de un único fotograma, como se explica en las siguientes secciones.
 
 \subsection{Asignación del golpe}
 \label{sec:asignacion}
@@ -145,17 +202,3 @@ Se intentó asociar un golpe a la cercanía de la muñeca de un jugador a la pel
 
 \section{Visor web}
 \label{sec:visor}
-
-\section{Implementación y pruebas}
-\label{sec:implementacion}
-
-% IDEAS (borrar antes de pasar la memoria al tutor)
-% - Organización del código (antes era una subsección de Arquitectura): un
-%   repositorio con tres paquetes, padel_cv (visión: pose, pista, vídeo,
-%   herramientas de etiquetado), padel_ml (modelos, asignación, análisis del
-%   punto, vídeo procesado, exportación a la web, evaluación) y web (visor).
-% - Una sola función, analyze_rally, que usan igual el vídeo procesado, la
-%   evaluación y la web: lo que se mide es exactamente lo que se entrega.
-% - Tecnologías del sistema y tabla pequeña del entorno (Jorge la escribe).
-% - Pruebas y calidad: tests automáticos, tipado estricto, comprobaciones en
-%   cada commit; cada cifra y figura se regenera con un script.
