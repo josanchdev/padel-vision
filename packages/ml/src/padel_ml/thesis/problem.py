@@ -60,13 +60,17 @@ def _aspect(image: ImageArray) -> float:
     return float(image.shape[1]) / float(image.shape[0])
 
 
-def _panel(figure: Figure, image: ImageArray, left_in: float, width_in: float) -> Axes:
-    """An RGB image at `left_in` (inches), bottom-aligned, with rounded corners.
+def image_panel(
+    figure: Figure, image: ImageArray, left_in: float, width_in: float, bottom_in: float = 0.0
+) -> Axes:
+    """An RGB image at (`left_in`, `bottom_in`) inches, with rounded corners.
 
     The axes keep the image's own pixel coordinates, whatever raster is embedded."""
     height_in = width_in / _aspect(image)
     width, height = figure.get_size_inches()
-    axes = figure.add_axes((left_in / width, 0.0, width_in / width, height_in / height))
+    axes = figure.add_axes(
+        (left_in / width, bottom_in / height, width_in / width, height_in / height)
+    )
     shown = image
     if image.shape[1] > PIXELS_WIDE:
         rows = round(PIXELS_WIDE / _aspect(image))
@@ -77,7 +81,7 @@ def _panel(figure: Figure, image: ImageArray, left_in: float, width_in: float) -
         shown, extent=(0, image.shape[1], image.shape[0], 0), interpolation="none"
     )
     outline = FancyBboxPatch(
-        (left_in, 0.0),
+        (left_in, bottom_in),
         width_in,
         height_in,
         boxstyle=f"round,pad=0,rounding_size={CORNER_IN}",
@@ -106,7 +110,7 @@ def draw_problem_figure(raw: ImageArray, processed: ImageArray, detail: Region, 
     with mpl.rc_context(STYLE):
         figure = Figure(figsize=(TEXT_WIDTH_IN, height_in))
         panels = [
-            _panel(figure, image, left_in, image_in * _aspect(image))
+            image_panel(figure, image, left_in, image_in * _aspect(image))
             for image, left_in in zip((raw, processed, zoom), lefts, strict=True)
         ]
         panels[1].add_patch(
