@@ -49,7 +49,7 @@ Para ello, el sistema utiliza información de audio e imágenes.
 
 Aunque el enfoque inicial del proyecto consistía en identificar el instante en el que un jugador golpea la pelota basándose exclusivamente en el análisis visual de las imágenes, finalmente fue descartado dada la dificultad que entraña detectar y hacer seguimiento de la trayectoria de la pelota.
 Y esta dificultad viene dada por varios motivos, el tamaño de la pelota, la alta velocidad a la que se mueve y el hecho de que la pelota no permanece siempre visible.
-Se intentó asociar un golpe a la cercanía de la muñeca de un jugador a la pelota cuando esta cambiaba de dirección, pero el  número de falsos positivos era muy elevado y el número de golpes no detectados era también excesivo.
+Se probó una alternativa basada en la imagen, a partir de la pose de los jugadores y la posición de la pelota, pero detectaba menos golpes y con más errores (\cref{tab:deteccion}).
 
 \begin{table}[tbp]
   \centering
