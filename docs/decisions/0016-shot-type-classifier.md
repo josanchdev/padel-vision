@@ -6,6 +6,15 @@
 y está a 0 en el demo y en la web, así que todo golpe con jugador asignado
 recibe uno de los cuatro tipos (2026-10-07)
 
+**Nota (2026-10-13), criterio real del etiquetado:** las cuatro clases cubren
+todos los gestos normales por su forma. Cualquier golpe por encima de la cabeza
+que se parezca a un remate, víbora y bandeja incluidas, se etiquetó como Remate;
+las voleas, como Derecha o Revés según el lado. `Other` quedó solo para lo que no
+encaja en ninguna clase (un gesto atípico, como entre las piernas, o un «golpe»
+que no lo es) y para frames inservibles (repeticiones, cambio de cámara, jugador
+fuera de encuadre o irreconocible). Donde la Decisión B dice que la bandeja «no
+es clase» y la D la manda a `Other`, prevalece esta nota.
+
 ## Contexto
 
 Con el backbone cerrado (audio F1 0,93 · asignación de equipo 86,83% = paper),

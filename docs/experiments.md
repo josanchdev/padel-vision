@@ -1256,14 +1256,22 @@ cross-rally.
 ### El criterio de descarte, y por qué los descartes no son basura
 
 `Other` marca lo que NO debe entrenar al modelo, en dos familias:
-- **Gesto no reconocible**: bandeja, víbora, pelotazo defensivo (la pelota da en
-  la pala mientras el jugador se protege), golpe forzado sin gesto claro.
+- **Golpe que no encaja en ninguna clase**: un gesto atípico (por ejemplo, entre
+  las piernas) o un «golpe» que en realidad no lo es.
 - **Frame inservible**: repeticiones con picture-in-picture, cambios de cámara,
-  jugador fuera de encuadre, pose rota.
+  jugador fuera de encuadre o casi irreconocible, pose rota.
+
+Todo lo demás va a una de las cuatro clases por la forma del gesto: cualquier
+golpe por encima de la cabeza que se parezca a un remate (víbora y bandeja
+incluidas) es Remate, y las voleas son Derecha o Revés según el lado.
+
+*Corrección (13 oct 2026):* una versión anterior de esta sección ponía la
+bandeja, la víbora y el pelotazo defensivo entre los descartes. No fue el
+criterio aplicado al etiquetar; el de arriba sí.
 
 Se etiquetan pero **no se entrenan** (ADR-0016 D): un cajón de sastre visualmente
-incoherente envenena el modelo — una bandeja no se parece a una dejada, y
-aprender "brazo alto raro = Other" le robaría remates. Su función es **calibrar
+incoherente envenena el modelo — un golpe entre las piernas no se parece a nada
+de lo demás, y aprender "gesto raro = Other" le robaría golpes a las clases. Su función es **calibrar
 el umbral de rechazo**: ya entrenado, se le pasan los `Other` para ver qué
 confianza les asigna y fijar ahí el corte de "Sin clasificar".
 
