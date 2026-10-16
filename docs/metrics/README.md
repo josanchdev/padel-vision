@@ -42,6 +42,7 @@ uv run python scripts/evidence_confidence_intervals.py # márgenes de error y co
 uv run python scripts/evidence_processing_time.py      # coste de procesado por etapa
 uv run python scripts/evidence_pose_resolution.py      # tamaño de entrada del modelo de pose
 uv run python scripts/evidence_detection_comparison.py # imagen frente a audio en los mismos 5 puntos
+uv run python scripts/evidence_assignment_height.py    # asignación con y sin dividir por la altura
 ```
 
 ## Tabla 1: cada paso por separado
@@ -55,6 +56,7 @@ uv run python scripts/evidence_detection_comparison.py # imagen frente a audio e
 | `hit_assignment_replica.json` | **Asignación del golpe al jugador** sobre los 319 golpes del paper; matriz de confusión | `evidence_hit_assignment.py` |
 | `hit_assignment_per_rally.json` | La misma, por rally, comparable con la tabla 3 del paper | ídem |
 | `assignment_window_sweep.json` | Ancho, asimetría y desplazamiento de la ventana de voto | `experiment_assignment_window.py` |
+| `assignment_height.json` | **Dividir por la altura** del jugador frente a medir en píxeles: acierto total y por tipo de golpe en los 319 golpes | `evidence_assignment_height.py` |
 | `shot_type_classifier.json` | **Tipo de golpe** dejando fuera cada torneo; pesos de clase y regla del saque | `evidence_shot_classifier.py` |
 | `shot_type_per_tournament.json` | Acierto por torneo (11 rondas) | ídem |
 
