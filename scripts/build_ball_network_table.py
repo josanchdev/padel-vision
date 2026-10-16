@@ -104,7 +104,7 @@ def build_table() -> str:
         ["Número de veces que se reduce la imagen", str(steps), str(ours["down"])],
         ["Número de veces que se amplía la imagen", str(steps), str(ours["up"])],
         [
-            "Canales (primer y último nivel)",
+            "Rango de canales",
             rf"${UNET_CHANNELS[0]} \to {count(UNET_CHANNELS[-1])}$",
             rf"${ours['first']} \to {ours['deepest']}$",
         ],
