@@ -103,6 +103,27 @@
 }
 % Segunda línea, más pequeña y gris, dentro de una caja
 \newcommand{\subcaja}[1]{\\[-1pt]{\scriptsize\color{tenue}#1}}
+% Iconos de los diagramas: el jugador, un pictograma de remate como los de la
+% figura de la ventana (0,66 de alto, pies en el origen), y la pelota de pádel
+% (radio 0,085, centrada). El color se pasa al usarlos: {jugador=tinta}.
+\definecolor{pelota}{HTML}{e2e23c}
+\tikzset{
+  pics/jugador/.style={code={
+    \fill[#1] (0.015,0.44) circle (0.052);
+    \draw[#1, line width=1.6pt, line cap=round] (0,0.35) -- (0,0.19);
+    \draw[#1, line width=1.1pt, line cap=round, line join=round]
+      (0,0.19) -- (-0.075,0.0) (0,0.19) -- (0.075,0.0)
+      (0,0.33) -- (0.065,0.43) -- (0.085,0.52)
+      (0,0.33) -- (-0.07,0.39) -- (-0.085,0.47);
+    \draw[#1, line width=0.8pt, line cap=round] (0.085,0.52) -- (0.095,0.56);
+    \fill[#1] (0.105,0.615) ellipse [x radius=0.032, y radius=0.045];
+  }},
+  pics/pelota/.style={code={
+    \fill[#1, draw=tinta, line width=0.45pt] (0,0) circle (0.085);
+    \draw[white, line width=0.55pt]
+      (-0.07,0.035) .. controls (-0.02,-0.025) and (0.02,-0.025) .. (0.07,0.035);
+  }},
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Bibliografía %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
