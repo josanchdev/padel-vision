@@ -292,7 +292,7 @@ La \ac{tcn} tiene dos capas: en la primera la salida resume 5 pasos seguidos; en
 Así, cada paso abarca 17 pasos de la entrada, frente a los 9 que cubrirían dos capas sin dilatación.
 
 El \textbf{token de clase} es un vector que se añade al principio de la secuencia y que la red aprende durante el entrenamiento, como el resto de sus pesos.
-Su función es resumir la secuencia entera, ya que la cabeza necesita un único vector para decidir y tras la \ac{tcn} hay 100.
+Su función es resumir la secuencia entera, ya que el \ac{mlp} necesita un único vector para decidir y tras la \ac{tcn} hay 100.
 
 La \textbf{codificación posicional} es un vector que se encarga de comunicar al codificador en qué orden van los pasos, sumando a cada paso una firma de su posición.
 Es necesaria porque, sin ella, el codificador no distinguiría el orden de los pasos, y para clasificar un golpe importa el orden de la preparación, el impacto y el cierre.
@@ -338,8 +338,24 @@ donde $H$ es el número de cabezas y $W_O$, la matriz que las combina.
 La segunda parte de cada capa, la \ac{ffn}, es una red pequeña que procesa cada paso por separado: la atención reúne información de los demás pasos y la \ac{ffn} la transforma.
 Antes de cada parte se normalizan los valores y a su salida se suma lo que había a la entrada, lo que facilita el entrenamiento al apilar capas.
 El mismo codificador, con los mismos pesos, procesa por separado la pose y la pelota.
-Como el token también participa en la atención y no tiene contenido propio, a la salida contiene el resumen de la secuencia, que va directamente a la cabeza, mientras que los demás pasos continúan hacia la atención cruzada.
+Como el token también participa en la atención y no tiene contenido propio, a la salida contiene el resumen de la secuencia, que va directamente al \ac{mlp}, mientras que los demás pasos continúan hacia la atención cruzada.
 
+La \textbf{atención cruzada} es la misma que la del codificador temporal excepto que las consultas salen de la pose, y las claves y los valores, de la pelota.
+Lo que hace es juntar el gesto del golpeador, dado por la pose, con la trayectoria de la pelota: en cada paso, la pose pregunta a la pelota qué momentos suyos son importantes.
+Es la idea central de BST, ya que la pose sola es ambigua: gestos parecidos pueden mandar la pelota a sitios distintos, y la trayectoria lo resuelve.
+La salida es una secuencia en la que cada paso lleva la información de la pelota que el gesto ha considerado relevante.
+La ecuación es la misma que la de la atención (\cref{eq:atencion}) excepto de qué lugar sale cada matriz, con $P$ la secuencia de la pose y $B$ la de la pelota:
+\begin{equation}
+  Q = PW_Q, \qquad K = BW_K, \qquad V = BW_V.
+  \label{eq:cruzada}
+\end{equation}
+
+El \textbf{codificador de interacción} es igual que el codificador temporal, pero con una sola capa y su propio token.
+Se encarga de resumir la secuencia fusionada por la atención cruzada en un único vector.
+
+El \textbf{\ac{mlp}} final recibe los tres resúmenes, el de la pose, el de la pelota y el de la fusión, y devuelve un valor por clase de golpe.
+El tipo de golpe depende del gesto, de la trayectoria de la pelota y de la relación entre ellos, y cada resumen aporta una de las tres.
+Estos valores son puntuaciones, que la salida del modelo convierte en probabilidades.
 
 
 \section{Visor web}
