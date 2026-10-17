@@ -57,12 +57,19 @@
 \captionsetup{font=small,labelfont=bf,skip=8pt}
 \captionsetup[table]{position=top}
 \usepackage{subcaption}
+% [H] coloca una figura exactamente donde está en el texto, aunque deje hueco
+% al final de la página: para las que se describen justo antes de aparecer
+\usepackage{float}
+% Ninguna figura cruza a la sección siguiente
+\usepackage[section]{placeins}
 
 % Cada figura deja un pequeño margen propio por encima, para que no quede pegada
 % al título o al texto que la precede, y su pie va junto a ella: el espacio
-% entre párrafos no se aplica dentro de figuras ni tablas
+% entre párrafos no se aplica dentro de figuras ni tablas. El \penalty0 deja
+% cortar la página justo antes de la figura: sin él, una figura fija ([H]) que
+% no cabe obliga a partir por la mitad el párrafo que la precede
 \setlength{\intextsep}{6pt plus 2pt minus 2pt}
-\AtBeginEnvironment{figure}{\setlength{\parskip}{0pt}\vspace*{14pt}}
+\AtBeginEnvironment{figure}{\setlength{\parskip}{0pt}\par\penalty0\vspace*{14pt}}
 \AtBeginEnvironment{table}{\setlength{\parskip}{0pt}}
 
 % Números según la RAE: coma decimal, espacio antes de las unidades y del %,
@@ -124,6 +131,30 @@
       (-0.07,0.035) .. controls (-0.02,-0.025) and (0.02,-0.025) .. (0.07,0.035);
   }},
 }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Órdenes de terminal %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Bloques con las órdenes que se escriben en la terminal: letra monoespaciada
+% sobre el fondo gris de los diagramas, el «$» del indicador en gris y los
+% comentarios en gris y cursiva. Uso: \begin{lstlisting}[style=terminal] ...
+% \end{lstlisting} (el editor lo reconoce como código; con \begin{terminal} sale
+% igual en el PDF, pero el editor colorea los «$» como si abrieran fórmulas)
+\usepackage{listings}
+\lstdefinestyle{terminal}{
+  language=bash,
+  basicstyle=\ttfamily\small\color{tinta},
+  keywordstyle=\color{tinta},
+  commentstyle=\color{tenue}\itshape,
+  backgroundcolor=\color{fondo},
+  frame=single, rulecolor=\color{borde}, framerule=0.4pt, framesep=5pt,
+  xleftmargin=6pt, xrightmargin=6pt,
+  aboveskip=10pt, belowskip=8pt,
+  columns=fullflexible, keepspaces=true, showstringspaces=false,
+  breaklines=true,
+  literate={\$}{{\textcolor{tenue}{\$}}}1
+           {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1 {ñ}{{\~n}}1,
+}
+\lstnewenvironment{terminal}{\lstset{style=terminal}}{}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Bibliografía %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
