@@ -1,8 +1,8 @@
 % !TEX root = ../tfg.tex
 
-Los puntos que se van a tratar durante este capítulo.
-A lo largo de esta sección se detallará la arquitectura definida para identificar cada golpe. Para ello, el sistema utiliza información de audio e imágenes.
-A lo largo de esta sección se detallará la arquitectura definida para identificar cada golpe. Para ello, el sistema utiliza información de audio e imágenes.
+En este capítulo se describe el sistema desarrollado.
+En primer lugar, se presenta su arquitectura y el flujo que sigue cada punto desde el vídeo hasta los datos de cada golpe.
+A continuación, se detalla cada uno de sus componentes y, por último, el visor web con el que se presentan los resultados del análisis.
 
 \section{Arquitectura}
 \label{sec:arquitectura}
@@ -12,13 +12,13 @@ Para ello, el sistema utiliza información de audio e imágenes.
 
 Como paso previo al tratamiento de vídeo será necesario marcar manualmente las seis referencias espaciales que delimitan el contorno de la pista, así como la ubicación de la red.
 Estas anotaciones se podrán reutilizar siempre y cuando no varíe la ubicación y orientación de la cámara.
-Se probó otra alternativa de detección automática pero los resultados no eran suficientemente fiables.
+Se probó otra alternativa de detección automática, pero los resultados no eran suficientemente fiables.
 
 El proceso arranca con un punto de pádel grabado desde una cámara fija.
-Esta deberá estar situada al fondo de la pista y con una cierta elevación sobre la misma.
+Esta deberá estar situada al fondo de la pista y con una cierta elevación sobre ella.
 
 Utilizando los vértices previamente anotados, el sistema es capaz de localizar a los jugadores en la pista, descartando por tanto al resto de personas.
-A continuación, atribuye cada golpe a un jugador y clasifica el mismo.
+A continuación, atribuye cada golpe a un jugador y lo clasifica.
 Como paso final, devuelve como salida el vídeo procesado y el conjunto de datos.
 Todo este flujo de información queda reflejado en la \cref{fig:flujo}.
 
@@ -31,30 +31,29 @@ Todo este flujo de información queda reflejado en la \cref{fig:flujo}.
 
 Como se observa en la figura, el procesamiento se divide en dos ramas independientes, una para el audio y otra para la imagen.
 La rama de audio~\cite{decorte2024padel} utiliza el sonido para detectar el instante en el que se produce el golpe (\cref{sec:instante}).
-Por otro lado, la rama de imagen se encarga de dos funciones principales, por un lado asigna un identificador a cada jugador (\cref{sec:jugadores}), y por otro lado detecta la pelota (\cref{sec:pelota}).
+Por otro lado, la rama de imagen se encarga de dos funciones principales: por un lado asigna un identificador a cada jugador (\cref{sec:jugadores}), y por otro lado detecta la pelota (\cref{sec:pelota}).
 
 Para cada golpe detectado por la rama de audio se recoge un determinado número de fotogramas previos y posteriores a la detección.
 Dichos fotogramas permiten clasificar el golpe y el jugador que lo ha realizado.
 
-Como se indicaba anteriormente, se obtienen el vídeo procesado y lo que es más importante aún, el conjunto de datos que permiten el análisis del punto y su visualización en el visor web.
+Como se indicaba anteriormente, se obtienen el vídeo procesado y, lo que es más importante aún, el conjunto de datos que permiten el análisis del punto y su visualización en el visor web.
 
 \section{Componentes del sistema}
 \label{sec:componentes}
 
-A lo largo de esta sección se detallará la arquitectura definida para identificar cada golpe.
-Para ello, el sistema utiliza información de audio e imágenes.
-Me parece bien, con un matiz de redacción: no digas que todos se eligieron por prueba y error, porque algunos sí están medidos (los 1920 px, la ventana de ±4). Algo como: «los valores que no se justifican explícitamente, como umbrales o tamaños de ventana menores, se fijaron de forma empírica». Así no hay que justificarlos uno a uno, y lo medido sigue siendo medido. AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+En esta sección se describe cada componente del sistema que interviene en el flujo de la \cref{fig:flujo}: la detección del instante del golpe, la identificación de los jugadores, la detección de la pelota, la asignación del golpe y la clasificación de su tipo.
+Los valores que no se justifican explícitamente se fijaron de forma empírica.
 
 \subsection{Instante del golpe}
 \label{sec:instante}
 
 Aunque el enfoque inicial del proyecto consistía en identificar el instante en el que un jugador golpea la pelota basándose exclusivamente en el análisis visual de las imágenes, finalmente fue descartado dada la dificultad que entraña detectar y hacer seguimiento de la trayectoria de la pelota.
-Y esta dificultad viene dada por varios motivos, el tamaño de la pelota, la alta velocidad a la que se mueve y el hecho de que la pelota no permanece siempre visible.
+Esta dificultad viene dada por varios motivos: el tamaño de la pelota, la alta velocidad a la que se mueve y el hecho de que la pelota no permanece siempre visible.
 Se probó una alternativa basada en la imagen, a partir de la pose de los jugadores y la posición de la pelota, pero detectaba menos golpes y con más errores (\cref{tab:deteccion}).
 
 \begin{table}[htbp]
   \centering
-  \caption{...}
+  \caption{Detección del instante del golpe por imagen y por audio en los mismos cinco puntos.}
   \label{tab:deteccion}
   \input{figuras/tabla-deteccion}
 \end{table}
@@ -78,11 +77,11 @@ Para poder distinguir entre golpe y ruido de fondo se necesita entrenar un model
 Para ello se utiliza un \textit{dataset} previamente anotado~\cite{decorte2024padel} con el inicio y fin del sonido del impacto.
 En total se dispone de 2377 golpes etiquetados distribuidos a lo largo de 99 puntos en distintos torneos.
 
-La entrada del modelo es un espectrograma \textit{log-Mel}, que agrupa las frecuencias similar a la interpretación del sonido que hace el oído humano, de 40 bandas en un rango de 0--24~kHz calculado con un solape de un 50\% y una ventana \acs{fft} (\acl{fft}) de tamaño 2048, dividido en secuencias de 256 \textit{frames}.
+La entrada del modelo es un espectrograma \textit{log-Mel}, que agrupa las frecuencias de forma similar a como las percibe el oído humano, de 40 bandas en un rango de 0--24~kHz calculado con un solape de un 50~\% y una \ac{fft} de tamaño 2048, dividido en secuencias de 256 \textit{frames}.
 Es importante mencionar que no se dispone de rangos infrasonido y ultrasonido porque los vídeos del \textit{dataset} están comprimidos y el algoritmo de compresión los descartó.
 
-La arquitectura base del modelo utilizado para detectar golpes a partir de su sonido se basa en una adaptación del modelo SED-net~\cite{adavanne2017sed} con dos capas \acs{gru} (\acl{gru}) bidireccionales.
-La red neuronal final tiene un total de 114 561 parámetros y las capas adaptadas se muestran en la \cref{tab:red-audio}. La red neuronal se entrenó con un optimizador AdamW~\cite{loshchilov2019adamw}, con una tasa de aprendizaje de 0,001 y con \textit{batches} de 32 secuencias.
+La arquitectura base del modelo utilizado para detectar golpes a partir de su sonido se basa en una adaptación del modelo SED-net~\cite{adavanne2017sed,decorte2024padel} con dos capas \ac{gru} bidireccionales.
+La red neuronal final tiene un total de \num{114561} parámetros y las capas adaptadas se muestran en la \cref{tab:red-audio}. La red neuronal se entrenó con un optimizador AdamW~\cite{loshchilov2019adamw}, con una tasa de aprendizaje de 0,001 y con \textit{batches} de 32 secuencias.
 
 \begin{table}[htbp]
   \centering
@@ -98,7 +97,7 @@ Cada máximo local de esa curva que supere 0,5 se considera un golpe, y como un 
 \label{sec:jugadores}
 
 Los vídeos de grabaciones de pádel con los que se ha trabajado tienen la cámara situada en un extremo de la pista.
-Es por ello que la imagen estará siempre en perspectiva y por tanto distorsionada.
+Por ello, la imagen estará siempre en perspectiva y por tanto distorsionada.
 Esto se traduce en que una misma distancia en píxeles equivale a diferentes longitudes reales en función del lugar de la pista en que se encuentre.
 
 Esta distorsión se resuelve utilizando puntos de referencia conocidos, como los vértices de la pista de tamaño estándar $10 \times 20$~m, con los que se calcula una matriz de $3 \times 3$, llamada homografía, que relaciona la imagen con el plano de la pista.
@@ -112,7 +111,7 @@ Por lo tanto, fue necesario mantener el tamaño original del fotograma, 1920~px 
 
 \begin{table}[htbp]
   \centering
-  \caption{...}
+  \caption{Fotogramas en los que se detecta a los cuatro jugadores, y tiempo por fotograma, según el tamaño de entrada del modelo.}
   \label{tab:pose-resolucion}
   \input{figuras/tabla-pose-resolucion}
 \end{table}
@@ -124,12 +123,12 @@ Si no están ambos disponibles se utiliza la posición del tobillo detectado, o 
 Cabe destacar que el modelo devuelve a todas las personas que aparezcan en los fotogramas, incluidas las que no son jugadores.
 Para descartar a los no jugadores se utiliza una máscara creada con el contorno de la pista.
 Una persona se considera jugador si el centro de la base de su \textit{bounding box} cae dentro de la máscara.
-La \cref{fig:jugadores} muestra como es la máscara y el resultado de aplicar la homografía sobre los jugadores.
+La \cref{fig:jugadores} muestra cómo es la máscara y el resultado de aplicar la homografía sobre los jugadores.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics{figuras/jugadores}
-  \caption{Fotograma de un punto (a). Resultado de la homografía con las distancias (b).}
+\caption[Jugadores en la imagen y en la pista]{Fotograma de un punto con la máscara de la pista y los jugadores identificados (a), y sus posiciones en la pista según la homografía, con la distancia entre compañeros y a la red (b).}
   \label{fig:jugadores}
 \end{figure}
 
@@ -137,11 +136,11 @@ Tras aplicar la máscara, en cada fotograma quedan solo los jugadores, pero falt
 El algoritmo de seguimiento ByteTrack~\cite{zhang2022bytetrack} hace justo esto, asignando un mismo identificador a la misma persona.
 Predice dónde estará cada \textit{bounding box} y empareja por solapamiento.
 Este algoritmo viene incluido en la biblioteca Ultralytics y se ejecuta en la misma llamada que el modelo de pose.
-Cuando pierde a una persona, ByteTrack guarda su seguimiento durante un tiempo por si reaparece (en nuestra configuración, 120 fotogramas).
+Cuando pierde a una persona, ByteTrack guarda su seguimiento durante un tiempo por si reaparece (120 fotogramas en el sistema).
 Si en ese tiempo no consigue volver a emparejarla, le asigna un identificador nuevo.
 
 Para saber quién da cada golpe, cada jugador necesita que su identidad no cambie durante todo el punto: J1, J2, J3 y J4.
-Estas se asignan durante los 3 primeros segundos del punto usando la posición media de los cuatro identificadores que aparecen en más fotogramas ~\cite{decorte2024padel}.
+Estas se asignan durante los 3 primeros segundos del punto usando la posición media de los cuatro identificadores que aparecen en más fotogramas~\cite{decorte2024padel}.
 La numeración sigue el mismo criterio que las anotaciones del \textit{dataset}, lo que permite comparar con ellas el jugador que da cada golpe.
 
 Cuando ByteTrack pierde a un jugador y le asigna un identificador nuevo, hay que decidir cuál de los cuatro es.
@@ -163,7 +162,7 @@ Cada celda del mapa equivale a un cuadrado de $10 \times 10$ píxeles del vídeo
 \begin{figure}[htbp]
   \centering
   \includegraphics{figuras/mapa-calor}
-  \caption{...}
+  \caption[Mapa de calor de la pelota]{Zona del fotograma alrededor de la pelota (a), mapa de calor que devuelve la red sobre esa misma zona (b) y detalle de las celdas en torno a la pelota, con su valor (c).}
   \label{fig:mapa-calor}
 \end{figure}
 
@@ -177,7 +176,7 @@ Además, se ha añadido un corrector en el paso final que ajusta el mapa de calo
 
 \begin{table}[htbp]
   \centering
-  \caption{...}
+  \caption{Diferencias entre la U-Net original y la red de detección de la pelota.}
   \label{tab:red-pelota}
   \input{figuras/tabla-red-pelota}
 \end{table}
@@ -186,13 +185,10 @@ La red aprende comparando su salida ($p$) con un mapa objetivo ($t$), en el que 
 El error se mide con una entropía cruzada binaria ponderada, como media sobre las $N$ celdas del mapa:
 \begin{equation}
   \mathcal{L} = -\frac{1}{N} \sum_{i=1}^{N} w_i \left[ t_i \log p_i + (1 - t_i) \log (1 - p_i) \right],
-  \qquad w_i = 1 + 199\, t_i
+  \qquad w_i = 1 + 199\, t_i,
 \end{equation}
 donde $w_i$ es el peso de cada celda: 1 en el fondo y hasta 200 en el centro de la pelota.
 Sin estos pesos, como la pelota ocupa muy pocas celdas del mapa, la red podría aprender a devolver 0 en todas partes.
-
-%En la práctica, la principal dificultad es que la pelota no siempre está a la vista: en los globos sale del encuadre, en ocasiones la tapa un jugador y en algunos fotogramas no llega a distinguirse aunque esté en juego.
-%El sistema lo tolera porque ni la asignación ni el clasificador dependen de un único fotograma, como se explica en las siguientes secciones.
 
 \subsection{Asignación del golpe}
 \label{sec:asignacion}
@@ -212,12 +208,12 @@ Con ella, el acierto en los remates pasa del 62~\% al 84~\%, lo que resuelve má
 \begin{figure}[htbp]
   \centering
   \input{figuras/asignacion}
-  \caption{...}
+   \caption[Asignación de un remate]{Asignación de un remate de J4: distancia $d$ de la pelota a cada jugador, altura $h$ de cada uno y su cociente $d/h$. En negrita, el más cercano según cada medida: J2 en píxeles y J4, que es quien golpea, al dividir por la altura.}
   \label{fig:asignacion}
 \end{figure}
 
 La ventana se fijó en 9 fotogramas, 4 antes y 4 después del golpe.
-Ampliarla empeora el acierto (87,5~\% con $\pm 4$, 86,8~\% con $\pm 5$ y 85,6~\% con $\pm 6$), porque los fotogramas alejados del golpe dan el voto a quien está cerca de la pelota en ese momento, no por quien golpeó.
+Ampliarla empeora el acierto (87,5~\% con $\pm 4$, 86,8~\% con $\pm 5$ y 85,6~\% con $\pm 6$), porque los fotogramas alejados del golpe dan el voto a quien está cerca de la pelota en ese momento, no a quien golpeó.
 
 \subsection{Tipo de golpe}
 \label{sec:tipo}
@@ -226,7 +222,7 @@ El último paso del flujo utiliza todo lo obtenido anteriormente para clasificar
 Esto convierte la detección en información útil para analizar el juego, como cuántos golpes de cada tipo da cada jugador y desde dónde los ejecuta.
 Es, además, la base de análisis más completos: conociendo el tipo de cada golpe se podría estudiar, por ejemplo, en qué golpe se pierden más puntos o qué patrones se repiten antes de un error, y llegar a que un sistema saque conclusiones de un partido por sí mismo.
 Cada golpe se clasifica en uno de cuatro tipos: saque, derecha, revés o remate. Se eligieron estas clases por ser las familias básicas de golpes del pádel, y son el punto de partida necesario: una vez se distinguen de forma fiable, cada una puede subdividirse después, por ejemplo, separando dentro de los remates la bandeja y la víbora, sin rehacer el resto del sistema.
-El clasificador parte de BST~\cite{chang2026bst}, un modelo propuesto para el bádminton.
+El clasificador parte de \ac{bst}~\cite{chang2026bst}, un modelo propuesto para el bádminton.
 Llevarlo al pádel, con cuatro jugadores en pista y otros tipos de golpe, ha exigido adaptar qué recibe el modelo, qué clases distingue y con qué datos se entrena.
 
 Un golpe se reconoce por el movimiento completo del jugador y no por un único fotograma, por lo que el clasificador analiza un intervalo de vídeo alrededor de cada golpe.
@@ -242,7 +238,7 @@ Por último, como la duración de la ventana varía de un golpe a otro, se toman
 \begin{figure}[htbp]
   \centering
   \includegraphics{figuras/ventana}
-  \caption{...}
+  \caption{Ventana adaptativa de un golpe. En negro, el jugador que golpea; en rojo, los rivales, cuyos golpes marcan el inicio y el final de la ventana; en verde, el margen $\varepsilon$ tras el golpe siguiente.}
   \label{fig:ventana}
 \end{figure}
 
@@ -257,7 +253,7 @@ Así, el modelo no recibe la posición de la pelota en píxeles, sino su posici�
 \begin{figure}[htbp]
   \centering
   \includegraphics{figuras/entrada}
-  \caption{...}
+  \caption[Entrada del modelo para un remate]{Entrada del modelo para un remate: la pose del jugador que golpea, centrada en las caderas y escalada por el tronco, y la pelota, en amarillo. Los fotogramas a $\pm 3$ del golpe aparecen atenuados para mostrar que la entrada es una secuencia, y el hueco entre la mano y la pelota corresponde a la pala, que el modelo no recibe.}
   \label{fig:entrada}
 \end{figure}
 
@@ -269,49 +265,49 @@ De este modo, el modelo aprende con los mismos errores que encontrará después,
 
 A continuación se describe cada módulo de la red en detalle. La \cref{fig:clasificador} muestra el flujo que recorren los datos.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \input{figuras/clasificador}
-  \caption{...}
+  \caption{Arquitectura del clasificador de golpes.}
   \label{fig:clasificador}
 \end{figure}
 
 El primer módulo de la red es una \textbf{\ac{tcn}}~\cite{bai2018tcn}, que se encarga de convertir posiciones en movimiento.
-La \ac{tcn} calcula cada paso a partir de él y de sus vecinos.
+Para ello, la \ac{tcn} calcula cada paso a partir de él y de sus vecinos.
 Con esto, cada paso puede recoger hacia dónde se mueven los puntos del cuerpo y la pelota, algo que una posición aislada no contiene.
 Además, lleva las dos secuencias, de 51 y 3 valores por paso, a un mismo tamaño $D$, ya que los módulos siguientes las comparan entre sí y las procesan con los mismos pesos.
-Para cada filtro de tamaño $k$, la salida en el paso $s$ es:
+En concreto, para cada filtro de tamaño $k$, la salida en el paso $s$ es:
 \begin{equation}
   F(s) = \sum_{i=0}^{k-1} f(i)\, x_{s + d\,(i - \lfloor k/2 \rfloor)},
   \label{eq:tcn}
 \end{equation}
 donde $f(i)$ son los $k$ pesos del filtro, aprendidos durante el entrenamiento, y $d$ es la dilatación, la separación entre las posiciones que mira.
 Cada filtro aplica esta operación a todos los valores de entrada y suma los resultados, y hay $D$ filtros, uno por cada valor de salida.
-La dilatación es lo que permite cubrir más pasos sin más pesos o capas.
-La \ac{tcn} tiene dos capas: en la primera la salida resume 5 pasos seguidos; en la segunda mira 5 de esas salidas separadas de 3 en 3.
+Por su parte, la dilatación es lo que permite cubrir más pasos sin más pesos o capas.
+En este caso, la \ac{tcn} tiene dos capas: en la primera, la salida resume 5 pasos seguidos, mientras que en la segunda mira 5 de esas salidas separadas de 3 en 3.
 Así, cada paso abarca 17 pasos de la entrada, frente a los 9 que cubrirían dos capas sin dilatación.
 
-El \textbf{token de clase} es un vector que se añade al principio de la secuencia y que la red aprende durante el entrenamiento, como el resto de sus pesos.
-Su función es resumir la secuencia entera, ya que el \ac{mlp} necesita un único vector para decidir y tras la \ac{tcn} hay 100.
+Por otro lado, el \textbf{token de clase} es un vector que se añade al principio de la secuencia y que la red aprende durante el entrenamiento, como el resto de sus pesos.
+Su función es resumir la secuencia entera, ya que el \ac{mlp} necesita un único vector para decidir y, tras la \ac{tcn}, hay 100.
 
-La \textbf{codificación posicional} es un vector que se encarga de comunicar al codificador en qué orden van los pasos, sumando a cada paso una firma de su posición.
+Asimismo, la \textbf{codificación posicional} es un vector que se encarga de comunicar al codificador en qué orden van los pasos, sumando a cada paso una firma de su posición.
 Es necesaria porque, sin ella, el codificador no distinguiría el orden de los pasos, y para clasificar un golpe importa el orden de la preparación, el impacto y el cierre.
-Se utiliza la codificación sinusoidal del Transformer~\cite{vaswani2017attention}, que, para el paso en la posición $t$ y cada pareja de dimensiones $i$, de 0 a $D/2-1$, es:
+Para ello, se utiliza la codificación sinusoidal del Transformer~\cite{vaswani2017attention}, que, para el paso en la posición $t$ y cada pareja de dimensiones $i$, de 0 a $D/2-1$, es:
 \begin{equation}
   \mathrm{PE}(t, 2i) = \sin\!\left(\frac{t}{10000^{2i/D}}\right), \qquad
   \mathrm{PE}(t, 2i+1) = \cos\!\left(\frac{t}{10000^{2i/D}}\right).
   \label{eq:posicional}
 \end{equation}
-Cada pareja de dimensiones oscila a una frecuencia distinta: las primeras cambian muy rápido de un paso al siguiente y las últimas muy despacio, y la combinación de todas da una firma única para cada posición.
-Las posiciones cercanas tienen firmas parecidas, así que la red puede tener en cuenta la distancia entre pasos.
-Esta codificación se suma antes de cada uno de los tres módulos que siguen en la figura.
+Cada pareja de dimensiones oscila a una frecuencia distinta: las primeras cambian muy rápido de un paso al siguiente y las últimas muy despacio, de modo que la combinación de todas da una firma única para cada posición.
+Por lo tanto, las posiciones cercanas tienen firmas parecidas, lo que permite a la red tener en cuenta la distancia entre pasos.
+Por último, esta codificación se suma antes de cada uno de los tres módulos que siguen en la figura.
 
-El \textbf{codificador temporal} es una pila de dos capas de transformer, cada una formada por una atención y una \ac{ffn}.
-Se encarga de relacionar cada paso con todos los demás de la ventana, no solo con sus vecinos.
-El codificador permite, por ejemplo, que el paso del impacto tome información de la preparación de un segundo antes.
+A continuación, la secuencia pasa por el \textbf{codificador temporal}, una pila de dos capas de transformer, cada una formada por una atención y una \ac{ffn}.
+El codificador se encarga de relacionar cada paso con todos los demás de la ventana, no solo con sus vecinos.
+De este modo, permite, por ejemplo, que el paso del impacto tome información de la preparación de un segundo antes.
 Además, no todos los pasos aportan lo mismo: el codificador aprende cuánta información toma cada paso de cada uno de los demás, de modo que un paso en el que el jugador espera pesa menos que el impacto.
 
-Cada paso de la secuencia $X$ produce tres vectores, multiplicándose por tres matrices aprendidas:
+Para lograrlo, cada paso de la secuencia $X$ produce tres vectores, multiplicándose por tres matrices aprendidas:
 \begin{itemize}
   \item $Q$ (consulta): lo que el paso busca.
   \item $K$ (clave): con lo que se le puede encontrar.
@@ -320,43 +316,113 @@ Cada paso de la secuencia $X$ produce tres vectores, multiplicándose por tres m
 \begin{equation}
   Q = XW_Q, \qquad K = XW_K, \qquad V = XW_V,
   \qquad
-  \text{Atención}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{D_A}}\right) V,
+  \text{Atención}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{D_A}}\right) V.
   \label{eq:atencion}
 \end{equation}
-Es decir, se compara lo que busca cada paso con lo que ofrecen los demás, y cada paso recibe una media de sus contenidos ponderada por ese parecido.
+Es decir, se compara lo que busca cada paso con lo que ofrecen los demás y, en consecuencia, cada paso recibe una media de sus contenidos ponderada por ese parecido.
+En esta expresión, $D_A$ es la dimensión de esos vectores.
 
-La atención de cada capa se repite 6 veces en paralelo, cada una con sus propias matrices, y cada repetición se denomina cabeza.
+En la práctica, la atención de cada capa se repite 6 veces en paralelo, cada una con sus propias matrices, y cada repetición se denomina cabeza.
 Con una sola cabeza, cada paso repartiría su atención de una única manera, pero en un golpe hay varias relaciones a la vez: el impacto se relaciona con la preparación y también con la llegada de la pelota.
-Con varias, cada cabeza puede especializarse en una relación distinta.
-Las salidas de todas se concatenan y se combinan en un único vector por paso, la atención multicabeza (\ac{mhsa}):
+Por ello, con varias, cada cabeza puede especializarse en una relación distinta.
+Finalmente, las salidas de todas se concatenan y se combinan en un único vector por paso, \ac{mhsa}:
 \begin{equation}
   \mathrm{MHSA}(X) = \big[\,\mathrm{cabeza}_1 \,\|\, \cdots \,\|\, \mathrm{cabeza}_H\,\big]\, W_O,
   \label{eq:multicabeza}
 \end{equation}
 donde $H$ es el número de cabezas y $W_O$, la matriz que las combina.
 
-La segunda parte de cada capa, la \ac{ffn}, es una red pequeña que procesa cada paso por separado: la atención reúne información de los demás pasos y la \ac{ffn} la transforma.
-Antes de cada parte se normalizan los valores y a su salida se suma lo que había a la entrada, lo que facilita el entrenamiento al apilar capas.
-El mismo codificador, con los mismos pesos, procesa por separado la pose y la pelota.
-Como el token también participa en la atención y no tiene contenido propio, a la salida contiene el resumen de la secuencia, que va directamente al \ac{mlp}, mientras que los demás pasos continúan hacia la atención cruzada.
+En cuanto a la segunda parte de cada capa, la \ac{ffn}, se trata de una red pequeña que procesa cada paso por separado: mientras la atención reúne información de los demás pasos, la \ac{ffn} la transforma.
+Antes de cada parte se normalizan los valores y, a su salida, se suma lo que había a la entrada, lo que facilita el entrenamiento al apilar capas.
+Cabe destacar que el mismo codificador, con los mismos pesos, procesa por separado la pose y la pelota.
+Por último, como el token también participa en la atención y no tiene contenido propio, a la salida contiene el resumen de la secuencia, que va directamente al \ac{mlp}, mientras que los demás pasos continúan hacia la atención cruzada.
 
-La \textbf{atención cruzada} es la misma que la del codificador temporal excepto que las consultas salen de la pose, y las claves y los valores, de la pelota.
+Seguidamente, la \textbf{atención cruzada} aplica la misma operación que el codificador temporal, excepto que las consultas salen de la pose, y las claves y los valores, de la pelota.
 Lo que hace es juntar el gesto del golpeador, dado por la pose, con la trayectoria de la pelota: en cada paso, la pose pregunta a la pelota qué momentos suyos son importantes.
-Es la idea central de BST, ya que la pose sola es ambigua: gestos parecidos pueden mandar la pelota a sitios distintos, y la trayectoria lo resuelve.
-La salida es una secuencia en la que cada paso lleva la información de la pelota que el gesto ha considerado relevante.
-La ecuación es la misma que la de la atención (\cref{eq:atencion}) excepto de qué lugar sale cada matriz, con $P$ la secuencia de la pose y $B$ la de la pelota:
+Se trata de la idea central de BST, ya que la pose sola es ambigua: gestos parecidos pueden mandar la pelota a sitios distintos, y la trayectoria lo resuelve.
+Siendo $P$ la secuencia de la pose y $B$ la de la pelota, la ecuación se aplica con:
 \begin{equation}
   Q = PW_Q, \qquad K = BW_K, \qquad V = BW_V.
   \label{eq:cruzada}
 \end{equation}
+Como resultado, la salida es una secuencia en la que cada paso lleva la información de la pelota que el gesto ha considerado relevante.
 
-El \textbf{codificador de interacción} es igual que el codificador temporal, pero con una sola capa y su propio token.
-Se encarga de resumir la secuencia fusionada por la atención cruzada en un único vector.
+Después, el \textbf{codificador de interacción}, igual que el codificador temporal pero con una sola capa y su propio token, se encarga de resumir la secuencia fusionada por la atención cruzada en un único vector.
 
-El \textbf{\ac{mlp}} final recibe los tres resúmenes, el de la pose, el de la pelota y el de la fusión, y devuelve un valor por clase de golpe.
-El tipo de golpe depende del gesto, de la trayectoria de la pelota y de la relación entre ellos, y cada resumen aporta una de las tres.
-Estos valores son puntuaciones, que la salida del modelo convierte en probabilidades.
+Por último, el \textbf{\ac{mlp}} recibe los tres resúmenes, el de la pose, el de la pelota y el de la fusión, y devuelve un valor por clase de golpe.
+Dado que el tipo de golpe depende del gesto, de la trayectoria de la pelota y de la relación entre ellos, cada resumen aporta una de las tres.
 
+Una vez definida la arquitectura, la salida del modelo se interpreta como la probabilidad de cada clase, definiéndose como:
+\begin{equation}
+  p_c = \frac{e^{z_c}}{\sum_{c'=1}^{C} e^{z_{c'}}},
+  \label{eq:softmax}
+\end{equation}
+donde $z_c$ representa la puntuación de la clase $c$, es decir, la salida del \ac{mlp}; $p_c$, su probabilidad, y $C$, el número total de clases.
+La exponencial hace que la puntuación más alta se lleve la mayor parte de la probabilidad, de modo que, si una clase destaca, su probabilidad se acerca a 1.
+Por tanto, el tipo de golpe elegido es aquel con la probabilidad más alta, con una única excepción.
+
+Dado que en el pádel solo el primer golpe de cada punto puede ser un saque, se puede utilizar esta información para descartarlo en el resto de golpes, en los que el tipo se elige entre las tres clases restantes.
+Además, la regla solo prohíbe y no impone, de modo que el primer golpe es un saque únicamente si el modelo así lo indica.
+Formalmente, la clase elegida para el golpe $j$ se obtiene según la siguiente expresión:
+\begin{equation}
+  \hat{y}_j = \arg\max_{c \,\in\, \mathcal{C}_j} p_c,
+  \label{eq:regla-saque}
+\end{equation}
+donde $\mathcal{C}_j$ representa las clases posibles para ese golpe, es decir, las cuatro si se trata del primer golpe del punto y todas salvo el saque en el resto.
+En consecuencia, la precisión del saque pasa de 0,861 a 1,000 sin perder ningún saque real, ya que el \textit{recall} se mantiene en 0,916, reflejando que sus errores se concentraban en golpes a mitad del punto.
+
+Por último, todo golpe con jugador identificado recibe uno de los cuatro tipos, y solo quedan sin clasificar los golpes sin jugador asignado o con el jugador ausente en más de tres cuartas partes de la ventana.
+Con todo ello, el sistema obtiene de cada golpe su instante, el jugador que lo ejecuta, su tipo y la confianza del modelo, y de cada fotograma, la posición de los jugadores en la pista.
 
 \section{Visor web}
 \label{sec:visor}
+
+Hasta el momento, se ha detallado el funcionamiento del sistema.
+Sin embargo, para que un usuario final pueda aprovechar la información que se obtiene, es necesario presentarla de forma visual, y esa es la función del visor web.
+
+El primer aspecto que destacar es que el visor no analiza ningún vídeo, sino que se limita a mostrar los datos de los puntos analizados previamente en local con el siguiente comando:
+\begin{lstlisting}[style=terminal]
+$ uv run python scripts/export_points.py PUNTO1.mp4 PUNTO2.mp4
+\end{lstlisting}
+Como se puede ver, el comando admite uno o varios vídeos en una única ejecución.
+Si el torneo de un vídeo aún no tiene la pista anotada, el comando abre antes la herramienta para marcarla.
+El comando guarda cada vídeo procesado junto con sus datos en la ruta \texttt{packages/web/public/points/}, que es la ubicación de la que el visor lee los puntos que muestra.
+
+Por último, el visor se ejecuta en local con los siguientes comandos, tras los cuales basta con abrir en el navegador la dirección que se indica:
+\begin{lstlisting}[style=terminal]
+$ cd packages/web
+$ npm install    # solo la primera vez
+$ npm run dev
+\end{lstlisting}
+
+La \cref{fig:visor-portada} muestra la página principal del visor, en la que los puntos analizados aparecen en una cuadrícula.
+Cada tarjeta muestra una miniatura del punto, junto con su título, duración y el número total de golpes.
+Además, al pasar el ratón por encima de la miniatura se reproducen unos segundos del vídeo procesado y, al pulsarla, se abre el análisis en detalle de ese punto.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figuras/capturas/visor-portada}
+  \caption{Página principal del visor web.}
+  \label{fig:visor-portada}
+\end{figure}
+
+La \cref{fig:visor-punto-arriba} muestra cómo es el análisis en detalle de un punto.
+Se puede ver el vídeo procesado y un mapa en vivo de las posiciones de los jugadores, así como la opción de ver el mapa de calor del punto entero.
+Junto al mapa, una tarjeta indica el golpe que se está jugando, su tipo y la confianza del modelo.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figuras/capturas/visor-punto-arriba}
+  \caption{Parte superior de la página de análisis de un punto.}
+  \label{fig:visor-punto-arriba}
+\end{figure}
+
+En la parte inferior (\cref{fig:visor-punto-abajo}) se encuentra una línea de tiempo con los golpes de cada jugador, con la que se puede interactuar para ir al momento exacto que se pulsa en el vídeo.
+Por último, se muestra una tarjeta por cada jugador con un resumen individual de los golpes realizados, su mapa de calor y la distancia media a la red a la que ha jugado.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figuras/capturas/visor-punto-abajo}
+  \caption{Parte inferior de la página de análisis de un punto.}
+  \label{fig:visor-punto-abajo}
+\end{figure}

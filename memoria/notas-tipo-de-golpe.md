@@ -241,6 +241,27 @@ de su relación. 122.604 parámetros.
 
 La mayor parte está en las proyecciones de la atención (6 cabezas × 128 = 768, más que D = 100).
 
+### Estilo de redacción: Miriam como referencia (decidido el 16 oct)
+
+La subsección se reescribe con el estilo de la memoria de Miriam (versión anterior guardada en el
+commit 59d2ede). Patrón: (1) qué determina el fenómeno, en palabras; (2) la idea antes de la
+fórmula; (3) frase fija que anuncia la ecuación y acaba en dos puntos; (4) cada símbolo definido
+justo después; (5) aplicación al caso concreto, ya con sus números; (6) ampliación paso a paso;
+(7) interpretación. Frases largas encadenadas con conectores, no una idea por línea.
+
+- Anunciar ecuaciones: «toma la siguiente forma:», «se obtiene la siguiente expresión:»,
+  «expresándose como:», «definiéndose como:», «según la siguiente fórmula:».
+- Definir símbolos: «donde X representa…, es decir, …», «donde X es el vector de…, que contiene…»,
+  «El término contenido dentro de… representa…».
+- Conectores: «Dado que», «Por tanto», «En consecuencia», «Por este motivo», «De esta forma»,
+  «Para ello», «A partir de ella», «Esto equivale a».
+- Avanzar: «Para aplicar esta lógica en el caso concreto de…», «Tomando como ejemplo…», «Este
+  planteamiento se repite para…», «Una vez definido…», «Al trasladar… a…».
+- Interpretar: «reflejando que», «La única excepción es», «se interpreta como».
+
+Números: la ecuación general va sin ellos; al aplicarla al caso concreto, sí (como sus «15 ramas»,
+«6 condensadores»). Sin figura en la salida (descartadas la de atención cruzada y la del punto).
+
 ### Dos versiones del procesamiento (plan de Jorge, 16 oct)
 
 Se termina primero la versión LARGA (la que se escribe juntos, módulo a módulo, con ecuaciones);
