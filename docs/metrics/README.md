@@ -71,7 +71,7 @@ uv run python scripts/evidence_assignment_height.py    # asignación con y sin d
 
 | Fichero | Qué demuestra | Script |
 |---|---|---|
-| `confidence_intervals.json` | **Intervalos del 95%** de las cifras de las dos tablas (bootstrap por rallies) y la **diferencia con el paper** en asignación, emparejada sobre sus mismos 16 rallies | `evidence_confidence_intervals.py` |
+| `confidence_intervals.json` | **Intervalos del 95%** de las cifras de las dos tablas (bootstrap por rallies) , la **diferencia con el paper** en asignación, emparejada sobre sus mismos 16 rallies, y la **cadena por etapas** (golpes detectados; detectados y con el jugador correcto, en VIGO) | `evidence_confidence_intervals.py` |
 
 ## Componentes y datos
 

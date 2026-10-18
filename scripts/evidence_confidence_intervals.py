@@ -12,6 +12,10 @@ The comparison with the paper is PAIRED: both methods were scored on the same
 16 rallies (their Table 3 gives each one), so the rallies are resampled once and
 the difference is taken on the same draw — each rally's difficulty cancels out.
 
+The whole chain is also given step by step (section 5.2 of the dissertation): of
+the real hits of the four classes, the share detected, then detected and given
+to the right player (VIGO), with the share that gets every step right.
+
 Reads the evidence files and the label cache; no GPU, no models.
 
     uv run python scripts/evidence_confidence_intervals.py
@@ -27,10 +31,10 @@ from collections.abc import Callable, Sequence
 from typing import TypeVar
 
 import numpy as np
-from padel_ml.chain_eval import Row, summarize
+from padel_ml.chain_eval import Row, ratio, summarize
 from padel_ml.evidence import ExperimentResult
 from padel_ml.hit_assignment_gt import PAPER_TABLE_3
-from padel_ml.shot_type_dataset import build_dataset
+from padel_ml.shot_type_dataset import CLASSES, build_dataset
 
 from padel_cv.paths import METRICS, RALLY_FEATURES, SHOT_TYPE_LABELS
 
@@ -101,8 +105,24 @@ def shot_type() -> dict[str, list[float]]:
     return bootstrap(clusters, metrics)
 
 
-def chain() -> dict[str, list[float]]:
-    """Table 2, the whole chain: every rally, and VIGO for who hit."""
+def stages(rows: list[Row]) -> dict[str, float]:
+    """The chain step by step: of the real hits of the four classes, the share that
+    gets through a step and every step before it (detected, then the right player).
+    Who hit is only annotated in VIGO, so the player steps count VIGO hits alone."""
+    four_class = [r for r in rows if r.truth_s is not None and r.truth_type in CLASSES]
+    vigo = [r for r in four_class if r.truth_player is not None]
+    vigo_detected = [r for r in vigo if r.detected_s is not None]
+    return {
+        "detected": ratio(sum(r.detected_s is not None for r in four_class), len(four_class)),
+        "vigo_detected": ratio(len(vigo_detected), len(vigo)),
+        "vigo_detected_player": ratio(
+            sum(r.player == r.truth_player for r in vigo_detected), len(vigo)
+        ),
+    }
+
+
+def chain_rows() -> dict[str, list[Row]]:
+    """Every real hit and every detection of chain_cv_hits.csv, by rally."""
 
     def number(text: str) -> float | None:
         return float(text) if text else None
@@ -122,19 +142,50 @@ def chain() -> dict[str, list[float]]:
                     shot_type=r["shot_type"] or None,
                 )
             )
+    return by_rally
+
+
+def chain() -> dict[str, list[float]]:
+    """Table 2, the whole chain: every rally, and VIGO for who hit."""
+    by_rally = chain_rows()
 
     def metrics_of(keys: tuple[str, ...]) -> Callable[[list[list[Row]]], dict[str, float]]:
         def metrics(sample: list[list[Row]]) -> dict[str, float]:
-            summary = summarize([row for rally in sample for row in rally])
-            return {key: summary[key] for key in keys}
+            rows = [row for rally in sample for row in rally]
+            values = {**summarize(rows), **stages(rows)}
+            return {key: values[key] for key in keys}
 
         return metrics
 
     every = list(by_rally.values())
     vigo = [rows for rally, rows in by_rally.items() if "VIGO" in rally]
     return {
-        **bootstrap(every, metrics_of(("detection_f1", "type_accuracy", "end_to_end_when_what"))),
-        **bootstrap(vigo, metrics_of(("player_accuracy", "team_accuracy", "end_to_end_vigo"))),
+        **bootstrap(
+            every,
+            metrics_of(("detection_f1", "type_accuracy", "end_to_end_when_what", "detected")),
+        ),
+        **bootstrap(
+            vigo,
+            metrics_of(
+                (
+                    "player_accuracy",
+                    "team_accuracy",
+                    "end_to_end_vigo",
+                    "vigo_detected",
+                    "vigo_detected_player",
+                )
+            ),
+        ),
+    }
+
+
+def chain_hits() -> dict[str, int]:
+    """How many real hits each part of the chain table is measured on."""
+    rows = [row for rally in chain_rows().values() for row in rally]
+    four_class = [r for r in rows if r.truth_s is not None and r.truth_type in CLASSES]
+    return {
+        "four_class": len(four_class),
+        "vigo": sum(r.truth_player is not None for r in four_class),
     }
 
 
@@ -162,7 +213,12 @@ def main() -> None:
         },
         dataset="Los ficheros de evidencia de docs/metrics y la caché de etiquetas",
         method=f"Bootstrap por grupos, {RESAMPLES} remuestreos, percentiles 2,5 y 97,5",
-        params={"resamples": RESAMPLES, "seed": SEED, "intervals": intervals},
+        params={
+            "resamples": RESAMPLES,
+            "seed": SEED,
+            "intervals": intervals,
+            "chain_hits": chain_hits(),
+        },
         notes=(
             "La unidad de remuestreo es el rally porque los golpes de un mismo rally no son "
             "independientes. La comparación con el paper es emparejada: los mismos 16 rallies "
