@@ -2,7 +2,9 @@
 
 Image against sound on the same five points, from detection_comparison.json
 (scripts/evidence_detection_comparison.py): precision, recall and F1 with the
-same 250 ms rule, and seconds of processing per minute of video.
+same 250 ms rule. No time column: the pose and the ball are computed anyway for
+the rest of the system, so the image is not a cheaper alternative; what the
+sound adds is told in the text.
 
     uv run python scripts/build_detection_table.py
 """
@@ -13,13 +15,11 @@ import argparse
 import json
 from pathlib import Path
 
-from padel_ml.thesis.latex import number, proportion, tabular
+from padel_ml.thesis.latex import proportion, tabular
 
 from padel_cv.paths import METRICS, REPO
 
 OUT = REPO / "memoria" / "figuras" / "tabla-deteccion.tex"
-SECONDS_PLACES = {"image": 1, "audio": 2}
-"""The audio takes a fraction of a second per minute; one decimal would print 0,0."""
 
 
 def build_table() -> str:
@@ -30,12 +30,11 @@ def build_table() -> str:
             proportion(metrics[f"{key}_precision"]),
             proportion(metrics[f"{key}_recall"]),
             proportion(metrics[f"{key}_f1"]),
-            number(metrics[f"{key}_s_per_min"], SECONDS_PLACES[key]),
         ]
         for key, name in (("image", "Imagen (pose y pelota)"), ("audio", "Audio"))
     ]
-    header = ["Entrada", "Precisión", r"\textit{Recall}", "F1", "Tiempo (s/min)"]
-    return tabular("lcccc", header, rows)
+    header = ["Entrada", "Precisión", r"\textit{Recall}", "F1"]
+    return tabular("lccc", header, rows)
 
 
 def main() -> None:

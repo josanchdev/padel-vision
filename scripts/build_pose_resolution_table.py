@@ -2,7 +2,8 @@
 
 From pose_resolution.json (scripts/evidence_pose_resolution.py): for each input
 size the pose model can shrink the frame to, the share of frames with the four
-players inside the court mask, and the time per frame.
+players inside the court mask, and the extra time per frame over the smallest
+size. The time is relative because its absolute value depends on the machine.
 
     uv run python scripts/build_pose_resolution_table.py
 """
@@ -13,25 +14,34 @@ import argparse
 import json
 from pathlib import Path
 
-from padel_ml.thesis.latex import number, percent, tabular
+from padel_ml.thesis.latex import fixed, percent, tabular
 
 from padel_cv.paths import METRICS, REPO
 
 OUT = REPO / "memoria" / "figuras" / "tabla-pose-resolucion.tex"
 
 
+def extra_time(ms: float, base_ms: float) -> str:
+    """Time over the base size, as a signed percentage; the base itself is a dash."""
+    if ms == base_ms:
+        return "---"
+    return rf"\SI[retain-explicit-plus]{{+{fixed(ms / base_ms - 1, 1, scale=100)}}}{{\percent}}"
+
+
 def build_table() -> str:
     evidence = json.loads((METRICS / "pose_resolution.json").read_text())
     metrics = evidence["metrics"]
+    sizes = evidence["params"]["sizes"]
+    base_ms = metrics[f"ms_per_frame_{sizes[0]}"]
     rows: list[list[str] | str] = [
         [
             rf"\num{{{size}}}~px",
             percent(metrics[f"all_four_{size}"]),
-            number(metrics[f"ms_per_frame_{size}"], 1),
+            extra_time(metrics[f"ms_per_frame_{size}"], base_ms),
         ]
-        for size in evidence["params"]["sizes"]
+        for size in sizes
     ]
-    header = ["Tamaño de entrada", "Cuatro jugadores", "Tiempo (ms/fotograma)"]
+    header = ["Tamaño de entrada", "Cuatro jugadores", "Tiempo adicional"]
     return tabular("lcc", header, rows)
 
 
