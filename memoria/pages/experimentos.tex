@@ -1,1 +1,108 @@
 % !TEX root = ../tfg.tex
+
+En este capítulo se mostrarán los resultados obtenidos tanto de cada componente de manera aislada como del sistema completo.
+Finalmente, se enseñará el coste en tiempo de procesado, así como el equipo con el que se ha medido.
+
+Las cifras se miden sobre una muestra limitada, por lo que no se puede asumir que con otros puntos salgan iguales.
+Por ello, las cifras principales se acompaña de un intervalo de confianza del 95~\%.
+Para obtenerlo, se utiliza el método \textit{bootstrap} de Efron~\cite{efron1979bootstrap}, que estima cuánto variaría una cifra si se repitiera la medida con otros puntos, usando solo los datos que ya se tienen.
+Este método forma un remuestreo eligiendo al azar y con repetición tantos puntos como tiene la prueba, y vuelve a calcular la cifra con ellos.
+Como calcular de forma exacta todos los remuestreos posibles es inviable, se utiliza el método de Monte Carlo, que lo aproxima por muestreo aleatorio repetido.
+La simulación de Monte Carlo se hace con \num{10000} remuestreos, cuyos resultados se ordenan de menor a mayor.
+Los percentiles 2,5 y 97,5 forman los extremos del intervalo, dejando entre medias el 95~\% de los valores.
+
+\section{Resultados de cada componente}
+\label{sec:resultados-componentes}
+
+\subsection{Instante del golpe}
+\label{sec:resultados-instante}
+
+El conjunto de datos CVSPORTS~\cite{decorte2024padel} dispone del instante anotado de 2377 golpes repartidos en 99 puntos distintos.
+Los puntos se dividen de forma aleatoria en dos grupos: uno para el entrenamiento, con 70 puntos, y otro para la evaluación del modelo, con los 29 restantes.
+Al ser de manera aleatoria, cabe la posibilidad de que la partición creada sea más fácil o más difícil.
+Por ello, el entrenamiento se repite tres veces, cada una con su reparto y sus pesos iniciales, y la cifra final es la media de las tres con su desviación típica, que hace de intervalo.
+Un golpe es detectado correctamente si se encuentra a menos de 250~ms de uno anotado.
+El F1 medido es de 0,958~$\pm$~0,007, con una precisión de 0,972 y un \textit{recall} de 0,945.
+Que la precisión sea mayor que el \textit{recall} significa que, cuando el detector marca un golpe, casi siempre lo hay, y lo que falla más es que se le escape alguno.
+
+\subsection{Pelota}
+\label{sec:resultados-pelota}
+
+El modelo de la pelota se entrena con la final masculina de PadelTracker100~\cite{badanerin2026padeltracker100}.
+Para evaluarlo sobre datos que no ha visto, se mide en la final femenina, sobre \num{45934} fotogramas, de los cuales \num{37904} tienen la pelota visible.
+Para considerar correcta una detección, esta tiene que estar a menos de 15~px de la pelota anotada.
+Los resultados son un F1 de 0,915, con precisión 0,871 y \textit{recall} 0,964.
+El error mediano es de 8,1~px.
+Estos resultados indican que el modelo detecta la pelota en casi todos los fotogramas en los que aparece, aunque con algunas detecciones falsas.
+Las dos finales son de la misma cámara y pista, por lo que no se puede concluir cómo detecta en otras condiciones.
+
+\subsection{Asignación del golpe}
+\label{sec:resultados-asignacion}
+
+El jugador que golpea solo está anotado en 16 puntos de VIGO del \textit{dataset} CVSPORTS, con un total de 319 golpes.
+Se usan los instantes anotados, y no los detectados por el audio, para que no le afecten los errores de la detección.
+Se evalúa siguiendo el mismo criterio que Decorte et al.~\cite{decorte2024padel}, según el cual atribuir el golpe al jugador correcto es un acierto y los golpes sin asignar se consideran fallos.
+La pareja se mide igual, y se considera acierto si el jugador asignado es del mismo equipo que el que golpea.
+Como muestra la \cref{tab:asignacion-paper}, el sistema acierta el jugador en el 87,5~\% de los golpes y la pareja en el 92,2~\%, 3,8 y 5,3 puntos por encima de Decorte et al.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Acierto de la asignación del golpe frente a Decorte et al.\ en los mismos 319 golpes.}
+  \label{tab:asignacion-paper}
+  \input{figuras/tabla-asignacion-paper}
+\end{table}
+
+Para saber si esa diferencia es concluyente, se calcula su intervalo con el mismo \textit{bootstrap}, eligiendo en cada remuestreo los mismos puntos para ambos métodos.
+Este intervalo va de \num{-5.4} a \num{9.9} puntos en el jugador y de \num{-2.9} a \num{10.2} en la pareja.
+Como ambos incluyen el cero, no se puede afirmar que el sistema supere a Decorte et al., aunque queda por encima en media.
+
+\subsection{Tipo de golpe}
+\label{sec:resultados-tipo}
+
+Los datos utilizados para la medición de resultados del clasificador de golpes son de etiquetado propio, con un total de 2377 golpes anotados a lo largo de los 11 torneos de CVSPORTS.
+Se descartan 167 que se etiquetaron como ``Other'' y otros 24 sin jugador asignado o ausente en la mayor parte de la ventana, lo que deja el total en 2186 golpes.
+La separación de entrenamiento y evaluación consiste en dejar un torneo fuera cada vez, ya que los puntos de un mismo torneo comparten pista, cámara e iluminación, y repartirlos al azar daría un resultado optimista.
+En cada una de las 11 rondas, el clasificador se entrena con diez torneos y se evalúa en el restante; de esta manera, todos los resultados se obtienen sobre torneos que el modelo nunca ha visto.
+
+El \textit{accuracy} es del 82,7~\%, con un intervalo de confianza de 80,3 a 85,0, y el macro-F1, que es la media del F1 de las cuatro clases para que todas pesen igual, es de 0,859.
+Por torneo, el \textit{accuracy} va del 75,4~\% de Ámsterdam al 91,7~\% de Malmö.
+La \cref{tab:tipo-clases} muestra los resultados por tipo de golpe: el saque y el remate obtienen los mejores resultados, mientras que la derecha y el revés se quedan en torno a 0,80.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Resultados del clasificador por tipo de golpe, dejando fuera un torneo cada vez.}
+  \label{tab:tipo-clases}
+  \input{figuras/tabla-tipo-clases}
+\end{table}
+
+Como se puede observar en la matriz de confusión de la \cref{fig:tipo-confusion}, la mayoría de los errores, un 63~\%, son confusiones entre derecha y revés, mientras que el 35~\% son confusiones del remate con la derecha o el revés.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{figuras/matriz-confusion}
+  \caption{Matriz de confusión del clasificador de tipo de golpe. Cada casilla indica la proporción de su fila y, entre paréntesis, el número de golpes.}
+  \label{fig:tipo-confusion}
+\end{figure}
+
+Además, se incluye la regla del saque, según la cual solo el primer golpe del punto puede ser un saque.
+Esta regla elimina 14 saques falsos, con lo que el macro-F1 sube de 0,842 a 0,859 y el \textit{accuracy} del 82,5~\% al 82,7~\%.
+Los resultados de probar a dar más peso a las clases con menos golpes, como el saque, fueron ligeramente inferiores, por lo que se entrena sin pesos por clase.
+
+\section{El sistema completo}
+\label{sec:sistema-completo}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Sistema completo por etapas: porcentaje de golpes reales que superan cada etapa y todas las anteriores.}
+  \label{tab:cadena}
+  \input{figuras/tabla-cadena}
+\end{table}
+
+Una vez evaluados los componentes de forma individual se procede a analizar el sistema completo, de extremo a extremo.
+La utilidad de este último estudio viene determinada por el hecho de que la concatenación de componentes implica también concatenación de errores. %NO me gusta mucho está frase como tal pero si la idea tambien se podra hablar de que esto mide lo que de verdad recibe el sistema.
+Y esto implica en la práctica, que un porcentaje de error en la primera fase se transmite y se incrementa a lo largo del resto de fases. %NO me gusta mucho está frase como tal pero si la idea que hay que decir. Igual se puede ver que falla y mantener el estilo con igual palabras o frases similares.
+
+
+
+\section{Coste de procesado}
+\label{sec:coste}

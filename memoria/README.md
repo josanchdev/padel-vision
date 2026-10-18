@@ -49,12 +49,12 @@ Rúbrica del acta de calificación de la ETSII (Aula Virtual). La memoria decide
 2. **Estado del arte**.
 3. **Datos**.
 4. **Descripción informática**.
-5. **Experimentos y validación**.
+5. **Experimentos y validación**: resultados de cada componente, el sistema completo y el coste de procesado.
 6. **Conclusiones y trabajo futuro**.
 
 Después, la bibliografía y los anexos (reproducibilidad, herramientas de etiquetado y visor web). Antes de los capítulos: portada, licencia, una cita, resumen con palabras clave, índice, índices de tablas y de figuras, y siglas.
 
-Parte de la estructura validada por el tutor, con dos cambios. Los objetivos y la metodología van dentro de la introducción y no como capítulos propios: la normativa solo exige la introducción, la rúbrica pide objetivos explícitos y no un capítulo, y así quedan páginas para la descripción del sistema y los experimentos. El protocolo de evaluación (torneos fuera del entrenamiento, intervalos de confianza) se cuenta en Experimentos. Y los datos tienen capítulo propio, en lugar de una sección de Descripción informática: el conjunto de datos etiquetado es una aportación del trabajo y lo usan tanto el sistema como la evaluación.
+Parte de la estructura validada por el tutor, con dos cambios. Los objetivos y la metodología van dentro de la introducción y no como capítulos propios: la normativa solo exige la introducción, la rúbrica pide objetivos explícitos y no un capítulo, y así quedan páginas para la descripción del sistema y los experimentos. El protocolo de evaluación se cuenta en Experimentos, pero no en una sección propia: cada componente se mide con sus datos y su criterio, así que cómo se mide va junto a su resultado, para que el lector no tenga que volver atrás; solo los intervalos de confianza, comunes a todas las tablas, se explican en la introducción del capítulo. Y los datos tienen capítulo propio, en lugar de una sección de Descripción informática: el conjunto de datos etiquetado es una aportación del trabajo y lo usan tanto el sistema como la evaluación.
 
 ## Decisiones
 

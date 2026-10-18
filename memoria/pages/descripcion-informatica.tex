@@ -51,6 +51,7 @@ Aunque el enfoque inicial del proyecto consistía en identificar el instante en 
 Esta dificultad viene dada por varios motivos: el tamaño de la pelota, la alta velocidad a la que se mueve y el hecho de que la pelota no permanece siempre visible.
 Se probó una alternativa basada en la imagen, a partir de la pose de los jugadores y la posición de la pelota, pero detectaba menos golpes y con más errores (\cref{tab:deteccion}).
 
+%QUITAR COLUMNA DE TIEMPO Y CON TEXTO DECIR QUE EL AUDIO SOLO SUPONE AÑADIR POR EJEMPLO UN 0,2% MAS DE TIEMPO DE COMPUTO O ALGO ASI. LA POSE Y PELOTA SE TIENE QUE DETECTAR SI O SI POR LO TANTO NO SON ALTERNATIVAS. LO QUE HAY QUE DECIR ES QUE EL AUDIO SOLO AÑADE UN % DE TIEMPO ADICIONAL.
 \begin{table}[htbp]
   \centering
   \caption{Detección del instante del golpe por imagen y por audio en los mismos cinco puntos.}
@@ -83,6 +84,7 @@ Es importante mencionar que no se dispone de rangos infrasonido y ultrasonido po
 La arquitectura base del modelo utilizado para detectar golpes a partir de su sonido se basa en una adaptación del modelo SED-net~\cite{adavanne2017sed,decorte2024padel} con dos capas \ac{gru} bidireccionales.
 La red neuronal final tiene un total de \num{114561} parámetros y las capas adaptadas se muestran en la \cref{tab:red-audio}. La red neuronal se entrenó con un optimizador AdamW~\cite{loshchilov2019adamw}, con una tasa de aprendizaje de 0,001 y con \textit{batches} de 32 secuencias.
 
+% ESTA TABLA APARECE MAL, APARECE EN LA SECCION JUGADORES. SEGURAMENTE SE PUEDA PONER MAS ARRIBA
 \begin{table}[htbp]
   \centering
   \caption{Capas de la red de detección de golpes.}
@@ -109,6 +111,9 @@ El esqueleto es necesario tanto para posicionar a los jugadores como para la ent
 Por defecto, el modelo reduce el fotograma a 640~px y este tamaño no permite detectar a los jugadores situados al fondo.
 Por lo tanto, fue necesario mantener el tamaño original del fotograma, 1920~px (\cref{tab:pose-resolucion}).
 
+% CAMBIAR ESTA TABLA EN LUGAR DE TIEMPO HACER PORCENTAJE YA QUE TIEMPO DEPENDE DEL EQUIPO
+% POR EJEMPLO 640px es la base a 960 tarda un 2% más
+% A 1920 pues 4% mas o algo asi.
 \begin{table}[htbp]
   \centering
   \caption{Fotogramas en los que se detecta a los cuatro jugadores, y tiempo por fotograma, según el tamaño de entrada del modelo.}
