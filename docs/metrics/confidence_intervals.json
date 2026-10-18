@@ -26,6 +26,9 @@
     "tabla2_cadena.end_to_end_when_what.valor": 0.8009,
     "tabla2_cadena.end_to_end_when_what.bajo": 0.7743,
     "tabla2_cadena.end_to_end_when_what.alto": 0.8262,
+    "tabla2_cadena.detected.valor": 0.9597,
+    "tabla2_cadena.detected.bajo": 0.9491,
+    "tabla2_cadena.detected.alto": 0.9696,
     "tabla2_cadena.player_accuracy.valor": 0.8646,
     "tabla2_cadena.player_accuracy.bajo": 0.7772,
     "tabla2_cadena.player_accuracy.alto": 0.926,
@@ -34,7 +37,13 @@
     "tabla2_cadena.team_accuracy.alto": 0.9728,
     "tabla2_cadena.end_to_end_vigo.valor": 0.7552,
     "tabla2_cadena.end_to_end_vigo.bajo": 0.6685,
-    "tabla2_cadena.end_to_end_vigo.alto": 0.8223
+    "tabla2_cadena.end_to_end_vigo.alto": 0.8223,
+    "tabla2_cadena.vigo_detected.valor": 0.9615,
+    "tabla2_cadena.vigo_detected.bajo": 0.9377,
+    "tabla2_cadena.vigo_detected.alto": 0.9833,
+    "tabla2_cadena.vigo_detected_player.valor": 0.8462,
+    "tabla2_cadena.vigo_detected_player.bajo": 0.7632,
+    "tabla2_cadena.vigo_detected_player.alto": 0.9086
   },
   "dataset": "Los ficheros de evidencia de docs/metrics y la caché de etiquetas",
   "method": "Bootstrap por grupos, 10000 remuestreos, percentiles 2,5 y 97,5",
@@ -87,6 +96,11 @@
           0.7743,
           0.8262
         ],
+        "detected": [
+          0.9597,
+          0.9491,
+          0.9696
+        ],
         "player_accuracy": [
           0.8646,
           0.7772,
@@ -101,14 +115,28 @@
           0.7552,
           0.6685,
           0.8223
+        ],
+        "vigo_detected": [
+          0.9615,
+          0.9377,
+          0.9833
+        ],
+        "vigo_detected_player": [
+          0.8462,
+          0.7632,
+          0.9086
         ]
       }
+    },
+    "chain_hits": {
+      "four_class": 2210,
+      "vigo": 286
     }
   },
   "per_class": {},
   "confusion": [],
   "labels": [],
   "notes": "La unidad de remuestreo es el rally porque los golpes de un mismo rally no son independientes. La comparación con el paper es emparejada: los mismos 16 rallies (su tabla 3), remuestreados a la vez para los dos métodos. Si el intervalo de la diferencia incluye el 0, la diferencia no es concluyente. El detector de audio no tiene intervalo aquí: su cifra ya es la media de 3 ejecuciones con su desviación típica (0.958 ± 0.007).",
-  "commit": "bc5bb35",
-  "timestamp": "2026-10-02T16:42:26+00:00"
+  "commit": "c6f7420",
+  "timestamp": "2026-10-18T11:55:05+00:00"
 }
