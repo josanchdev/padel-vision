@@ -887,13 +887,20 @@ La memoria se lee de Windows y **no** de WSL: WSL ve 19 GiB, que es lo que Windo
 
 ## Pendiente fuera de este capítulo
 
-- **Notas `%` de Jorge en el capítulo 4** (vistas el 18 oct, sin tocar):
+- **Notas `%` de Jorge en el capítulo 4: RESUELTAS (18 oct).**
+  - `tab:deteccion`, sin columna de tiempo; Jorge añade la frase de que el audio apenas suma tiempo.
+  - `tab:red-audio`, subida tras el párrafo del *dataset*: ahora cae en la página de la 4.2.1.
+  - `tab:pose-resolucion`, con el tiempo adicional respecto a 640 px (+4,2, +15,4 y +18,2 %).
+
+  Las notas eran:
   1. **`tab:deteccion`:** quitar la columna de tiempo y decir en el texto que el audio solo añade un
      pequeño porcentaje de cómputo. La pose y la pelota se calculan siempre, así que no son
      alternativas.
   2. **`tab:red-audio`:** la tabla aparece en la sección de jugadores; colocarla más arriba.
   3. **`tab:pose-resolucion`:** dar el tiempo como porcentaje sobre 640 px, no en ms, porque el tiempo
      depende del equipo.
+- **Pasada de conectores: HECHA en los capítulos 5 y 4 (18 oct).** En el capítulo 4, 16 cambios: la
+  4.1, de la 4.2.1 a la 4.2.4, el principio de la 4.2.5 y la 4.3.
 - **Pasada de conectores al estilo Miriam** (Jorge, 18 oct), al terminar el capítulo 5:
   - en todo el capítulo 5;
   - en todo el capítulo 4, donde solo se hizo en la 4.2.5 (tipo de golpe).
