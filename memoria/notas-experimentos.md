@@ -32,8 +32,11 @@ llegar a cada apartado; los candidatos de abajo son solo notas, no una propuesta
 | 5.1.2 Pelota | Sin tabla ni figura | **Hecho** (17 oct) |
 | 5.1.3 Asignación del golpe | `tab:asignacion-paper` (hecha) | **Hecho** (18 oct) |
 | 5.1.4 Tipo de golpe | `tab:tipo-clases` + `fig:tipo-confusion` (hechas: `build_shot_type_classes_table.py`, `build_confusion_figure.py`) | **Hecho** (18 oct). Ejes «Real»/«Predicho» (Jorge lo deja así) |
-| 5.2 El sistema completo | Por decidir | Pendiente |
-| 5.3 Coste de procesado | Por decidir | Pendiente |
+| 5.2 El sistema completo | `tab:cadena` (hecha) | **Hecho** (18 oct) |
+| 5.3 Coste de procesado | `tab:equipo` + `tab:coste` (hechas: `build_hardware_table.py`, `build_cost_table.py`) | **Hecho** (18 oct); primero el equipo y después el coste |
+| Pasada de conectores al estilo Miriam | — | **Hecha en todo el capítulo 5** (18 oct, 13 conectores) |
+
+**CAPÍTULO 5 TERMINADO (18 oct 2026).**
 
 ## Reglas del capítulo
 
@@ -626,14 +629,36 @@ Por ejemplo, para el clasificador: 60 épocas, lotes de 64 y una tasa de aprendi
 **Qué cuenta:** la cadena entera tal como funciona en uso. El audio decide cuándo; el voto decide
 quién, en el instante que encontró el audio; y el clasificador decide qué tipo.
 
+#### Estructura del texto (decidida por Jorge, 18 oct)
+
+**Orden:** introducción (ya escrita; sus comentarios `%` los arregla Jorge al final) → cómo se mide →
+`tab:cadena` → conclusiones breves. Nada más: ni figura ni embudo aparte, porque el embudo de VIGO
+ES el bloque VIGO de la tabla.
+
+**Cómo se mide:**
+- un torneo fuera cada vez, como en la 5.1.4, y ningún modelo vio el torneo;
+- cada etapa cuenta solo los golpes que superan también las anteriores, sobre los golpes reales;
+- dos bloques: los 11 torneos (cuándo y qué) y VIGO (la cadena entera, con el quién).
+
+**Conclusiones (2-4 frases):**
+- lo que se pierde en cada etapa en VIGO: de los 286 golpes, 11 al detectar, 33 al asignar y 26 al
+  clasificar.
+  - ¡Ojo! En puntos sale 3,8, 11,5 y 9,1. Restando los porcentajes redondeados de la tabla sale 11,6,
+    así que es mejor dar los golpes o no dar cifras.
+- las falsas alarmas: el 2,8 % de las detecciones no son golpes reales (1 − 0,972);
+- opcional: el tipo acierta el 89,3 % cuando el jugador es correcto, frente al 85,1 % en VIGO;
+- el resumen: tres de cada cuatro golpes de VIGO salen del todo correctos.
+
 #### TABLA HECHA (18 oct): `tab:cadena`
 
 - **Ficheros:** `scripts/build_chain_table.py` → `figuras/tabla-cadena.tex`.
 - **Cifras:** las intermedias se añadieron a `scripts/evidence_confidence_intervals.py` (funciones
   `stages` y `chain_hits`) y el JSON se regeneró. Ninguna cifra anterior cambió.
-- **El JSON lleva el commit `4e415f1-dirty`:** se generó con código sin commit. Al hacer el commit, se
-  vuelve a ejecutar el script (segundos, sin GPU) para que quede limpio.
+- **El JSON está regenerado desde un commit limpio, `c6f7420`.** Commits del 18 oct: `c6f7420`
+  (scripts), `4891442` (JSON) y `d76610e` (memoria).
 - **El título de la tabla es provisional.**
+- **Pendiente (Jorge, 18 oct):** no le gusta cómo queda con los «…»; pensará cómo cambiarlo.
+- **Texto de la 5.2: TERMINADO (18 oct).**
 
 #### PROPUESTA DE TABLA (18 oct, aprobada por Jorge): acumulada, por etapas del flujo
 
