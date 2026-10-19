@@ -6,15 +6,15 @@
 En los últimos años se han publicado varios trabajos que analizan el pádel a partir de vídeo, cada uno centrado en extraer una parte distinta de la información del juego.
 
 El primer paso es saber dónde está cada jugador.
-Yavadiha et al.~\cite{javadiha2021positions} lo abordó a partir de los puntos de su esqueleto y de una homografía.
-La posición en la pista puede estimarse con un error parecido al de un anotador humano.
+Javadiha et al.~\cite{javadiha2021positions} lo abordan a partir de los puntos de su esqueleto y de una homografía.
+Con ello, muestran que la posición en la pista puede estimarse con un error parecido al de un anotador humano.
 
 Sobre esa base, Novillo et al.~\cite{novillo2025padel} extraen además, de forma automática, la pista y la pelota, lo que permite representar el juego sobre una pista en dos dimensiones.
 
-Decorte et al.~\cite{decorte2024padel} proponen determinar cuándo y quién golpea, a partir del sonido y la cercanía de la pelota a cada jugador.
+Decorte et al.~\cite{decorte2024padel} proponen determinar cuándo y quién golpea, a partir del sonido y de la cercanía de la pelota a cada jugador, respectivamente.
 
 La \cref{tab:trabajos-padel} resume la información que extrae cada uno.
-Sin embargo, ninguno de estos trabajos identifica el tipo de golpe, que es uno de los principales objetivos de este proyecto, y que fue propuesto como trabajo futuro por Novillo et al.
+Sin embargo, ninguno de estos trabajos identifica el tipo de golpe, que es uno de los principales objetivos de este proyecto y que Novillo et al. proponen como trabajo futuro.
 
 \begin{table}[htbp]
   \centering
@@ -27,30 +27,29 @@ Sin embargo, ninguno de estos trabajos identifica el tipo de golpe, que es uno d
 \label{sec:arte-instante}
 
 Uno de los aspectos críticos en el análisis de vídeos deportivos es la detección del momento exacto en que ocurre un evento.
-Una forma de abordarlo es a partir de la imagen, tal y como propone E2E-Spot~\cite{hong2022e2espot} que aprende a localizar el fotograma de cada evento directamente del vídeo, en deportes como el tenis o el patinaje artístico.
+Una forma de abordarlo es a partir de la imagen, tal y como hace E2E-Spot~\cite{hong2022e2espot}, que aprende a localizar el fotograma de cada evento directamente del vídeo, en deportes como el tenis o el patinaje artístico.
 Además, sus autores separan a propósito localizar el evento de clasificarlo.
-En tenis detectan el golpe sin distinguir su tipo, y dejan la clasificación para un paso posterior.
-Adavanne et al.~\cite{adavanne2017sed} plantean otra alternativa, mediante la detección de eventos sonoros.
+Así, en tenis detectan el golpe sin distinguir su tipo y dejan la clasificación para un paso posterior.
+Otra alternativa es a partir del sonido, mediante redes de detección de eventos sonoros como la de Adavanne et al.~\cite{adavanne2017sed}.
 
 \section{Reconocimiento de acciones con esqueleto}
 \label{sec:arte-esqueleto}
 
-El reconocimiento de acciones en vídeo ha evolucionado de analizar directamente los píxeles de la imagen a trabajar sobre el esqueleto y su movimiento.
-ST-GCN~\cite{yan2018stgcn} fue el primer modelo en tratar esta secuencia como un grafo, cuyos nodos son las articulaciones, unidas por las conexiones del cuerpo, en fotogramas consecutivos.
-PoseConv3D~\cite{duan2022poseconv3d}, en cambio, representa el esqueleto como un volumen de mapas de calor procesado por una red convolucional 3D, más robusta ante los errores de la estimación de la postura.
+El reconocimiento de acciones en vídeo ha evolucionado de analizar directamente los píxeles de la imagen a trabajar también sobre el esqueleto y su movimiento.
+ST-GCN~\cite{yan2018stgcn} fue el primer modelo en tratar la secuencia de esqueletos como un grafo, cuyos nodos son las articulaciones, unidas por las conexiones del cuerpo y, en fotogramas consecutivos, cada una consigo misma.
+PoseConv3D~\cite{duan2022poseconv3d}, en cambio, representa el esqueleto como un volumen de mapas de calor procesado por una red convolucional 3D, lo que lo hace más robusto ante los errores de la estimación de la postura.
 
-Sin embargo, estos modelos se diseñaron para acciones cotidianas, muy distintas entre sí, mientras que en los deportes de raqueta todos los golpes son movimientos rápidos y breves que se diferencian en detalles sutiles.
-Para el bádminton, TemPose~\cite{ibh2023tempose} adapta el \textit{transformer} (arquitectura de red neuronal) al reconocimiento de movimientos de este tipo y añade como entrada la posición del volante, lo que mejora claramente sus resultados.
-BST~\cite{chang2026bst} parte de esta idea y combina la postura de los jugadores con la trayectoria del volante como vía prometedora para reconocer golpes.
+Sin embargo, estos modelos se evaluaron sobre todo con acciones cotidianas, muy distintas entre sí, mientras que en los deportes de raqueta todos los golpes son movimientos rápidos y breves que se diferencian en detalles sutiles.
+Para el bádminton, TemPose~\cite{ibh2023tempose} adapta la arquitectura \textit{transformer} al reconocimiento de movimientos de este tipo y añade como entrada la posición del volante, lo que mejora sus resultados.
+BST~\cite{chang2026bst} parte de esta idea y combina la postura de los jugadores con la trayectoria del volante, una vía que sus autores consideran prometedora para reconocer golpes.
 
 \section{Tipo de golpe en pádel}
 \label{sec:arte-tipo}
 
-Para conseguir un análisis más exhaustivo se debe incorporar información acerca del tipo de golpe.
-Ramón-Llin et al.~\cite{ramonllin2020stroke} en un muestra de 8441 golpes, comparan el tipo de golpe entre las parejas que ganan y las que pierden.
+Para conseguir un análisis más exhaustivo, se debe incorporar información acerca del tipo de golpe.
+Por ejemplo, Ramón-Llin et al.~\cite{ramonllin2020stroke}, en una muestra de 8441 golpes, comparan el tipo de golpe entre las parejas que ganan y las que pierden.
 Para ello, dos observadores registran cada golpe a mano mediante un programa de análisis de vídeo.
 
-Por otro lado, existen aplicaciones comerciales que, por medio de vision artificial, ofrecen estadísticas por tipo de golpe a partir de vídeo de cámaras instaladas en la pista como AIBall~\cite{aiball} o Padelytics~\cite{padelytics}.
-Sin embargo, estas aplicaciones comerciales utilizan un elevado número de recursos, y por tanto no están al alcance de individuales ni amateurs.
-Tampoco publican ni su método ni su precisión.
-Por tanto, hasta donde se ha podido comprobar, no se ha encontrado ningún trabajo publicado que clasifique automáticamente el tipo de golpe en pádel a partir de un vídeo.
+Por otro lado, existen aplicaciones comerciales, como aiball~\cite{aiball} o Padelytics~\cite{padelytics}, que, por medio de visión artificial, ofrecen estadísticas por tipo de golpe a partir de vídeo de cámaras instaladas en la pista.
+Sin embargo, no publican ni su método ni su precisión.
+Por tanto, hasta donde se ha podido comprobar, no hay ningún trabajo publicado que clasifique automáticamente el tipo de golpe en pádel a partir de un vídeo.

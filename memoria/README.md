@@ -60,12 +60,12 @@ Parte de la estructura validada por el tutor, con dos cambios. Los objetivos y l
 
 **Formato** (elegido comparando muestras con el mismo texto):
 
-- **Latin Modern 11 pt, márgenes de 2,5 cm, interlineado de 1,5 líneas y párrafos separados por un espacio, sin sangría.** Se lee mejor que el formato de la plantilla (12 pt y márgenes de unos 3 cm), cuyos márgenes dejan un 20 % menos de superficie de texto por página; 11 pt queda cerca del ejemplo de la normativa sin apretar el texto como 10 pt.
+- **Latin Modern 12 pt, márgenes de 2,5 cm, interlineado de 1,5 líneas y párrafos separados por un espacio, sin sangría.** Es el tamaño y los márgenes del ejemplo de la normativa. Los márgenes de unos 3 cm de la plantilla dejan un 20 % menos de superficie de texto por página.
 - **Dos caras, con cada capítulo en página impar.** La memoria se imprimirá, además de entregarse en PDF. Los márgenes son iguales en las dos caras, así que en pantalla no se nota.
 - **Cabecera y pie como en una memoria impresa**: capítulo en la cabecera de las páginas pares y sección en la de las impares; número de página por fuera, autor en el pie de las impares y escuela en el de las pares. La primera página de cada capítulo lleva solo el número de página, centrado. Las páginas en blanco que quedan antes de un capítulo van vacías del todo, sin cabecera ni pie, como pide la norma tipográfica (repetir la cabecera en ellas es un efecto por defecto de LaTeX, no una convención).
 - **Índices en el orden de la plantilla de la Escuela**: índice general, índice de tablas, índice de figuras y, después, siglas.
 - **Títulos de capítulo grandes**, con los tamaños y posiciones medidos en la memoria de referencia: «Capítulo N» a 40 pt y el título a 35 pt; los capítulos sin número (índices, resumen, siglas, bibliografía) a 40 pt. Las secciones, al tamaño estándar (14,4 pt). La normativa no dice nada sobre los títulos; «Capítulo N» es lo que hacen las plantillas de la Escuela.
-- **Figuras con aire**: un pequeño margen propio por encima, para que no queden pegadas al título o al texto anterior, y el pie junto a la figura (sin el espacio entre párrafos dentro de ella). Ajustado midiendo los huecos de la memoria de referencia.
+- **Figuras y tablas con aire**: el mismo pequeño margen propio por encima, para que no queden pegadas al título o al texto anterior, y el pie junto a la figura o la tabla (sin el espacio entre párrafos dentro de ella). Ajustado midiendo los huecos de la memoria de referencia. Las tablas van con la letra del texto.
 - **Índices a interlineado sencillo** y sin mini índice al principio de cada capítulo.
 - **Enlaces sin color**, para que la versión impresa salga en negro; siguen siendo clicables en el PDF.
 - **Portada de la plantilla** (ya sigue el anexo I) con los dos tutores; la licencia, en el reverso.

@@ -2,7 +2,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Página, letra e idioma %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\usepackage[a4paper,margin=2.5cm,headheight=14pt]{geometry}
+\usepackage[a4paper,margin=2.5cm,headheight=15pt]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage[spanish,es-tabla,es-nosectiondot,es-noshorthands]{babel}
@@ -67,12 +67,11 @@
 % no queden pegadas al título o al texto que las precede, y su pie va junto a
 % ellas: el espacio entre párrafos no se aplica dentro de figuras ni tablas. El
 % \penalty0 deja cortar la página justo antes: sin él, una figura fija ([H]) que
-% no cabe obliga a partir por la mitad el párrafo que la precede. Las tablas van
-% en letra pequeña y con algo menos de margen (10 pt), para que quepan junto al
-% texto que las presenta
+% no cabe obliga a partir por la mitad el párrafo que la precede. Figuras y
+% tablas llevan el mismo margen: son el mismo tipo de elemento
 \setlength{\intextsep}{6pt plus 2pt minus 2pt}
 \AtBeginEnvironment{figure}{\setlength{\parskip}{0pt}\par\penalty0\vspace*{14pt}}
-\AtBeginEnvironment{table}{\setlength{\parskip}{0pt}\par\penalty0\vspace*{10pt}\small}
+\AtBeginEnvironment{table}{\setlength{\parskip}{0pt}\par\penalty0\vspace*{14pt}}
 
 % Números según la RAE: coma decimal, espacio antes de las unidades y del %,
 % y separación de miles solo a partir de cinco cifras (2377, pero 10 000)
@@ -98,9 +97,12 @@
 \definecolor{panelaudio}{HTML}{eef3f9}
 \definecolor{panelimagen}{HTML}{eef6f1}
 \definecolor{panelgolpe}{HTML}{fbf4ea}
+% Letra de las cajas: 9 pt fijos, el tamaño con el que se dimensionaron las cajas
+% (\footnotesize crece con la letra del documento y las palabras largas se salen)
+\newcommand{\letradiagrama}{\fontsize{9}{11}\selectfont}
 \tikzset{
   caja/.style={draw=borde, fill=white, rounded corners=2pt, align=center,
-    font=\footnotesize, inner sep=3.5pt, minimum height=9mm, text width=21mm, text=tinta},
+    font=\letradiagrama, inner sep=3.5pt, minimum height=9mm, text width=21mm, text=tinta},
   aporta/.style={caja, draw=acento, fill=acentofondo, line width=0.8pt},
   entrada/.style={caja, fill=fondo},
   linea/.style={draw=tinta2, line width=0.55pt},

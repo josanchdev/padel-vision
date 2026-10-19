@@ -3,62 +3,77 @@
 \section{Motivación y antecedentes}
 \label{sec:motivacion}
 
-% IDEAS (borrar antes de pasar la memoria al tutor)
-% - El problema: analizar el pádel; el paso siguiente, que nadie ha dado, es
-%   clasificar el tipo de golpe.
-% - El hueco, dicho con precisión («hasta donde se ha podido comprobar»): no hay
-%   trabajos publicados ni herramientas abiertas que clasifiquen el tipo de golpe
-%   a partir del vídeo. Matices: Cartes Domínguez (2023) lo clasifica con una
-%   pulsera de sensores, no con vídeo; hay aplicaciones comerciales (aiball,
-%   Padelytics, Padel AI) que no publican ni su método ni su precisión. El
-%   estado del arte lo respalda.
+El pádel es un deporte en crecimiento a nivel internacional.
+Según la Federación Internacional de Pádel~\cite{fip2025report}, hay más de 35 millones de jugadores aficionados en todo el mundo y, en junio de 2025, había más de \num{77000} pistas, un 22,8~\% más que un año y medio antes.
+Este auge del pádel también ha supuesto un incremento de la investigación científica sobre este deporte, en especial en el análisis del rendimiento~\cite{martinmiguel2023performance}.
+Dentro de este análisis, el tema más estudiado son las acciones de juego, como los golpes.
+La visión artificial permite automatizar el registro de estas acciones a partir del vídeo de los partidos (\cref{sec:arte-padel}).
+
+El mayor reto para obtener estadísticas de cada jugador es saber cuándo se produce cada golpe, qué jugador lo ejecuta y de qué tipo es.
+Cada paso necesita el resultado del anterior, por lo que un error en uno se arrastra a los siguientes.
+Además, la dificultad de clasificar los golpes es que son rápidos y se diferencian en pequeños detalles o en la posición de la pelota.
+
+Por todo ello, este trabajo se centra en desarrollar un sistema que, a partir del vídeo de un punto, obtiene las estadísticas de cada jugador, y en crear con ellas una herramienta de análisis para clubes, equipos e incluso profesionales.
 
 \section{Objetivos generales y específicos}
 \label{sec:objetivos}
 
-% IDEAS (borrar antes de pasar la memoria al tutor)
-% - En prosa y con conectores, no en lista («En primer lugar se quiso…»).
-% - Para quién: clubes que quieran este análisis y tengan, o pongan, una cámara
-%   fija al fondo de la pista, en alto.
-% - General: que esos clubes tengan una herramienta de análisis de nivel
-%   profesional para mejorar.
-% - Listón: que funcione lo bastante bien para usarse de verdad, no una cifra
-%   fijada de antemano.
-% - Específicos: detectar el instante de cada golpe; identificar al jugador;
-%   clasificar el tipo (derecha, revés, remate, saque); el visor (estadísticas
-%   por jugador: golpes por tipo, total, mapa de calor; saltar al instante de
-%   cada golpe; que sea útil).
-% - El tipo no va solo: sin cuándo y quién no hay estadísticas por jugador.
-%   Cadena; la pieza nueva es la última.
-% - Decorte et al., base del cuándo y el quién: no reinventar un método que
-%   funcionaba; compararse solo para comprobar la reimplementación.
-% - No son objetivos: los datos etiquetados (medio: no existían con el tipo; se
-%   cuentan en Datos); la evaluación por torneos (va en Experimentos).
-% - Alcance, al final y en pocas frases: fuera el marcador y el resultado;
-%   bandeja, víbora y dejada; cámaras móviles o a ras de pista; partidos
-%   completos (trabaja por puntos); saber quién es cada jugador entre puntos.
-%   Evaluado con retransmisiones (las grabaciones anotadas de que se dispone,
-%   cumplen la condición de cámara); otras alturas = trabajo futuro (PADELVIC,
-%   cuatro alturas).
-% - Para Descripción informática o Datos (no para aquí): entra el punto ya
-%   cortado, con audio y sin anotar, y la pista se marca a mano una vez por
-%   cámara (cuatro esquinas y extremos de la red); sale, por cada golpe,
-%   instante, jugador y tipo; todo golpe recibe uno de los cuatro tipos (sin
-%   «sin clasificar»; un 7 % de los etiquetados no es ninguno); los tipos se
-%   agrupan por gesto (volea de derecha = derecha); J1-J4 son posiciones dentro
-%   del punto (J1-J2 al fondo), no personas. Posible: por qué es difícil.
-% - Figura: figuras/problema.pdf (scripts/build_problem_figure.py). VIGO_14
-%   (Danish Padel Open), revés de J3 a 4,52 s, con los modelos entregados, que
-%   vieron este punto al entrenar: ilustra la salida, no demuestra el acierto;
-%   los modelos entrenados sin VIGO también aciertan este golpe. Pie: solo el
-%   torneo (CVSPORTS se cita en Datos). Se puede mover a donde encaje mejor.
+Como objetivo general de este trabajo se plantea crear una herramienta que permita a clubes, equipos e incluso profesionales analizar, a partir del vídeo, las estadísticas de cada jugador.
+El propósito es que entrenadores y jugadores dispongan de datos con los que orientar el entrenamiento y, así, mejorar el rendimiento.
+Igual de importante es crear el sistema que genera los datos de ese análisis, ya que sin él la herramienta no tiene utilidad.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics{figuras/problema}
-  \caption{Un punto antes y después de procesarlo (Danish Padel Open 2023).}
-  \label{fig:problema}
-\end{figure}
+Para llevar esto a cabo, el desarrollo del proyecto se organiza en una serie de objetivos
+específicos.
+En primer lugar, es necesario detectar el instante de cada golpe, es decir, cuándo un jugador golpea la pelota.
+Además, se necesita asignar cada golpe detectado al jugador que lo ejecuta.
+Con ambos datos, el siguiente objetivo es clasificar cada golpe en cuatro clases: derecha, revés, remate y saque.
+Para ello, es necesario etiquetar el tipo de los golpes del conjunto de partida, que no lo incluye, tanto para entrenar el clasificador como para evaluarlo.
+A continuación, se trata de unir los tres pasos en un sistema que, a partir del vídeo de un punto, entregue de cada golpe el instante, el jugador y el tipo.
+Sobre él, se construye un visor web que muestre las estadísticas de cada jugador y permita saltar a cada golpe en el vídeo.
+Finalmente, se busca medir cada componente por separado y el sistema completo.
 
 \section{Metodología del trabajo}
 \label{sec:metodologia}
+
+El desarrollo del sistema sigue un enfoque incremental e iterativo.
+En primer lugar, se construye una versión completa que procesa un punto de principio a fin, aunque cada componente sea todavía una primera aproximación.
+A partir de ella, cada componente se mejora por separado, de forma que el sistema sigue funcionando tras cada cambio.
+Para cada mejora se sigue el mismo ciclo: investigación, implementación de una solución, evaluación y, según los resultados, decisión sobre si se mantiene.
+Además, siempre que es posible, el trabajo se apoya en métodos ya publicados.
+
+Por otro lado, las decisiones de diseño importantes se han registrado en documentos breves.
+Cada uno sigue el formato \ac{adr}, que recoge el estado de la decisión (aceptada, aceptada en parte o superada, con su fecha), el contexto, la decisión y sus consecuencias.
+
+La \cref{fig:ejemplo-adr} muestra el \ac{adr} de la decisión de marcar la pista a mano, cuyo contexto recoge las medidas que llevaron a descartar la detección automática.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figuras/ejemplo-adr}
+  \caption{Ejemplo de \acs{adr}: versión resumida de la decisión de marcar la pista a mano.}
+  \label{fig:ejemplo-adr}
+\end{figure}
+
+Adicionalmente, se ha llevado una bitácora de experimentos que recoge cronológicamente las pruebas realizadas, los problemas encontrados, las alternativas consideradas y las conclusiones.
+Se han documentado un total de 30 entradas, una por tema o experimento.
+La mayoría sigue este patrón:
+\begin{enumerate}
+  \item El problema que se quería resolver.
+  \item Qué se probó y con qué datos.
+  \item Los resultados, normalmente en una tabla.
+  \item El hallazgo, es decir, la explicación de esos resultados.
+  \item La decisión tomada y, si procede, el \ac{adr} que la recoge.
+\end{enumerate}
+La \cref{fig:ejemplo-bitacora} muestra estos cinco pasos en la entrada dedicada a la regla del saque, que forma parte del clasificador.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figuras/ejemplo-bitacora}
+  \caption{Ejemplo de entrada de la bitácora de experimentos: versión resumida de la regla del saque.}
+  \label{fig:ejemplo-bitacora}
+\end{figure}
+
+Para que las cifras presentadas correspondan exactamente al sistema final, la demostración, la evaluación y el visor ejecutan una misma función.
+Antes de dar el sistema por cerrado, una auditoría vuelve a medir cada cifra con la configuración definitiva.
+Asimismo, cada figura y cada tabla de esta memoria se generan mediante código, de modo que pueden reproducirse a partir de los datos.
+
+Por último, se siguen las prácticas habituales en el desarrollo de software: control de versiones con git, pruebas automáticas y comprobación estricta del estilo y de los tipos del código.

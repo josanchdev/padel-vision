@@ -1018,6 +1018,19 @@ La memoria se lee de Windows y **no** de WSL: WSL ve 19 GiB, que es lo que Windo
 
   Algunas ya salen como cautelas en la 5.1 y la 5.2; falta decidir si las demás van en Conclusiones.
 - **Conclusiones:** la limitación de los fps y el trabajo futuro.
+- **FIGURA NUEVA: el marcado de la pista** (Jorge, 19 oct; antes de pasar el borrador al tutor).
+  - **Qué muestra:** los seis puntos marcados a mano (las cuatro esquinas y los extremos de la red) y
+    las líneas de la pista que la herramienta dibuja sola a partir de ellos sobre el suelo. Jorge la
+    quiere, porque aporta valor.
+  - **Dónde:** recomendado en la 4.1, junto a la frase «será necesario marcar manualmente las seis
+    referencias…». La alternativa es el anexo B (Herramientas de etiquetado).
+  - **Cómo:** por código, como `fig:herramienta`. Un script nuevo que reutilice el dibujo de
+    `padel_cv.court_annotator`, que ya pinta las líneas para comprobar los seis clics, con una pista
+    guardada en `data/labels/courts/` (por ejemplo, la de VIGO) y su fotograma.
+  - **De paso, en la 4.1:** «las seis referencias espaciales que delimitan el contorno de la pista,
+    así como la ubicación de la red» se puede leer como seis puntos más la red. En realidad son seis
+    en total: las cuatro esquinas y los dos extremos de la red (comprobado en los JSON de las
+    pistas). La figura lo aclara.
 - **Trabajo futuro, posible quinta línea: los botes y la trayectoria de la pelota** (Jorge, 19 oct;
   decidirlo AL TERMINAR la memoria, con el resto de detalles). Detalle en `notas-conclusiones.md`,
   apartado de la 6.2.
