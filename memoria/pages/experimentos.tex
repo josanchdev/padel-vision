@@ -19,11 +19,11 @@ De esta forma, los percentiles 2,5 y 97,5 forman los extremos del intervalo, dej
 
 El conjunto de datos CVSPORTS~\cite{decorte2024padel} dispone del instante anotado de 2377 golpes repartidos en 99 puntos distintos.
 Los puntos se dividen de forma aleatoria en dos grupos: uno para el entrenamiento, con 70 puntos, y otro para la evaluación del modelo, con los 29 restantes.
-Al ser de manera aleatoria, cabe la posibilidad de que la partición creada sea más fácil o más difícil.
+Al ser de manera aleatoria, la partición creada puede ser más fácil o más difícil.
 Por ello, el entrenamiento se repite tres veces, cada una con su reparto y sus pesos iniciales, y la cifra final es la media de las tres con su desviación típica, que hace de intervalo.
 En cada una de ellas, un golpe es detectado correctamente si se encuentra a menos de 250~ms de uno anotado.
 Con este criterio, el F1 medido es de 0,958~$\pm$~0,007, con una precisión de 0,972 y un \textit{recall} de 0,945.
-Que la precisión sea mayor que el \textit{recall} significa que, cuando el detector marca un golpe, casi siempre lo hay, y lo que falla más es que se le escape alguno.
+Identificar golpes con una precisión mayor que el \textit{recall} implica que casi todas las detecciones corresponden a golpes reales, y que la mayor parte de los errores son golpes que no se detectan.
 
 \subsection{Pelota}
 \label{sec:resultados-pelota}
@@ -60,7 +60,7 @@ Como ambos incluyen el cero, no se puede afirmar que el sistema supere a Decorte
 \label{sec:resultados-tipo}
 
 Los datos utilizados para la medición de resultados del clasificador de golpes son de etiquetado propio, con un total de 2377 golpes anotados a lo largo de los 11 torneos de CVSPORTS.
-De ellos, se descartan 167 que se etiquetaron como ``Other'' y otros 24 sin jugador asignado o ausente en la mayor parte de la ventana, lo que deja el total en 2186 golpes.
+De ellos, se descartan 167 que se etiquetaron como ``Otro'' y otros 24 sin jugador asignado o ausente en la mayor parte de la ventana, lo que deja el total en 2186 golpes.
 
 Dado que los puntos de un mismo torneo comparten pista, cámara e iluminación, repartirlos al azar permitiría al modelo entrenar con la misma pista con la que después se evalúa, dando un resultado optimista.
 Por este motivo, la separación entre entrenamiento y evaluación consiste en dejar un torneo fuera cada vez.
@@ -123,7 +123,7 @@ Por este motivo, la \cref{tab:equipo} muestra el equipo en el que se han llevado
   \input{figuras/tabla-equipo}
 \end{table}
 
-Con este equipo, el procesado del punto VIGO\_11 (64,3~s de vídeo a 1080p y 25~fps) tarda 67,5~s en total, 1,05 veces la duración del vídeo.
+Con este equipo, el procesado del punto VIGO\_11 (64,3~s de vídeo a 1080p y 25~\ac{fps}) tarda 67,5~s en total, 1,05 veces la duración del vídeo.
 
 \begin{table}[htbp]
   \centering

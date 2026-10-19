@@ -1,1 +1,32 @@
 % !TEX root = ../tfg.tex
+
+\section{Conclusiones}
+\label{sec:conclusiones}
+
+El principal objetivo de este trabajo es la implementación de una herramienta que permita a clubes, equipos e incluso profesionales analizar el juego de pádel y a partir de dicho análisis conseguir mejorar el rendimiento de los jugadores.
+Para ello, fue necesario definir y diseñar un sistema que obtenga datos fiables que alimenten dicha herramienta; sin él no hay estadísticas por jugador útiles para analizar.
+
+La detección por sonido frente a imágenes resulta indispensable como base de toda la arquitectura por su alta precisión y eficiencia en cuanto a tiempos de procesado. Los resultados obtenidos con el tratamiento de la imagen han demostrado no ser suficientemente fiables.
+
+Por otro lado, y por ser la pose y la pelota las únicas entradas del clasificador, el modelo no depende del aspecto de la pista y funciona en pistas que no ha visto durante el entrenamiento.
+
+Finalmente, tomar como punto de partida una arquitectura diseñada para otra disciplina deportiva como es el bádminton, donde se ha probado la arquitectura BST, ha resultado acertado.
+
+\section{Trabajo futuro}
+\label{sec:trabajo-futuro}
+
+Como trabajo futuro se plantea una serie de mejoras para ampliar las funcionalidades del sistema y su robustez.
+
+En primer lugar, respecto al clasificador, se plantea expandir el \textit{dataset} anotando más tipos de golpe según su frecuencia de uso, como el globo y la volea.
+El objetivo de esto es tener un catálogo de golpes más amplio para su análisis.
+
+En segundo lugar, se propone el análisis de los límites del sistema según las condiciones de la cámara: su altura, posición, ángulo y \ac{fps}.
+Esto consiste en grabar un mismo partido desde varias cámaras situadas a distintas alturas, posiciones y ángulos, y procesarlo con cada una de ellas, lo que permite medir de forma controlada cómo varían los resultados al alejarse de la cámara de retransmisión.
+Mediante los resultados obtenidos se podrá delimitar el rango de funcionamiento del sistema, es decir, en qué condiciones de grabación mantiene un rendimiento útil y a partir de cuáles deja de ser utilizable.
+
+En tercer lugar, se propone investigar métodos para lograr procesar partidos completos, sin necesidad de recortar puntos individuales.
+Para ello será necesario identificar los tramos grabados desde la cámara principal, descartando el resto de planos, como las repeticiones o las imágenes de la grada, y reconocer a cada jugador por su apariencia para mantener su identidad cuando cambia de lado.
+De esta forma, se podría analizar directamente la grabación de un partido, sin recortar los puntos a mano, y obtener las estadísticas de cada jugador en el partido entero, y no solo en puntos sueltos.
+
+Por último, se plantea detectar el final de cada punto y su causa: un golpe ganador, un error forzado por el golpe del rival o un error no forzado. A partir de ahí se podrían obtener estadísticas como el porcentaje de reveses que falla cada jugador o qué golpes del rival provocan más errores.
+El objetivo es añadir una nueva dimensión al análisis: no solo qué golpes da cada jugador, sino con cuáles gana y pierde los puntos.

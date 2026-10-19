@@ -887,6 +887,50 @@ La memoria se lee de Windows y **no** de WSL: WSL ve 19 GiB, que es lo que Windo
 
 ## Pendiente fuera de este capítulo
 
+- **REVISIÓN DE AUTORÍA EN EL CAPÍTULO 4 (feedback del padre de Jorge, 18 oct). Hacerla antes de
+  pasar el borrador al tutor.**
+  - **El problema:** se cita mucho a [1] (Decorte) y no queda claro qué es de este trabajo, qué se
+    reutiliza y de dónde sale cada cosa.
+    - Ejemplo: «un \textit{dataset} previamente anotado~\cite{decorte2024padel}». ¿Anotado por quién?
+      ¿Qué es?
+    - Preguntas que se hizo: ¿el audio es copiar y pegar lo suyo? ¿Lo de normalizar las distancias es
+      nuestro?
+  - **Material de partida:** `docs/sistema.md`, «Modelos: qué es de quién», y lo que se sabe:
+
+    | Componente | De terceros | De este trabajo |
+    |---|---|---|
+    | Audio | Arquitectura de Decorte (adaptación de SED-net); datos e instantes de CVSPORTS, anotados por Decorte et al. | Reimplementación, entrenamiento, umbral y evaluación |
+    | Pose | YOLO26n-pose con los pesos COCO (Ultralytics), tal cual; ByteTrack | Configuración de ByteTrack, máscara de la pista; identidad J1-J4 (3 primeros segundos, citada a Decorte; comprobar qué es nuestro) |
+    | Pelota | Idea de TrackNet; datos de PadelTracker100 | Red propia simplificada (U-Net reducida), entrenada desde cero en pádel |
+    | Asignación | Voto ponderado en varios fotogramas (Decorte) | Normalizar por la altura (remates) y la ventana de ±4 |
+    | Tipo de golpe | BST (Chang) como base | Etiquetado de 2377 golpes, adaptación (pose de un solo jugador, ventanas, regla del saque), entrenamiento y evaluación |
+    | Pista | Seis clics por torneo, como en el paper (ADR-0018) | Herramienta de marcado propia |
+    | Visor | — | Entero |
+
+  - **CUÁNDO:** al FINAL, cuando estén todos los capítulos. Primero se cambia el capítulo 4 y después
+    se hace un repaso general, antes de los anexos (decisión de Jorge, 18 oct).
+  - **Las seis categorías de Jorge** (18 oct), para que el lector sepa de cada pieza si se toma, se
+    adapta o es propia:
+    1. **Replicar tal cual, entrenado por Jorge** (no sus modelos): **audio**, reimplementado sin
+       cambios a partir de Decorte, con su *dataset*.
+    2. **Usar tal cual el modelo de otro:** **YOLO26n-pose** (pesos COCO).
+    3. **Basarse y añadir funcionalidades:** **asignación**, el voto de Decorte más la normalización por
+       la altura. La ventana es de ±4 fotogramas; la de Decorte, de ±6.
+    4. **Basarse cambiando capas o variables:** **pelota**, la idea de TrackNet con una U-Net reducida.
+    5. **Usar de referencia y adaptar a otra disciplina:** **BST**, del bádminton al pádel.
+    6. **Datos de otros, entrenado por Jorge:** el **audio** (CVSPORTS) y la **pelota**
+       (PadelTracker100).
+  - **Lo que no se cita:**
+    - **La máscara de la pista:** idea propia, y no se parece a la de Decorte (decisión de Jorge).
+    - **«La ventana»:** OJO, la ventana adaptativa del clasificador SÍ es de BST (§3.1 y
+      suplementario C.2). Aunque no lleve cita propia, el texto tiene que dejar claro que se toma de
+      BST, por ejemplo por la frase «el clasificador parte de BST». Tampoco es nuestra la idea del
+      voto con varios fotogramas, que es de Decorte; sí lo es el ancho de ±4.
+  - **Cómo hacerla:** recorrer cada cita a `decorte2024padel` y cada «se utiliza» del capítulo 4.
+    Que cada frase deje claro si algo se toma (de quién), se adapta (qué cambia) o es propio.
+  - **Numeración de las citas:** es por orden de aparición (estilo IEEE de biblatex). Si la
+    introducción cita antes a otros, Decorte deja de ser [1], y se renumera solo al compilar.
+
 - **Notas `%` de Jorge en el capítulo 4: RESUELTAS (18 oct).**
   - `tab:deteccion`, sin columna de tiempo; Jorge añade la frase de que el audio apenas suma tiempo.
   - `tab:red-audio`, subida tras el párrafo del *dataset*: ahora cae en la página de la 4.2.1.
