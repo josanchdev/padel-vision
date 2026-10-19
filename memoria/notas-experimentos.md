@@ -926,6 +926,63 @@ La memoria se lee de Windows y **no** de WSL: WSL ve 19 GiB, que es lo que Windo
       suplementario C.2). Aunque no lleve cita propia, el texto tiene que dejar claro que se toma de
       BST, por ejemplo por la frase «el clasificador parte de BST». Tampoco es nuestra la idea del
       voto con varios fotogramas, que es de Decorte; sí lo es el ancho de ±4.
+  - **Hallazgos al leer los PDF para el estado del arte (19 oct)**, para esta revisión:
+    - **La máscara de la pista no es una idea nueva.** Decorte usa una máscara de la pista (un
+      trapecio con margen, §5.2) para separar a los jugadores del público. Novillo, de los tutores,
+      filtra por el centro de la caja dentro de la pista (§2.2). La de Jorge, el centro de la base de
+      la caja dentro del contorno, es la más parecida a la de Novillo. Recomendación: al menos «como
+      en [Novillo]». Los tutores reconocerán su propio criterio.
+    - **La figura de los espectrogramas (`fig:espectrogramas`) se parece mucho a la figura 1 de
+      Decorte:** un remate frente a un tramo sin golpe (ellos, una persona hablando), con escalas casi
+      iguales (0-640 ms y 0-800 ms).
+    - **Frases de la 4.2.1 que parafrasean a Decorte (§4.1-4.2.1):**
+      - el golpe cortado o la dejada suena distinto a un remate;
+      - el ruido de los gritos;
+      - «no se dispone de rangos infrasonido y ultrasonido… compresión…», casi literal de su pág. 3.
+
+      Hay que atribuirlas o reformularlas.
+  - **Jorge prefiere citar a los tutores antes que a Decorte (19 oct), pero SOLO donde la idea sea
+    suya:**
+    - **a Novillo:** la máscara y la posición desde la base de la caja;
+    - **se queda en Decorte:** el audio, el voto de la asignación, la numeración J1-J4 por la posición
+      inicial y su conjunto de datos.
+  - **La posición en la pista en la 4.2.2 y Javadiha** (19 oct, leído en el PDF):
+    - Javadiha calcula la posición con la horizontal del centro de la cadera y la vertical de la media
+      de los dos tobillos, y la pasa a la pista con la transformación de 4 puntos. Compara la caja, la
+      silueta y el esqueleto, y el esqueleto es lo mejor.
+    - Decorte usa la MISMA fórmula, que viene de Javadiha.
+    - Jorge usa el punto medio de los tobillos y, si faltan, el centro de la base de la caja (como
+      Novillo).
+    - **DECIDIDO (Jorge): NO se cita a Javadiha en la 4.2.2.** Usar los pies para situar al jugador
+      es evidente, y la frase ya lo justifica; además, la fórmula no es la suya. Lo evidente no se
+      cita. Matiz: Decorte sí cita a Javadiha en sus trabajos relacionados, pero no en la fórmula.
+  - **Citar a los tutores (Novillo et al.) también en el capítulo 4**, no solo en el estado del arte
+    (19 oct). El TFG parte de su sistema:
+    - la máscara: en la suya, el centro de la caja dentro de la pista;
+    - la posición desde el centro de la base de la caja, que en la 4.2.2 es la alternativa cuando no
+      hay tobillos;
+    - la pelota con TrackNet, que ellos también usan;
+    - el flujo de pista, jugadores, pelota y proyección en 2D, y el mapa de la pista del visor;
+    - el tipo de golpe como su trabajo futuro (eso, en la introducción).
+  - **«et al.»:** elegir con cursiva (\textit{et al.}, lo que pide la RAE para los latinismos) o sin
+    ella, y usarlo igual en toda la memoria. En los capítulos 4 y 5 está sin cursiva.
+  - **El nombre «SED-net» en la 4.2.1** (19 oct): el artículo de Adavanne no le da nombre a la red
+    (es una CRNN; SED es la tarea). «SED-net» es como la llama Decorte. Se sostiene porque se citan
+    los dos, pero se puede aclarar: «la CRNN de Adavanne et al., en la versión adaptada por Decorte
+    et al.».
+  - **La frase de la cámara en la 4.1** (Jorge, 19 oct): «Esta deberá estar situada al fondo de la
+    pista y con una cierta elevación sobre ella» suena a un requisito que no está medido. Suavizarla,
+    por ejemplo «en las grabaciones utilizadas, la cámara está situada…».
+  - **PLAN DE CITAS A DECORTE (19 oct): una por idea prestada, donde se usa.** De 9 se pasa a 6.
+    - **2.1:** 1, su sistema entero.
+    - **3.1:** 1, su conjunto de datos; desde ahí, «CVSPORTS» sin cita.
+    - **4.1, línea 33** («La rama de audio~\cite…»): quitarla, porque la atribuye la 4.2.1.
+    - **4.2.1, líneas 61, 78 y 91:** dejar UNA, «se reimplementa el detector de audio de Decorte
+      et al.». El *dataset* de la línea 78 pasa a «CVSPORTS (\cref{sec:conjunto-partida})».
+    - **4.2.2, línea 145** (identidades J1-J4): 1.
+    - **4.2.4, línea 199** (el voto): 1.
+    - **Capítulo 5:** quitar la de la línea 20 (CVSPORTS, ya en el capítulo 3) y dejar la de la línea
+      44 (la comparación).
   - **Cómo hacerla:** recorrer cada cita a `decorte2024padel` y cada «se utiliza» del capítulo 4.
     Que cada frase deje claro si algo se toma (de quién), se adapta (qué cambia) o es propio.
   - **Numeración de las citas:** es por orden de aparición (estilo IEEE de biblatex). Si la
@@ -961,6 +1018,9 @@ La memoria se lee de Windows y **no** de WSL: WSL ve 19 GiB, que es lo que Windo
 
   Algunas ya salen como cautelas en la 5.1 y la 5.2; falta decidir si las demás van en Conclusiones.
 - **Conclusiones:** la limitación de los fps y el trabajo futuro.
+- **Trabajo futuro, posible quinta línea: los botes y la trayectoria de la pelota** (Jorge, 19 oct;
+  decidirlo AL TERMINAR la memoria, con el resto de detalles). Detalle en `notas-conclusiones.md`,
+  apartado de la 6.2.
 
 ## Descartado (no entra en la memoria)
 

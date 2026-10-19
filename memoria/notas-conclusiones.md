@@ -162,6 +162,21 @@ no se dominaban). Decide Jorge.
    campo, de perspectiva y las repeticiones. Sin marcador (Jorge: no aporta).
 4. **Desenlace del punto:** quién lo gana (golpe ganador) o lo pierde (error), y el golpe que lo
    prepara («asistencias»; pulir la expresión en la revisión de redacción).
+- **RECORDATORIO, posible quinta línea (Jorge, 19 oct): los botes y la trayectoria de la pelota.**
+  Decidirlo al terminar la memoria, con el resto de detalles.
+  - **Origen:** es trabajo futuro de Novillo et al., sus tutores (`novillo2025padel`, §4, pág. 119,
+    «Second, developing an algorithm to detect ball bounce positions…»). Su §2.3 da el porqué: con
+    una sola cámara no hay profundidad, y solo los botes, que están en el plano de la pista, se pueden
+    pasar a 2D. La trayectoria se simularía a partir del seguimiento de la pelota y de los botes.
+    Comprobado en el PDF.
+  - **Encaje con este sistema:** ya da el instante de cada golpe, el jugador que golpea con su
+    posición en la pista y el seguimiento de la pelota. Con los botes, cada tramo de golpe, bote y
+    golpe tendría sus puntos en el plano de la pista. Es además el nivel 3 del roadmap (detección de
+    botes y trayectoria aproximada), que no se hizo.
+  - **Para qué:** el análisis táctico (dónde cae cada tipo de golpe). Podría apoyar también la línea
+    4 (el doble bote cierra el punto), pero no está medido: decirlo solo como posibilidad.
+  - **Cómo escribirla:** con palabras propias, citando a Novillo et al.; sin traducir su frase y sin
+    «crucial», que es un juicio.
 - **Aviso:** la lista de tipos de golpe que pegó en `conclusiones.tex` (líneas 28-42) parece copiada
   de una web. Quitarla antes de compilar y no usarla tal cual. Si hace falta describir los golpes,
   citar una fuente académica (Ramón-Llin et al., 2020, en `notas_citas.md`).

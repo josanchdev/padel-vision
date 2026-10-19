@@ -7,8 +7,8 @@ En primer lugar, se presenta el conjunto de partida y, a continuación, el etiqu
 \label{sec:conjunto-partida}
 
 El punto de partida es el conjunto de datos publicado por Decorte et al.~\cite{decorte2024padel} con el nombre de Padel Hit Detection Dataset, al que en esta memoria se denomina CVSPORTS por el taller en el que se presentó.
-Contiene 99 puntos de los resúmenes de las retransmisiones de 11 torneos, grabados con su cámara fija y con su audio.
-Sus anotaciones son el inicio y el fin del sonido de cada uno de los 2377 golpes y, en 16 puntos de VIGO, el jugador que golpea (319 golpes).
+En total, contiene 99 puntos de los resúmenes de las retransmisiones de 11 torneos, grabados con su cámara fija y con su audio.
+Además, sus anotaciones son el inicio y el fin del sonido de cada uno de los 2377 golpes y, en 16 puntos de VIGO, el jugador que golpea (319 golpes).
 La \cref{tab:dataset} muestra la distribución de puntos y golpes entre torneos, junto con su entorno.
 
 \begin{table}[htbp]
@@ -24,19 +24,19 @@ Sin embargo, ninguna de sus anotaciones indica el tipo de golpe, que es precisam
 \label{sec:etiquetado}
 
 El etiquetado manual sobre el conjunto de partida consiste en anotar el tipo de cada golpe en los mismos instantes ya anotados.
-De esta manera, se simplifica la anotación, ya que se puede saltar directamente a cada golpe anotado sin recorrer el vídeo entero ni pausar en cada uno.
+De esta manera, se simplifica la anotación, ya que se puede saltar directamente a cada golpe anotado sin recorrer el vídeo entero.
 La herramienta de etiquetado, desarrollada en este trabajo, hace justo esto y reproduce el tramo alrededor de cada golpe, ya que una sola imagen dificulta su clasificación.
 La \cref{fig:herramienta} muestra su interfaz.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{figuras/capturas/herramienta-etiquetado}
+  \includegraphics[width=0.8\textwidth]{figuras/capturas/herramienta-etiquetado}
   \caption{Herramienta de etiquetado en el instante de un remate: arriba, el golpe dentro del punto y su etiqueta; abajo, un círculo por cada golpe del punto, con el color de su clase, y la tecla de cada clase.}
   \label{fig:herramienta}
 \end{figure}
 
-El criterio utilizado para el etiquetado es agrupar por gesto principal: una volea o un globo se anota como derecha o revés, y una bandeja o una víbora, como remate.
-Los golpes que no encajan en ninguna de las cuatro clases se anotan como ``otro''.
+Por otro lado, el criterio utilizado para el etiquetado es agrupar por gesto principal: una volea o un globo se anota como derecha o revés, y una bandeja o una víbora, como remate.
+En cambio, los golpes que no encajan en ninguna de las cuatro clases se anotan como ``otro''.
 El resultado del etiquetado manual se puede ver en la \cref{tab:etiquetado}, donde el saque es el menos representado, al haber solo uno por punto.
 
 \begin{table}[htbp]
@@ -46,4 +46,4 @@ El resultado del etiquetado manual se puede ver en la \cref{tab:etiquetado}, don
   \input{figuras/tabla-etiquetado}
 \end{table}
 
-Todo el etiquetado lo ha realizado una única persona siguiendo el mismo criterio, por lo que no se dispone de una medida de acuerdo entre anotadores.
+Por último, todo el etiquetado lo ha realizado una única persona siguiendo el mismo criterio, por lo que no se dispone de una medida de acuerdo entre anotadores.
