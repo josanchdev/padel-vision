@@ -1,4 +1,4 @@
-"""Write the dataset table of section 4.2.1: memoria/figuras/tabla-dataset.tex.
+"""Write the dataset table of section 3.1: memoria/figuras/tabla-dataset.tex.
 
 Rallies and hits per tournament, counted from the dataset's own files
 (`metadata/hits.csv` and the rally videos). The setting (indoor or outdoor) is
