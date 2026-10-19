@@ -10,9 +10,16 @@ A continuación, se detalla cada uno de sus componentes y, por último, el visor
 A lo largo de esta sección se detallará la arquitectura definida para identificar cada golpe.
 Para ello, el sistema utiliza información de audio e imágenes.
 
-Como paso previo al tratamiento de vídeo, será necesario marcar manualmente las seis referencias espaciales que delimitan el contorno de la pista, así como la ubicación de la red.
+Como paso previo al tratamiento de vídeo, será necesario marcar manualmente las seis referencias espaciales que delimitan el contorno de la pista, así como la ubicación de la red, como muestra la \cref{fig:marcado-pista}.
 Estas anotaciones se podrán reutilizar siempre y cuando no varíe la ubicación y orientación de la cámara.
 Para evitar este paso manual, se probó otra alternativa de detección automática, pero los resultados no eran suficientemente fiables.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figuras/capturas/marcado-pista}
+  \caption[Marcado manual de la pista]{Pista de Madrid marcada a mano: los seis puntos, numerados en el orden en que se marcan, con el contorno y la red (verde), y las líneas de saque y central calculadas a partir de ellos (azul), que coinciden con las pintadas en el suelo.}
+  \label{fig:marcado-pista}
+\end{figure}
 
 Una vez marcada la pista, el proceso arranca con un punto de pádel grabado desde una cámara fija.
 Esta deberá estar situada al fondo de la pista y con una cierta elevación sobre ella.

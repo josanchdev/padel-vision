@@ -1018,6 +1018,17 @@ La memoria se lee de Windows y **no** de WSL: WSL ve 19 GiB, que es lo que Windo
 
   Algunas ya salen como cautelas en la 5.1 y la 5.2; falta decidir si las demás van en Conclusiones.
 - **Conclusiones:** la limitación de los fps y el trabajo futuro.
+- **REVISAR LA COLOCACIÓN DE FIGURAS Y TABLAS en toda la memoria** (Jorge, 20 oct), al FINAL de los
+  cambios de texto (después de la revisión de autoría), porque cada cambio las mueve.
+  - **Caso conocido:** en la 4.1, `fig:marcado-pista` y `fig:flujo` quedan solas en una página, y
+    la anterior tiene un hueco grande.
+  - **Arreglo probable:** `[H]` en `fig:marcado-pista`, como en el capítulo 1, para que el texto
+    siga debajo de ella.
+  - **Comprobarlo con el PDF,** igual que en los capítulos 1 y 3.
+- **HECHO (20 oct): la figura del marcado de la pista** en la 4.1 (`fig:marcado-pista`,
+  `scripts/build_court_marking_figure.py`). Jorge mantiene «las seis referencias…» y la cita con
+  «como muestra la figura 4.1». La herramienta dibuja solo las líneas de saque; la central de la
+  figura se calcula igual (el pie no dice que sea una captura).
 - **FIGURA NUEVA: el marcado de la pista** (Jorge, 19 oct; antes de pasar el borrador al tutor).
   - **Qué muestra:** los seis puntos marcados a mano (las cuatro esquinas y los extremos de la red) y
     las líneas de la pista que la herramienta dibuja sola a partir de ellos sobre el suelo. Jorge la
