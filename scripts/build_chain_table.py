@@ -41,7 +41,7 @@ def build_table() -> str:
         f"Los 11 torneos ({hits['four_class']} golpes)",
         row("detecta", "detected"),
         row("detecta y clasifica bien", "end_to_end_when_what"),
-        f"VIGO, con el jugador anotado ({hits['vigo']} golpes)",
+        f"Vigo, con el jugador anotado ({hits['vigo']} golpes)",
         row("detecta", "vigo_detected"),
         row("detecta y asigna al jugador correcto", "vigo_detected_player"),
         row("detecta, asigna al jugador correcto y clasifica bien", "end_to_end_vigo"),

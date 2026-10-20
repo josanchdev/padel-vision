@@ -19,7 +19,7 @@ from padel_cv.paths import REPO
 OUT = REPO / "memoria" / "figuras" / "tabla-trabajos-padel.tex"
 
 AUTO = r"$\checkmark$"
-MANUAL = "A mano"
+MANUAL = "Manual"
 NO = "---"
 
 

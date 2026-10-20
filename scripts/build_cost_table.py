@@ -21,7 +21,7 @@ from padel_cv.paths import METRICS, REPO
 OUT = REPO / "memoria" / "figuras" / "tabla-coste.tex"
 STAGES = [
     ("audio_s", "Audio: detección del golpe"),
-    ("pose_s", "Pose de los jugadores"),
+    ("pose_s", "Postura de los jugadores"),
     ("pelota_s", "Pelota"),
     ("resto_s", "Resto: lectura del vídeo, identidad, asignación y tipo"),
 ]

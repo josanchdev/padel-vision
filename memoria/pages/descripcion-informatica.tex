@@ -56,7 +56,7 @@ Los valores que no se justifican explícitamente se fijaron de forma empírica.
 
 Aunque el enfoque inicial del proyecto consistía en identificar el instante en el que un jugador golpea la pelota basándose exclusivamente en el análisis visual de las imágenes, finalmente fue descartado dada la dificultad que entraña detectar y hacer seguimiento de la trayectoria de la pelota.
 Esta dificultad viene dada por varios motivos: el tamaño de la pelota, la alta velocidad a la que se mueve y el hecho de que la pelota no permanece siempre visible.
-En concreto, este enfoque se probó a partir de la pose de los jugadores y la posición de la pelota, pero detectaba menos golpes y con más errores (\cref{tab:deteccion}).
+En concreto, este enfoque se probó a partir de la postura de los jugadores y la posición de la pelota, pero detectaba menos golpes y con más errores (\cref{tab:deteccion}).
 
 \begin{table}[htbp]
   \centering
@@ -143,7 +143,7 @@ La \cref{fig:jugadores} muestra cómo es la máscara y el resultado de aplicar l
 Tras aplicar la máscara, en cada fotograma quedan solo los jugadores, pero falta saber cuál es cuál de un fotograma al siguiente.
 El algoritmo de seguimiento ByteTrack~\cite{zhang2022bytetrack} hace justo esto, asignando un mismo identificador a la misma persona.
 Para ello, predice dónde estará cada \textit{bounding box} y empareja por solapamiento.
-Este algoritmo viene incluido en la biblioteca Ultralytics y se ejecuta en la misma llamada que el modelo de pose.
+Este algoritmo viene incluido en la biblioteca Ultralytics y se ejecuta en la misma llamada que el modelo de estimación de la postura.
 Cuando pierde a una persona, ByteTrack guarda su seguimiento durante un tiempo por si reaparece (120 fotogramas en el sistema).
 Si en ese tiempo no consigue volver a emparejarla, le asigna un identificador nuevo.
 
@@ -229,7 +229,7 @@ Ampliarla empeora el acierto (87,5~\% con $\pm 4$, 86,8~\% con $\pm 5$ y 85,6~\%
 El último paso del flujo utiliza todo lo obtenido anteriormente para clasificar cada golpe.
 Esto convierte la detección en información útil para analizar el juego, como cuántos golpes de cada tipo da cada jugador y desde dónde los ejecuta.
 Es, además, la base de análisis más completos: conociendo el tipo de cada golpe se podría estudiar, por ejemplo, en qué golpe se pierden más puntos o qué patrones se repiten antes de un error, y llegar a que un sistema saque conclusiones de un partido por sí mismo.
-En este trabajo, cada golpe se clasifica en uno de cuatro tipos: saque, derecha, revés o remate. Se eligieron estas clases por ser las familias básicas de golpes del pádel, y son el punto de partida necesario: una vez se distinguen de forma fiable, cada una puede subdividirse después, por ejemplo, separando dentro de los remates la bandeja y la víbora, sin rehacer el resto del sistema.
+En este trabajo, cada golpe se clasifica en uno de cuatro tipos: derecha, revés, remate o saque. Se eligieron estas clases por ser las familias básicas de golpes del pádel, y son el punto de partida necesario: una vez se distinguen de forma fiable, cada una puede subdividirse después, por ejemplo, separando la volea y el globo de la derecha y el revés, sin rehacer el resto del sistema.
 El clasificador parte de \ac{bst}~\cite{chang2026bst}, un modelo propuesto para el bádminton.
 Llevarlo al pádel, con cuatro jugadores en pista y otros tipos de golpe, ha exigido adaptar qué recibe el modelo, qué clases distingue y con qué datos se entrena.
 
@@ -250,8 +250,8 @@ Por último, como la duración de la ventana varía de un golpe a otro, se toman
   \label{fig:ventana}
 \end{figure}
 
-De cada ventana se extraen dos secuencias, la pose del jugador que golpea y la posición de la pelota (\cref{fig:entrada}).
-En cada fotograma, la pose se expresa respecto al punto medio de las caderas, de modo que no depende de la posición del jugador en la imagen.
+De cada ventana se extraen dos secuencias, la postura del jugador que golpea y la posición de la pelota (\cref{fig:entrada}).
+En cada fotograma, la postura se expresa respecto al punto medio de las caderas, de modo que no depende de la posición del jugador en la imagen.
 Como ya se comentó en la asignación (\cref{sec:asignacion}), para corregir el efecto de la perspectiva es necesario normalizar la posición relativa de cada punto del esqueleto.
 Esto se logra dividiendo las coordenadas de cada uno de los 17 puntos por la longitud del tronco.
 Así, todos los esqueletos quedan a la misma escala, y un mismo gesto produce los mismos valores en un jugador cercano y en uno lejano.
@@ -261,15 +261,15 @@ De esta forma, el modelo no recibe la posición de la pelota en píxeles, sino s
 \begin{figure}[htbp]
   \centering
   \includegraphics{figuras/entrada}
-  \caption[Entrada del modelo para un remate]{Entrada del modelo para un remate: la pose del jugador que golpea, centrada en las caderas y escalada por el tronco, y la pelota, en amarillo. Los fotogramas a $\pm 3$ del golpe aparecen atenuados para mostrar que la entrada es una secuencia, y el hueco entre la mano y la pelota corresponde a la pala, que el modelo no recibe.}
+  \caption[Entrada del modelo para un remate]{Entrada del modelo para un remate: la postura del jugador que golpea, centrada en las caderas y escalada por el tronco, y la pelota, en amarillo. Los fotogramas a $\pm 3$ del golpe aparecen atenuados para mostrar que la entrada es una secuencia, y el hueco entre la mano y la pelota corresponde a la pala, que el modelo no recibe.}
   \label{fig:entrada}
 \end{figure}
 
 Cuando la pelota no se detecta en un fotograma, sus coordenadas valen cero y un indicador adicional señala su ausencia, ya que, de otro modo, el modelo interpretaría ese cero como una posición real.
-Si el detector pierde al jugador en algún paso de la ventana, se mantiene su último esqueleto conocido, puesto que una pose a cero también se interpretaría como una pose real.
+Si el detector pierde al jugador en algún paso de la ventana, se mantiene su último esqueleto conocido, puesto que una postura a cero también se interpretaría como una postura real.
 Sin embargo, si el jugador aparece en menos de la cuarta parte de los pasos, la ventana no contiene información suficiente y el golpe se queda sin clasificar.
 Por último, las ventanas de entrenamiento se construyen a partir de las mismas salidas que el sistema produce en funcionamiento. Del etiquetado proceden únicamente el tipo de golpe y su instante.
-De este modo, el modelo aprende con los mismos errores que encontrará después, y no con poses perfectas que el sistema nunca le proporcionará.
+De este modo, el modelo aprende con los mismos errores que encontrará después, y no con posturas perfectas que el sistema nunca le proporcionará.
 
 A continuación se describe cada módulo de la red en detalle. La \cref{fig:clasificador} muestra el flujo que recorren los datos.
 
@@ -310,7 +310,7 @@ Cada pareja de dimensiones oscila a una frecuencia distinta: las primeras cambia
 Por lo tanto, las posiciones cercanas tienen firmas parecidas, lo que permite a la red tener en cuenta la distancia entre pasos.
 Por último, esta codificación se suma antes de cada uno de los tres módulos que siguen en la figura.
 
-A continuación, la secuencia pasa por el \textbf{codificador temporal}, una pila de dos capas de transformer, cada una formada por una atención y una \ac{ffn}.
+A continuación, la secuencia pasa por el \textbf{codificador temporal}, una pila de dos capas de \textit{transformer}, cada una formada por una atención y una \ac{ffn}.
 El codificador se encarga de relacionar cada paso con todos los demás de la ventana, no solo con sus vecinos.
 De este modo, permite, por ejemplo, que el paso del impacto tome información de la preparación de un segundo antes.
 Además, no todos los pasos aportan lo mismo: el codificador aprende cuánta información toma cada paso de cada uno de los demás, de modo que un paso en el que el jugador espera pesa menos que el impacto.
@@ -342,13 +342,13 @@ donde $H$ es el número de cabezas y $W_O$, la matriz que las combina.
 
 En cuanto a la segunda parte de cada capa, la \ac{ffn}, se trata de una red pequeña que procesa cada paso por separado: mientras la atención reúne información de los demás pasos, la \ac{ffn} la transforma.
 Antes de cada parte se normalizan los valores y, a su salida, se suma lo que había a la entrada, lo que facilita el entrenamiento al apilar capas.
-Cabe destacar que el mismo codificador, con los mismos pesos, procesa por separado la pose y la pelota.
+Cabe destacar que el mismo codificador, con los mismos pesos, procesa por separado la postura y la pelota.
 Por último, como el token también participa en la atención y no tiene contenido propio, a la salida contiene el resumen de la secuencia, que va directamente al \ac{mlp}, mientras que los demás pasos continúan hacia la atención cruzada.
 
-Seguidamente, la \textbf{atención cruzada} aplica la misma operación que el codificador temporal, excepto que las consultas salen de la pose, y las claves y los valores, de la pelota.
-Lo que hace es juntar el gesto del golpeador, dado por la pose, con la trayectoria de la pelota: en cada paso, la pose pregunta a la pelota qué momentos suyos son importantes.
-Se trata de la idea central de BST, ya que la pose sola es ambigua: gestos parecidos pueden mandar la pelota a sitios distintos, y la trayectoria lo resuelve.
-Siendo $P$ la secuencia de la pose y $B$ la de la pelota, la ecuación se aplica con:
+Seguidamente, la \textbf{atención cruzada} aplica la misma operación que el codificador temporal, excepto que las consultas salen de la postura, y las claves y los valores, de la pelota.
+Lo que hace es juntar el gesto del golpeador, dado por la postura, con la trayectoria de la pelota: en cada paso, la postura pregunta a la pelota qué momentos suyos son importantes.
+Se trata de la idea central de BST, ya que la postura sola es ambigua: gestos parecidos pueden mandar la pelota a sitios distintos, y la trayectoria lo resuelve.
+Siendo $P$ la secuencia de la postura y $B$ la de la pelota, la ecuación se aplica con:
 \begin{equation}
   Q = PW_Q, \qquad K = BW_K, \qquad V = BW_V.
   \label{eq:cruzada}
@@ -357,7 +357,7 @@ Como resultado, la salida es una secuencia en la que cada paso lleva la informac
 
 Después, el \textbf{codificador de interacción}, igual que el codificador temporal pero con una sola capa y su propio token, se encarga de resumir la secuencia fusionada por la atención cruzada en un único vector.
 
-Por último, el \textbf{\ac{mlp}} recibe los tres resúmenes, el de la pose, el de la pelota y el de la fusión, y devuelve un valor por clase de golpe.
+Por último, el \textbf{\ac{mlp}} recibe los tres resúmenes, el de la postura, el de la pelota y el de la fusión, y devuelve un valor por clase de golpe.
 Dado que el tipo de golpe depende del gesto, de la trayectoria de la pelota y de la relación entre ellos, cada resumen aporta una de las tres.
 
 Una vez definida la arquitectura, la salida del modelo se interpreta como la probabilidad de cada clase, definiéndose como:

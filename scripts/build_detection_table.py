@@ -31,7 +31,7 @@ def build_table() -> str:
             proportion(metrics[f"{key}_recall"]),
             proportion(metrics[f"{key}_f1"]),
         ]
-        for key, name in (("image", "Imagen (pose y pelota)"), ("audio", "Audio"))
+        for key, name in (("image", "Imagen (postura y pelota)"), ("audio", "Audio"))
     ]
     header = ["Entrada", "Precisión", r"\textit{Recall}", "F1"]
     return tabular("lccc", header, rows)
