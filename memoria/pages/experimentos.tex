@@ -17,7 +17,7 @@ De esta forma, los percentiles 2,5 y 97,5 forman los extremos del intervalo, dej
 \subsection{Instante del golpe}
 \label{sec:resultados-instante}
 
-El conjunto de datos CVSPORTS~\cite{decorte2024padel} dispone del instante anotado de 2377 golpes repartidos en 99 puntos distintos.
+El conjunto de datos CVSPORTS dispone del instante anotado de 2377 golpes repartidos en 99 puntos distintos.
 Los puntos se dividen de forma aleatoria en dos grupos: uno para el entrenamiento, con 70 puntos, y otro para la evaluación del modelo, con los 29 restantes.
 Al ser de manera aleatoria, la partición creada puede ser más fácil o más difícil.
 Por ello, el entrenamiento se repite tres veces, cada una con su reparto y sus pesos iniciales, y la cifra final es la media de las tres con su desviación típica, que hace de intervalo.
@@ -41,20 +41,20 @@ No obstante, las dos finales son de la misma cámara y pista, por lo que no se p
 
 El jugador que golpea solo está anotado en 16 puntos de VIGO del \textit{dataset} CVSPORTS, con un total de 319 golpes.
 En ellos, se usan los instantes anotados, y no los detectados por el audio, para que no le afecten los errores de la detección.
-Se evalúa siguiendo el mismo criterio que Decorte et al.~\cite{decorte2024padel}, según el cual atribuir el golpe al jugador correcto es un acierto y los golpes sin asignar se consideran fallos.
+Se evalúa siguiendo el mismo criterio que Decorte \textit{et al.}~\cite{decorte2024padel}, según el cual atribuir el golpe al jugador correcto es un acierto y los golpes sin asignar se consideran fallos.
 La pareja se mide igual, y se considera acierto si el jugador asignado es del mismo equipo que el que golpea.
-Como muestra la \cref{tab:asignacion-paper}, el sistema acierta el jugador en el 87,5~\% de los golpes y la pareja en el 92,2~\%, 3,8 y 5,3 puntos por encima de Decorte et al.
+Como muestra la \cref{tab:asignacion-paper}, el sistema acierta el jugador en el 87,5~\% de los golpes y la pareja en el 92,2~\%, 3,8 y 5,3 puntos por encima de Decorte \textit{et al.}
 
 \begin{table}[htbp]
   \centering
-  \caption{Acierto de la asignación del golpe frente a Decorte et al.\ en los mismos 319 golpes.}
+  \caption{Acierto de la asignación del golpe frente a Decorte \textit{et al.}\ en los mismos 319 golpes.}
   \label{tab:asignacion-paper}
   \input{figuras/tabla-asignacion-paper}
 \end{table}
 
 Para saber si esa diferencia es concluyente, se calcula su intervalo con el mismo \textit{bootstrap}, eligiendo en cada remuestreo los mismos puntos para ambos métodos.
 Este intervalo va de \num{-5.4} a \num{9.9} puntos en el jugador y de \num{-2.9} a \num{10.2} en la pareja.
-Como ambos incluyen el cero, no se puede afirmar que el sistema supere a Decorte et al., aunque queda por encima en media.
+Como ambos incluyen el cero, no se puede afirmar que el sistema supere a Decorte \textit{et al.}, aunque queda por encima en media.
 
 \subsection{Tipo de golpe}
 \label{sec:resultados-tipo}

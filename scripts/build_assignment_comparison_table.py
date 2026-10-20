@@ -48,7 +48,7 @@ def build_table() -> str:
         "Acierto",
         "Este trabajo",
         r"Intervalo 95~\%",
-        "Decorte et al.",
+        r"Decorte \textit{et al.}",
         "Diferencia",
     ]
     return tabular("lcccc", header, rows)

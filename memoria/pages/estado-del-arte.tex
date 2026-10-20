@@ -6,15 +6,15 @@
 En los últimos años se han publicado varios trabajos que analizan el pádel a partir de vídeo, cada uno centrado en extraer una parte distinta de la información del juego.
 
 El primer paso es saber dónde está cada jugador.
-Javadiha et al.~\cite{javadiha2021positions} lo abordan a partir de los puntos de su esqueleto y de una homografía.
+Javadiha \textit{et al.}~\cite{javadiha2021positions} lo abordan a partir de los puntos de su esqueleto y de una homografía.
 Con ello, muestran que la posición en la pista puede estimarse con un error parecido al de un anotador humano.
 
-Sobre esa base, Novillo et al.~\cite{novillo2025padel} extraen además, de forma automática, la pista y la pelota, lo que permite representar el juego sobre una pista en dos dimensiones.
+Sobre esa base, Novillo \textit{et al.}~\cite{novillo2025padel} extraen además, de forma automática, la pista y la pelota, lo que permite representar el juego sobre una pista en dos dimensiones.
 
-Decorte et al.~\cite{decorte2024padel} proponen determinar cuándo y quién golpea, a partir del sonido y de la cercanía de la pelota a cada jugador, respectivamente.
+Decorte \textit{et al.}~\cite{decorte2024padel} proponen determinar cuándo y quién golpea, a partir del sonido y de la cercanía de la pelota a cada jugador, respectivamente.
 
 La \cref{tab:trabajos-padel} resume la información que extrae cada uno.
-Sin embargo, ninguno de estos trabajos identifica el tipo de golpe, que es uno de los principales objetivos de este proyecto y que Novillo et al. proponen como trabajo futuro.
+Sin embargo, ninguno de estos trabajos identifica el tipo de golpe, que es uno de los principales objetivos de este proyecto y que Novillo \textit{et al.} proponen como trabajo futuro.
 
 \begin{table}[htbp]
   \centering
@@ -30,7 +30,7 @@ Uno de los aspectos críticos en el análisis de vídeos deportivos es la detecc
 Una forma de abordarlo es a partir de la imagen, tal y como hace E2E-Spot~\cite{hong2022e2espot}, que aprende a localizar el fotograma de cada evento directamente del vídeo, en deportes como el tenis o el patinaje artístico.
 Además, sus autores separan a propósito localizar el evento de clasificarlo.
 Así, en tenis detectan el golpe sin distinguir su tipo y dejan la clasificación para un paso posterior.
-Otra alternativa es a partir del sonido, mediante redes de detección de eventos sonoros como la de Adavanne et al.~\cite{adavanne2017sed}.
+Otra alternativa es a partir del sonido, mediante redes de detección de eventos sonoros como la de Adavanne \textit{et al.}~\cite{adavanne2017sed}.
 
 \section{Reconocimiento de acciones con esqueleto}
 \label{sec:arte-esqueleto}
@@ -47,7 +47,7 @@ BST~\cite{chang2026bst} parte de esta idea y combina la postura de los jugadores
 \label{sec:arte-tipo}
 
 Para conseguir un análisis más exhaustivo, se debe incorporar información acerca del tipo de golpe.
-Por ejemplo, Ramón-Llin et al.~\cite{ramonllin2020stroke}, en una muestra de 8441 golpes, comparan el tipo de golpe entre las parejas que ganan y las que pierden.
+Por ejemplo, Ramón-Llin \textit{et al.}~\cite{ramonllin2020stroke}, en una muestra de 8441 golpes, comparan el tipo de golpe entre las parejas que ganan y las que pierden.
 Para ello, dos observadores registran cada golpe a mano mediante un programa de análisis de vídeo.
 
 Por otro lado, existen aplicaciones comerciales, como aiball~\cite{aiball} o Padelytics~\cite{padelytics}, que, por medio de visión artificial, ofrecen estadísticas por tipo de golpe a partir de vídeo de cámaras instaladas en la pista.

@@ -22,7 +22,7 @@ Para evitar este paso manual, se probó otra alternativa de detección automáti
 \end{figure}
 
 Una vez marcada la pista, el proceso arranca con un punto de pádel grabado desde una cámara fija.
-Esta deberá estar situada al fondo de la pista y con una cierta elevación sobre ella.
+En las grabaciones utilizadas, esta se sitúa al fondo de la pista y con una cierta elevación sobre ella.
 
 Utilizando los vértices previamente anotados, el sistema es capaz de localizar a los jugadores en la pista, descartando por tanto al resto de personas.
 A continuación, atribuye cada golpe a un jugador y lo clasifica.
@@ -37,7 +37,7 @@ Todo este flujo de información queda reflejado en la \cref{fig:flujo}.
 \end{figure}
 
 Como se observa en la figura, el procesamiento se divide en dos ramas independientes, una para el audio y otra para la imagen.
-La rama de audio~\cite{decorte2024padel} utiliza el sonido para detectar el instante en el que se produce el golpe (\cref{sec:instante}).
+La rama de audio utiliza el sonido para detectar el instante en el que se produce el golpe (\cref{sec:instante}).
 Por su parte, la rama de imagen se encarga de dos funciones principales: por un lado asigna un identificador a cada jugador (\cref{sec:jugadores}), y por otro lado detecta la pelota (\cref{sec:pelota}).
 
 Para cada golpe detectado por la rama de audio, se recoge un determinado número de fotogramas previos y posteriores a la detección.
@@ -65,7 +65,7 @@ En concreto, este enfoque se probó a partir de la pose de los jugadores y la po
   \input{figuras/tabla-deteccion}
 \end{table}
 
-Es por ello por lo que se decidió utilizar otro método basado en el reconocimiento de un golpe por el sonido~\cite{decorte2024padel} que es emitido cuando un jugador golpea la pelota.
+Es por ello por lo que se decidió reimplementar el detector de golpes por sonido que proponen Decorte \textit{et al.}~\cite{decorte2024padel}, con su misma arquitectura, entrada y función de pérdida, y entrenarlo desde cero en este trabajo.
 Además, este método apenas añade tiempo de cómputo, ya que el audio supone menos del 1~\% del tiempo total de procesado.
 
 Un golpe en pádel tiene un sonido característico que el micrófono capta. Esto permite saber en qué momento exacto hay un golpe para poder analizar los fotogramas que rodean al golpe en el siguiente paso del flujo.
@@ -82,7 +82,7 @@ La \cref{fig:espectrogramas} muestra cómo se ve el espectrograma en dos momento
 \end{figure}
 
 Para poder distinguir entre golpe y ruido de fondo se necesita entrenar un modelo predictivo que aprenda a diferenciar entre ambos.
-Para ello se utiliza un \textit{dataset} previamente anotado~\cite{decorte2024padel} con el inicio y fin del sonido del impacto.
+Para ello se utiliza el conjunto CVSPORTS (\cref{sec:conjunto-partida}), en el que Decorte \textit{et al.}~\cite{decorte2024padel} anotaron el inicio y el fin del sonido de cada impacto.
 En total se dispone de 2377 golpes etiquetados distribuidos a lo largo de 99 puntos en distintos torneos.
 
 \begin{table}[htbp]
@@ -92,10 +92,9 @@ En total se dispone de 2377 golpes etiquetados distribuidos a lo largo de 99 pun
   \input{figuras/tabla-red-audio}
 \end{table}
 
-La entrada del modelo es un espectrograma \textit{log-Mel}, que agrupa las frecuencias de forma similar a como las percibe el oído humano, de 40 bandas en un rango de 0--24~kHz calculado con un solape de un 50~\% y una \ac{fft} de tamaño 2048, dividido en secuencias de 256 \textit{frames}.
-Es importante mencionar que no se dispone de rangos infrasonido y ultrasonido porque los vídeos del \textit{dataset} están comprimidos y el algoritmo de compresión los descartó.
+La entrada del modelo es un espectrograma \textit{log-Mel} de 40 bandas, que agrupa las frecuencias de forma similar a como las percibe el oído humano. Se calcula con una \ac{fft} de 2048 muestras y un solape del 50~\%, y se divide en secuencias de 256 \textit{frames}.
 
-La arquitectura base del modelo utilizado para detectar golpes a partir de su sonido se basa en una adaptación del modelo SED-net~\cite{adavanne2017sed,decorte2024padel} con dos capas \ac{gru} bidireccionales.
+La arquitectura del modelo es una adaptación de la \ac{crnn} de Adavanne \textit{et al.}~\cite{adavanne2017sed}, con tres capas convolucionales seguidas de dos capas \ac{gru} bidireccionales.
 La red neuronal final tiene un total de \num{114561} parámetros y las capas adaptadas se muestran en la \cref{tab:red-audio}.
 Además, se entrenó con un optimizador AdamW~\cite{loshchilov2019adamw}, con una tasa de aprendizaje de 0,001 y con \textit{batches} de 32 secuencias.
 
@@ -130,7 +129,7 @@ Se utilizan los tobillos por ser la parte del cuerpo detectada más cercana al s
 Si no están ambos disponibles se utiliza la posición del tobillo detectado, o el centro de la base del \textit{bounding box} en caso de no estar ninguno disponible.
 
 Cabe destacar que el modelo devuelve a todas las personas que aparezcan en los fotogramas, incluidas las que no son jugadores.
-Para descartar a los no jugadores se utiliza una máscara creada con el contorno de la pista.
+Para descartar a los no jugadores, como hacen Novillo \textit{et al.}~\cite{novillo2025padel}, se utiliza una máscara creada con el contorno de la pista.
 Una persona se considera jugador si el centro de la base de su \textit{bounding box} cae dentro de la máscara.
 La \cref{fig:jugadores} muestra cómo es la máscara y el resultado de aplicar la homografía sobre los jugadores.
 
@@ -149,8 +148,7 @@ Cuando pierde a una persona, ByteTrack guarda su seguimiento durante un tiempo p
 Si en ese tiempo no consigue volver a emparejarla, le asigna un identificador nuevo.
 
 Para saber quién da cada golpe, cada jugador necesita que su identidad no cambie durante todo el punto: J1, J2, J3 y J4.
-Estas se asignan durante los 3 primeros segundos del punto usando la posición media de los cuatro identificadores que aparecen en más fotogramas~\cite{decorte2024padel}.
-La numeración sigue el mismo criterio que las anotaciones del \textit{dataset}, lo que permite comparar con ellas el jugador que da cada golpe.
+Estas se asignan durante los 3 primeros segundos del punto usando la posición media de los cuatro identificadores que aparecen en más fotogramas.
 
 Cuando ByteTrack pierde a un jugador y le asigna un identificador nuevo, hay que decidir cuál de los cuatro es.
 Como en la pista siempre hay cuatro jugadores, el identificador nuevo hereda la identidad del que falta.
@@ -161,7 +159,7 @@ Si falta más de un jugador, los nuevos heredan la de los jugadores ausentes cuy
 
 El audio indica cuándo se produce cada golpe, pero no qué jugador lo da ni de qué tipo es.
 Para resolver ambas preguntas es necesario conocer la posición de la pelota, ya que el golpe se asigna al jugador más cercano a ella, y además su trayectoria es una de las entradas del clasificador de golpes.
-Para localizar la pelota en cada fotograma se utiliza una red propia basada en TrackNet~\cite{huang2019tracknet}, entrenada desde cero con partidos de pádel anotados~\cite{badanerin2026padeltracker100}.
+Para localizar la pelota en cada fotograma se utiliza una red propia que sigue el planteamiento de TrackNet~\cite{huang2019tracknet}, entrenada desde cero en este trabajo con los partidos anotados de PadelTracker100~\cite{badanerin2026padeltracker100}.
 
 La entrada de la red son tres fotogramas seguidos en los que se puede identificar a la pelota por su movimiento sobre un fondo estático.
 La salida de la red es un mapa de calor donde cada celda indica, con un valor entre 0 y 1, la probabilidad de que la pelota se encuentre ahí.
@@ -203,9 +201,10 @@ Sin estos pesos, como la pelota ocupa muy pocas celdas del mapa, la red podría 
 \label{sec:asignacion}
 
 Una vez localizada la pelota, el siguiente paso es asignar el golpe a un jugador.
-Para ello se utilizan varios fotogramas alrededor del golpe~\cite{decorte2024padel}, de modo que la decisión no dependa de un único fotograma en el que pueda faltar la pelota o el jugador.
+Para ello se utilizan varios fotogramas alrededor del golpe, de modo que la decisión no dependa de un único fotograma en el que pueda faltar la pelota o el jugador.
 En cada uno se mide la distancia de la pelota a la muñeca de cada jugador, que recibe un voto con más peso cuanto más cerca está.
-Finalmente, el golpe se atribuye al jugador que suma más votos.
+Finalmente, el golpe se atribuye al jugador que suma más votos, siguiendo el método de votación que proponen Decorte \textit{et al.}~\cite{decorte2024padel}.
+Sobre esta base, este trabajo introduce dos cambios: normalizar la distancia por la altura del jugador y acotar la ventana.
 
 Al analizar los fallos de este método se observó que se concentraban en los remates.
 Esto se debe a que, en un remate, el jugador golpea la pelota por encima de la cabeza, lo que en la imagen la sitúa cerca de los jugadores del fondo.
