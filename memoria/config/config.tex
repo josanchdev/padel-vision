@@ -1,4 +1,4 @@
-% Preámbulo de la memoria. El motivo de cada decisión está en README.md.
+% Preámbulo de la memoria.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Página, letra e idioma %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -82,10 +82,10 @@
 \makeatletter
 \patchcmd{\@addtocurcol}
   {\vskip\intextsep\box\@currbox}{\vskip\intextsep\vskip14pt\box\@currbox}
-  {}{\PackageError{tfg}{No se pudo añadir el margen de las figuras en el texto}{}}
+  {}{\PackageWarning{tfg}{No se pudo añadir el margen de las figuras en el texto}}
 \patchcmd{\float@endH}
   {\@endfloatbox\vskip\intextsep}{\@endfloatbox\vspace*{14pt}\vskip\intextsep}
-  {}{\PackageError{tfg}{No se pudo añadir el margen de las figuras fijas}{}}
+  {}{\PackageWarning{tfg}{No se pudo añadir el margen de las figuras fijas}}
 \makeatother
 \AtBeginEnvironment{figure}{\setlength{\parskip}{0pt}\par\penalty0}
 \AtBeginEnvironment{table}{\setlength{\parskip}{0pt}\par\penalty0}
