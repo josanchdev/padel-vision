@@ -48,7 +48,7 @@ Como se indicaba anteriormente, se obtienen el vídeo procesado y, lo que es má
 \section{Componentes del sistema}
 \label{sec:componentes}
 
-En esta sección se describe cada componente del sistema que interviene en el flujo de la \cref{fig:flujo}: la detección del instante del golpe, la identificación de los jugadores, la detección de la pelota, la asignación del golpe y la clasificación de su tipo.
+En esta sección se describe cada componente del sistema que interviene en el flujo: la detección del instante del golpe, la identificación de los jugadores, la detección de la pelota, la asignación del golpe y la clasificación de su tipo.
 Los valores que no se justifican explícitamente se fijaron de forma empírica.
 
 \subsection{Instante del golpe}
@@ -82,7 +82,7 @@ La \cref{fig:espectrogramas} muestra cómo se ve el espectrograma en dos momento
 \end{figure}
 
 Para poder distinguir entre golpe y ruido de fondo se necesita entrenar un modelo predictivo que aprenda a diferenciar entre ambos.
-Para ello se utiliza el conjunto CVSPORTS (\cref{sec:conjunto-partida}), en el que Decorte \textit{et al.}~\cite{decorte2024padel} anotaron el inicio y el fin del sonido de cada impacto.
+Para ello se utiliza el conjunto CVSPORTS, en el que Decorte \textit{et al.}~\cite{decorte2024padel} anotaron el inicio y el fin del sonido de cada impacto.
 En total se dispone de 2377 golpes etiquetados distribuidos a lo largo de 99 puntos en distintos torneos.
 
 \begin{table}[htbp]
@@ -255,8 +255,14 @@ En cada fotograma, la postura se expresa respecto al punto medio de las caderas,
 Como ya se comentó en la asignación (\cref{sec:asignacion}), para corregir el efecto de la perspectiva es necesario normalizar la posición relativa de cada punto del esqueleto.
 Esto se logra dividiendo las coordenadas de cada uno de los 17 puntos por la longitud del tronco.
 Así, todos los esqueletos quedan a la misma escala, y un mismo gesto produce los mismos valores en un jugador cercano y en uno lejano.
-La pelota se normaliza con la misma referencia, tomando la posición y la escala medias del jugador en la ventana.
+La pelota se normaliza con la misma referencia, tomando la posición y la escala medidas del jugador en la ventana.
 De esta forma, el modelo no recibe la posición de la pelota en píxeles, sino su posición relativa al jugador.
+
+Cuando la pelota no se detecta en un fotograma, sus coordenadas valen cero y un indicador adicional señala su ausencia, ya que, de otro modo, el modelo interpretaría ese cero como una posición real.
+Si el detector pierde al jugador en algún paso de la ventana, se mantiene su último esqueleto conocido, puesto que una postura a cero también se interpretaría como una postura real.
+Sin embargo, si el jugador aparece en menos de la cuarta parte de los pasos, la ventana no contiene información suficiente y el golpe se queda sin clasificar.
+Por último, las ventanas de entrenamiento se construyen a partir de las mismas salidas que el sistema produce en funcionamiento. Del etiquetado proceden únicamente el tipo de golpe y su instante.
+De este modo, el modelo aprende con los mismos errores que encontrará después, y no con posturas perfectas que el sistema nunca le proporcionará.
 
 \begin{figure}[htbp]
   \centering
@@ -264,12 +270,6 @@ De esta forma, el modelo no recibe la posición de la pelota en píxeles, sino s
   \caption[Entrada del modelo para un remate]{Entrada del modelo para un remate: la postura del jugador que golpea, centrada en las caderas y escalada por el tronco, y la pelota, en amarillo. Los fotogramas a $\pm 3$ del golpe aparecen atenuados para mostrar que la entrada es una secuencia, y el hueco entre la mano y la pelota corresponde a la pala, que el modelo no recibe.}
   \label{fig:entrada}
 \end{figure}
-
-Cuando la pelota no se detecta en un fotograma, sus coordenadas valen cero y un indicador adicional señala su ausencia, ya que, de otro modo, el modelo interpretaría ese cero como una posición real.
-Si el detector pierde al jugador en algún paso de la ventana, se mantiene su último esqueleto conocido, puesto que una postura a cero también se interpretaría como una postura real.
-Sin embargo, si el jugador aparece en menos de la cuarta parte de los pasos, la ventana no contiene información suficiente y el golpe se queda sin clasificar.
-Por último, las ventanas de entrenamiento se construyen a partir de las mismas salidas que el sistema produce en funcionamiento. Del etiquetado proceden únicamente el tipo de golpe y su instante.
-De este modo, el modelo aprende con los mismos errores que encontrará después, y no con posturas perfectas que el sistema nunca le proporcionará.
 
 A continuación se describe cada módulo de la red en detalle. La \cref{fig:clasificador} muestra el flujo que recorren los datos.
 

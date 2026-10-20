@@ -926,8 +926,24 @@ La memoria se lee de Windows y **no** de WSL: WSL ve 19 GiB, que es lo que Windo
   - **Bai (TCN):** solo está en arXiv, pero es la [2] de BST; para la defensa.
   - **YOLO26:** es el informe técnico del software.
   - **El `.bib` NO se limpia** (Jorge): las 13 entradas sin citar pueden hacer falta tras el tutor.
-- **Queda:** el repaso general, el borrador al tutor (con sus tres preguntas) y, mientras lo lee,
-  los anexos. Al final, borrar las notas y `tfg.bbl-SAVE-ERROR`.
+- **HECHO (20 oct):** la pasada de coherencia (Vigo, postura, «Manual» en la tabla 2.1, la
+  introducción del capítulo 5 en presente) y el paquete para Overleaf
+  (`scripts/build_overleaf_package.py`: 49 ficheros, probado compilando desde cero, sin `.md`).
+- **CORREO AL TUTOR** (después de que Jorge lea el PDF y aplique lo que vea):
+  1. Regenerar el PDF y el zip en Descargas:
+     `uv run python scripts/build_overleaf_package.py --out /mnt/c/Users/jsana/Downloads`.
+  2. Adjuntar el PDF y el zip, con las instrucciones de Overleaf: *New Project → Upload Project*,
+     principal `tfg.tex`, pdfLaTeX.
+  3. Preguntas:
+     - dónde ampliar, porque son 36 págs. y la normativa pide 40-60;
+     - si la bibliografía cuenta para las 40;
+     - si echa en falta figuras;
+     - **la licencia:** ¿dejar en blanco la página del reverso de la portada o poner licencia? La
+       normativa (art. 8 y anexo IV) solo la exige si se concede libre distribución, y entonces
+       tiene que ser CC BY, CC BY-ND o CC BY-SA 4.0. La plantilla trae CC BY-SA.
+  4. Avisar de que faltan los anexos, en los que Jorge trabaja mientras el tutor lo lee.
+- **Queda:** la lectura de Jorge, el correo y, mientras el tutor lo lee, los anexos. Al final,
+  borrar las notas y `tfg.bbl-SAVE-ERROR`.
 
 - **REVISIÓN DE AUTORÍA EN EL CAPÍTULO 4 (feedback del padre de Jorge, 18 oct). Hacerla antes de
   pasar el borrador al tutor.**

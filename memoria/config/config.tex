@@ -19,15 +19,16 @@
 
 % Títulos de capítulo grandes, con los tamaños de la memoria de referencia
 % elegida: «Capítulo N» a 40 pt y el título a 35 pt; los capítulos sin número
-% (índices, resumen, bibliografía) a 40 pt
+% (índices, resumen, bibliografía) a 40 pt. Los títulos no se parten con guion
+% y, si ocupan dos líneas, quedan alineados a la izquierda
 \usepackage{titlesec}
 \titleformat{\chapter}[display]
-  {\normalfont\bfseries}
+  {\normalfont\bfseries\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000}
   {\fontsize{40}{48}\selectfont\chaptertitlename\ \thechapter}
   {7pt}
   {\fontsize{35}{42}\selectfont}
 \titleformat{name=\chapter,numberless}[block]
-  {\normalfont\bfseries\fontsize{40}{48}\selectfont}
+  {\normalfont\bfseries\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000\fontsize{40}{48}\selectfont}
   {}
   {0pt}
   {}

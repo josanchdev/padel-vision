@@ -32,21 +32,21 @@ def build_table() -> str:
     def row(label: str, key: str) -> list[str]:
         prefix = f"tabla2_cadena.{key}"
         return [
-            rf"\ldots{{}}{label}",
+            label,
             rf"\num{{{fixed(metrics[f'{prefix}.valor'], 1, scale=100)}}}",
             percent_range(metrics[f"{prefix}.bajo"], metrics[f"{prefix}.alto"]),
         ]
 
     rows: list[list[str] | str] = [
         f"Los 11 torneos ({hits['four_class']} golpes)",
-        row("detecta", "detected"),
-        row("detecta y clasifica bien", "end_to_end_when_what"),
+        row("Detecta", "detected"),
+        row("Detecta y clasifica bien", "end_to_end_when_what"),
         f"Vigo, con el jugador anotado ({hits['vigo']} golpes)",
-        row("detecta", "vigo_detected"),
-        row("detecta y asigna al jugador correcto", "vigo_detected_player"),
-        row("detecta, asigna al jugador correcto y clasifica bien", "end_to_end_vigo"),
+        row("Detecta", "vigo_detected"),
+        row("Detecta y asigna al jugador correcto", "vigo_detected_player"),
+        row("Detecta, asigna al jugador correcto y clasifica bien", "end_to_end_vigo"),
     ]
-    header = [r"Golpes que el sistema\ldots", r"\%", r"Intervalo 95~\%"]
+    header = ["Golpes que el sistema:", r"\%", r"Intervalo 95~\%"]
     return tabular("lcc", header, rows, rules=[3])
 
 
