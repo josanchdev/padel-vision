@@ -255,7 +255,7 @@ En cada fotograma, la postura se expresa respecto al punto medio de las caderas,
 Como ya se comentó en la asignación (\cref{sec:asignacion}), para corregir el efecto de la perspectiva es necesario normalizar la posición relativa de cada punto del esqueleto.
 Esto se logra dividiendo las coordenadas de cada uno de los 17 puntos por la longitud del tronco.
 Así, todos los esqueletos quedan a la misma escala, y un mismo gesto produce los mismos valores en un jugador cercano y en uno lejano.
-La pelota se normaliza con la misma referencia, tomando la posición y la escala medidas del jugador en la ventana.
+La pelota se normaliza con la misma referencia, usando la posición media de las caderas del jugador y la longitud media de su tronco en toda la ventana.
 De esta forma, el modelo no recibe la posición de la pelota en píxeles, sino su posición relativa al jugador.
 
 Cuando la pelota no se detecta en un fotograma, sus coordenadas valen cero y un indicador adicional señala su ausencia, ya que, de otro modo, el modelo interpretaría ese cero como una posición real.
