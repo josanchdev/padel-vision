@@ -887,6 +887,48 @@ La memoria se lee de Windows y **no** de WSL: WSL ve 19 GiB, que es lo que Windo
 
 ## Pendiente fuera de este capítulo
 
+- **HECHA (20 oct, aef670b): la revisión de autoría del capítulo 4.**
+  - **Decorte, 3 citas en el capítulo 4:** el método de audio (reimplementado tal cual y entrenado
+    desde cero por Jorge), las anotaciones de CVSPORTS y el voto de la asignación (su método, más los
+    dos cambios propios: la altura y la ventana).
+  - **Sin cita, por decisión de Jorge:** los 3 segundos de los identificadores.
+  - **Novillo,** por la idea de la máscara.
+  - **TrackNet como planteamiento y U-Net como arquitectura;** PadelTracker100, como datos de otros.
+  - **Quitadas:** las frases traducidas de Decorte (la entrada y el infrasonido), el nombre «SED-net»,
+    la cita de la 4.1 y la de la 5.1.
+  - **La cámara:** «En las grabaciones utilizadas, esta se sitúa…».
+  - ***et al.* en cursiva** en toda la memoria, también en las tablas generadas.
+- **HECHO (20 oct):** el trabajo futuro con la línea de los botes (cuarta, con la cita a Novillo).
+- **Limitaciones (20 oct): NO van en las conclusiones.** Todas están ya junto a su cifra salvo una,
+  que Jorge decide NO declarar: la normalización por la altura y la ventana de ±4 se eligieron sobre
+  los mismos 319 golpes con los que se evalúa (5.1.3).
+  - **Para la defensa, si lo preguntan:** son los únicos golpes con el jugador anotado, así que no
+    había otros con los que ajustar; por eso no se afirma superar a Decorte (la diferencia no es
+    concluyente, y así lo dice la 5.1.3).
+  - **No se reescribe la 4.2.4:** lo que dice es cierto.
+- **HECHO (20 oct):**
+  - **El resumen y las palabras clave:** sin cifras, citas ni nombres. Empieza por el contexto y
+    sigue con el objetivo.
+  - **Los objetivos con el sistema primero:** la 1.2, la 6.1 y el resumen.
+  - **El capítulo 3:** dos frases nuevas en la 3.1 (el formato de los vídeos y el entorno), y la
+    figura de la herramienta al 85 % y con `[H]`.
+  - **La colocación de figuras y tablas, revisada capítulo a capítulo:**
+    - `\topfraction` 0.9, `\textfraction` 0.1, `\floatpagefraction` 0.8;
+    - el margen de 14 pt va con la figura (parche de `\@addtocurcol` y `\float@endH`), así que una
+      figura que se desplaza ya no deja hueco en el texto.
+
+    Huecos que quedan y Jorge acepta: la pág. 7 (apertura del cap. 3), la 25 (4 cm, antes del
+    visor) y la 31 (2,5 cm, la matriz de confusión).
+- **La bibliografía, comprobada (20 oct):** 24 referencias citadas; 20 con su PDF y su ficha en
+  `notas_citas.md`.
+  - **Martín-Miguel:** tiene el PDF, pero no la ficha; Jorge debe leer las págs. 214-215.
+  - **Adavanne:** es la [1] de Decorte.
+  - **Bai (TCN):** solo está en arXiv, pero es la [2] de BST; para la defensa.
+  - **YOLO26:** es el informe técnico del software.
+  - **El `.bib` NO se limpia** (Jorge): las 13 entradas sin citar pueden hacer falta tras el tutor.
+- **Queda:** el repaso general, el borrador al tutor (con sus tres preguntas) y, mientras lo lee,
+  los anexos. Al final, borrar las notas y `tfg.bbl-SAVE-ERROR`.
+
 - **REVISIÓN DE AUTORÍA EN EL CAPÍTULO 4 (feedback del padre de Jorge, 18 oct). Hacerla antes de
   pasar el borrador al tutor.**
   - **El problema:** se cita mucho a [1] (Decorte) y no queda claro qué es de este trabajo, qué se

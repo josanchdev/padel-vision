@@ -8,8 +8,12 @@ En primer lugar, se presenta el conjunto de partida y, a continuación, el etiqu
 
 El punto de partida es el conjunto de datos publicado por Decorte \textit{et al.}~\cite{decorte2024padel} con el nombre de Padel Hit Detection Dataset, al que en esta memoria se denomina CVSPORTS por el taller en el que se presentó.
 En total, contiene 99 puntos de los resúmenes de las retransmisiones de 11 torneos, grabados con su cámara fija y con su audio.
+Todos los vídeos tienen una resolución de $1920 \times 1080$ píxeles y 25~\ac{fps}.
 Además, sus anotaciones son el inicio y el fin del sonido de cada uno de los 2377 golpes y, en 16 puntos de VIGO, el jugador que golpea (319 golpes).
+
 La \cref{tab:dataset} muestra la distribución de puntos y golpes entre torneos, junto con su entorno.
+Cada torneo se juega en una pista distinta, y el entorno, interior o exterior, cambia además la iluminación y el sonido de fondo.
+Sin embargo, ninguna de sus anotaciones indica el tipo de golpe, que es precisamente lo que se añade en este trabajo.
 
 \begin{table}[htbp]
   \centering
@@ -17,8 +21,6 @@ La \cref{tab:dataset} muestra la distribución de puntos y golpes entre torneos,
   \label{tab:dataset}
   \input{figuras/tabla-dataset}
 \end{table}
-
-Sin embargo, ninguna de sus anotaciones indica el tipo de golpe, que es precisamente lo que se añade en este trabajo.
 
 \section{Etiquetado del tipo de golpe}
 \label{sec:etiquetado}
@@ -28,9 +30,9 @@ De esta manera, se simplifica la anotación, ya que se puede saltar directamente
 La herramienta de etiquetado, desarrollada en este trabajo, hace justo esto y reproduce el tramo alrededor de cada golpe, ya que una sola imagen dificulta su clasificación.
 La \cref{fig:herramienta} muestra su interfaz.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{figuras/capturas/herramienta-etiquetado}
+  \includegraphics[width=0.85\textwidth]{figuras/capturas/herramienta-etiquetado}
   \caption{Herramienta de etiquetado en el instante de un remate: arriba, el golpe dentro del punto y su etiqueta; abajo, un círculo por cada golpe del punto, con el color de su clase, y la tecla de cada clase.}
   \label{fig:herramienta}
 \end{figure}

@@ -3,8 +3,8 @@
 \section{Conclusiones}
 \label{sec:conclusiones}
 
-El principal objetivo de este trabajo es la implementación de una herramienta que permita a clubes, equipos e incluso profesionales analizar el juego de pádel y a partir de dicho análisis conseguir mejorar el rendimiento de los jugadores.
-Para ello, fue necesario definir y diseñar un sistema que obtenga datos fiables que alimenten dicha herramienta; sin él no hay estadísticas por jugador útiles para analizar.
+El principal objetivo de este trabajo es el diseño de un sistema que clasifique los golpes de cada jugador en un partido de pádel.
+Sobre él se ha construido una herramienta que permite a clubes, equipos e incluso profesionales analizar el juego de pádel y, a partir de dicho análisis, mejorar el rendimiento de los jugadores; sin el sistema, la herramienta no tendría estadísticas por jugador que mostrar.
 
 La detección por sonido frente a imágenes resulta indispensable como base de toda la arquitectura por su alta precisión y eficiencia en cuanto a tiempos de procesado. Los resultados obtenidos con el tratamiento de la imagen han demostrado no ser suficientemente fiables.
 
@@ -27,6 +27,11 @@ Mediante los resultados obtenidos se podrá delimitar el rango de funcionamiento
 En tercer lugar, se propone investigar métodos para lograr procesar partidos completos, sin necesidad de recortar puntos individuales.
 Para ello será necesario identificar los tramos grabados desde la cámara principal, descartando el resto de planos, como las repeticiones o las imágenes de la grada, y reconocer a cada jugador por su apariencia para mantener su identidad cuando cambia de lado.
 De esta forma, se podría analizar directamente la grabación de un partido, sin recortar los puntos a mano, y obtener las estadísticas de cada jugador en el partido entero, y no solo en puntos sueltos.
+
+En cuarto lugar, se propone detectar los botes de la pelota y, a partir de ellos, reconstruir su trayectoria sobre la pista, una línea que también plantean como trabajo futuro Novillo \textit{et al.}~\cite{novillo2025padel}.
+Con una sola cámara no se conoce la profundidad, pero los botes se producen sobre el suelo, por lo que la homografía permite situarlos en metros.
+Unidos a la posición del jugador que golpea, que el sistema ya obtiene, permitirían aproximar en dos dimensiones el recorrido de la pelota entre un golpe y el siguiente.
+De esta forma, se podría estudiar hacia qué zonas de la pista dirige cada jugador cada tipo de golpe.
 
 Por último, se plantea detectar el final de cada punto y su causa: un golpe ganador, un error forzado por el golpe del rival o un error no forzado. A partir de ahí se podrían obtener estadísticas como el porcentaje de reveses que falla cada jugador o qué golpes del rival provocan más errores.
 El objetivo es añadir una nueva dimensión al análisis: no solo qué golpes da cada jugador, sino con cuáles gana y pierde los puntos.

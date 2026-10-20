@@ -19,6 +19,13 @@ No es texto de la memoria: es la estructura acordada y lo que va en cada parte.
     by players».
   - Las `% IDEAS` de la introducción dicen solo «clubes»: hay que ampliarlas a equipos y
     profesionales al escribirla.
+- **ORDEN INVERTIDO (Jorge, 20 oct): primero el SISTEMA, después la herramienta.**
+  - **Motivo:** lo académicamente importante es el sistema, el encadenamiento de instante, jugador y
+    tipo con el clasificador adaptado; la herramienta es la aplicación.
+  - **Dónde se aplica:** en la 1.2 (objetivo general), la 6.1 (primer párrafo) y el resumen. La 1.1
+    ya tenía el sistema primero.
+  - **Término:** «sistema». «Modelo» es cada red y «arquitectura», cómo está organizado.
+  - **Lo de abajo («la herramienta, objetivo final») queda SUPERADO en el orden.**
 - **DOS OBJETIVOS (Jorge, 18 oct, corregido).**
   1. **La herramienta de análisis** (el visor), para clubes, equipos e incluso profesionales: el
      objetivo final de Jorge. Su tutor la llamó «bonus».

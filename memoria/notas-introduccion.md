@@ -175,6 +175,49 @@ Se toma **solo el esquema**: ni una frase suya, ni traducida. Además, se cambia
 - si Decorte va en la 1.1;
 - la figura `problema.pdf`, que puede cambiar.
 
+## RESUMEN: CRITERIO DE JORGE (20 oct), sustituye a la propuesta de abajo
+
+**Un resumen de TFG no es un *abstract* de artículo:**
+- cero cifras, cero citas, cero nombres de autores, cero detalles técnicos;
+- solo qué se hace, para qué y qué presenta el documento, en lenguaje llano, para que se lea y se
+  entienda.
+
+Es el esquema de Miriam (cuatro párrafos):
+1. **El objetivo principal**, la herramienta para clubes, equipos y profesionales, y el contexto.
+2. **Lo que hace falta:** un sistema que, de cada golpe, sepa cuándo, quién y de qué tipo es,
+   combinando el sonido con el movimiento de los jugadores y de la pelota.
+3. **Qué presenta el documento:** el etiquetado propio, cómo se resuelve cada parte y la evaluación
+   con torneos no vistos.
+4. **Cierre:** el visor y, si se quiere, lo que abre el trabajo.
+
+Sin la frase del hueco. Palabras clave: unas 8-10, como Miriam.
+
+## RESUMEN Y PALABRAS CLAVE (20 oct, propuesta SUPERADA)
+
+- **Normativa (art. 16):** resumen de UNA página y palabras clave, obligatorios. El inglés no se
+  exige (`README.md`: «se decide al escribir el resumen»).
+- **Plantilla:** `pages/resumen.tex`, vacío salvo «Palabras clave:». Va en las páginas romanas, así
+  que no cuenta para las 40-60.
+- **Estructura propuesta** (unas 300 palabras con 12 pt, cuatro párrafos):
+  1. **Contexto y problema**, en 2 frases. El hueco en una frase, si Jorge quiere: en el resumen es
+     lo habitual, aunque no lo repitió en la 1.1.
+  2. **Qué se hace:**
+     - el cuándo: audio, reimplementando a Decorte;
+     - el quién: pose y pelota, con el voto más la normalización por la altura;
+     - el tipo: cuatro clases, con el clasificador adaptado de BST sobre la pose y la pelota;
+     - el etiquetado propio: 2377 golpes de 11 torneos;
+     - el visor.
+  3. **Resultados**, de 3 a 4 cifras como mucho, todas del capítulo 5:
+     - detección: F1 0,958;
+     - tipo: 82,7 % de *accuracy* y 0,859 de macro-F1, dejando fuera un torneo;
+     - sistema completo: 80,1 % detectados y bien clasificados en los 11 torneos; 75,5 % totalmente
+       correctos en VIGO;
+     - coste: 1,05 veces la duración del vídeo;
+     - (asignación: 87,5 % del jugador en los 319 golpes de VIGO).
+  4. **Cierre** en una frase, sin juicios: lo que permite el visor, o el trabajo futuro.
+- **Palabras clave**, de 5 a 6: pádel, visión artificial, detección de eventos sonoros, estimación
+  de la postura, clasificación de golpes, *transformer*.
+
 ## 1.2 Objetivos: propuesta (19 oct, pendiente de que Jorge la confirme)
 
 Jorge plantea: el general es la web y los específicos son el sistema; quizá también el etiquetado; y
