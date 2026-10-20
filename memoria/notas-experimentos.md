@@ -942,8 +942,26 @@ La memoria se lee de Windows y **no** de WSL: WSL ve 19 GiB, que es lo que Windo
        normativa (art. 8 y anexo IV) solo la exige si se concede libre distribución, y entonces
        tiene que ser CC BY, CC BY-ND o CC BY-SA 4.0. La plantilla trae CC BY-SA.
   4. Avisar de que faltan los anexos, en los que Jorge trabaja mientras el tutor lo lee.
-- **Queda:** la lectura de Jorge, el correo y, mientras el tutor lo lee, los anexos. Al final,
-  borrar las notas y `tfg.bbl-SAVE-ERROR`.
+- **HECHO (20 oct):** el correo al tutor, enviado con el PDF y el zip (`TFG_Jorge_Sanchez_borrador*`).
+  El nombre por defecto del paquete pasa a ser `TFG_Jorge_Sanchez_borrador_completo`.
+- **IDEA DE JORGE (20 oct), para DESPUÉS de los anexos: un repositorio PÚBLICO limpio y profesional**
+  (open source), que sería también el que se entrega con la memoria.
+  - **Entraría:** el código, los scripts del sistema, las etiquetas propias, `pyproject` y `uv.lock`,
+    un README que explique el trabajo y la arquitectura, y una LICENSE.
+  - **No entraría:** `memoria/`, las notas, `CLAUDE.md` y `.claude/`, la bitácora, los datos brutos y
+    los pesos.
+  - **Por decidir:**
+    1. ¿Un repositorio nuevo con un único commit? El privado conservaría toda la historia.
+    2. ¿Se publican los ADR, limpios? La 1.3 dice que hay 18 ADR y 30 entradas de bitácora; si no
+       están en el público, el tribunal solo ve las figuras de ejemplo.
+    3. ¿Van los scripts de figuras y tablas (`build_*`, `padel_ml/thesis`)? La 1.3 dice que todas
+       salen de código.
+    4. ¿Qué licencia de código? ¿Las etiquetas propias se pueden publicar según la licencia de
+       CVSPORTS? CVSPORTS y PadelTracker100 se enlazan, no se redistribuyen.
+    5. ¿El README en inglés o en español?
+  - **El anexo A se escribe suponiendo el repositorio público** (con la URL pendiente).
+- **Queda:** los anexos (empezando por el B), el repositorio público y, cuando conteste el tutor,
+  sus cambios. Al final, borrar las notas y `tfg.bbl-SAVE-ERROR`.
 
 - **REVISIÓN DE AUTORÍA EN EL CAPÍTULO 4 (feedback del padre de Jorge, 18 oct). Hacerla antes de
   pasar el borrador al tutor.**

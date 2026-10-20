@@ -45,7 +45,7 @@ def thesis_inputs(recorder: Path) -> list[str]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True, help="Directory for the PDF and the zip")
-    parser.add_argument("--name", default="TFG_Jorge_Sanchez_Aguilar_borrador")
+    parser.add_argument("--name", default="TFG_Jorge_Sanchez_borrador_completo")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
 
