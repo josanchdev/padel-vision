@@ -44,8 +44,7 @@ Un error de unos pocos fotogramas ya es un fallo, aunque el evento se haya recon
 Una forma de resolverlo es utilizando solo la imagen, como hace E2E-Spot~\cite{hong2022e2espot}.
 Este método aprende, directamente del vídeo, a localizar el fotograma de cada evento.
 Se ha probado en deportes como el tenis o el patinaje artístico.
-Sus autores toman además una decisión de diseño que interesa a este trabajo, y es que separan a propósito localizar el evento de clasificarlo.
-En tenis, por ejemplo, el sistema encuentra el instante de cada golpe pero no distingue su tipo, y deja esa clasificación para un paso posterior.
+Sus autores plantean además, y esto interesa a este trabajo, que localizar el instante exacto de un evento es una tarea distinta de reconocer la acción que se realiza.
 
 Otra forma de resolverlo es escuchar el evento en lugar de verlo.
 La detección de eventos sonoros es un problema clásico del procesamiento de audio, y las redes que mejor lo resuelven combinan capas convolucionales sobre el espectrograma con capas recurrentes, como la propuesta por Adavanne \textit{et al.}~\cite{adavanne2017sed}.
@@ -79,7 +78,7 @@ El reconocimiento de acciones en vídeo ha evolucionado de analizar los píxeles
 Trabajar con el esqueleto tiene una ventaja clara, y es que ignora el aspecto de la escena, como la ropa o el fondo, y se queda solo con el movimiento.
 Esto lo hace atractivo para un sistema que debe aplicarse a pistas distintas.
 
-ST-GCN~\cite{yan2018stgcn} fue el primer modelo en tratar la secuencia de esqueletos como un grafo.
+ST-GCN~\cite{yan2018stgcn} propuso tratar la secuencia de esqueletos como un grafo.
 Los nodos son las articulaciones, que se conectan entre sí según la estructura del cuerpo y, en fotogramas consecutivos, cada una consigo misma.
 De este modo la red puede aprender tanto la forma de la postura como la manera en que cambia en el tiempo.
 
