@@ -1,1 +1,52 @@
 % !TEX root = ../../tfg.tex
+
+Este anexo es una guía breve para entender qué muestra el visor web y qué se puede hacer con él.
+Los comandos para prepararlo y ponerlo en marcha están en el \cref{anexo:reproducibilidad}.
+
+En todo el visor, el color identifica al jugador y la forma identifica el tipo de golpe.
+Los jugadores se llaman J1, J2, J3 y J4, y cada uno tiene su propio color.
+La derecha se dibuja como un círculo, el revés como un rombo, el remate como un triángulo y el saque como un cuadrado.
+
+La página principal (\cref{fig:visor-portada}) presenta los puntos procesados en una cuadrícula.
+Cada tarjeta muestra una miniatura del punto, junto con su título, su duración y su número de golpes.
+Al pasar el ratón por encima de la miniatura se reproducen unos segundos del vídeo procesado y, al pulsarla, se abre el análisis de ese punto.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figuras/capturas/visor-portada}
+  \caption{Página principal del visor web.}
+  \label{fig:visor-portada}
+\end{figure}
+
+La página de análisis de un punto se divide en dos partes.
+La parte superior (\cref{fig:visor-punto-arriba}) empieza con una cabecera que indica el título y la fecha del punto, junto con cuatro cifras de resumen: el número de golpes, la duración, el tiempo medio entre golpes y el número de remates.
+Debajo está el vídeo procesado, con los controles habituales, y a su derecha un panel con la pista vista desde arriba.
+Este panel tiene dos modos.
+El modo ``En vivo'' muestra la posición de los cuatro jugadores en cada instante del vídeo.
+El modo ``Mapa de calor'' muestra por dónde se han movido durante todo el punto, y permite elegir entre el mapa de todos los jugadores o el de uno concreto.
+Bajo el mapa, una tarjeta indica el golpe que se está jugando, con su tipo y la confianza del modelo.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figuras/capturas/visor-punto-arriba}
+  \caption{Parte superior de la página de análisis de un punto.}
+  \label{fig:visor-punto-arriba}
+\end{figure}
+
+La parte inferior (\cref{fig:visor-punto-abajo}) contiene primero la línea de tiempo.
+Tiene una fila para cada jugador, y cada golpe aparece como un símbolo en la fila del jugador que lo ejecuta.
+Una línea vertical marca el instante del vídeo que se está viendo.
+Al pasar el ratón por un golpe se muestran su jugador, su tipo, su instante y la confianza del modelo.
+Al pulsarlo, el vídeo salta a un instante antes de ese golpe.
+
+Debajo de la línea de tiempo hay una tarjeta por jugador.
+Cada tarjeta indica cuántos golpes ha dado de cada tipo, en qué lado de la pista ha jugado (el más cercano a la cámara o el del fondo) y qué porcentaje de los golpes de su pareja ha dado él.
+También muestra su mapa de calor, su golpe más frecuente y la distancia media a la red.
+Al pasar el ratón por una tarjeta se resaltan los golpes y la posición de ese jugador, y se atenúan los del resto.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{figuras/capturas/visor-punto-abajo}
+  \caption{Parte inferior de la página de análisis de un punto.}
+  \label{fig:visor-punto-abajo}
+\end{figure}

@@ -1,37 +1,95 @@
 % !TEX root = ../tfg.tex
 
+En este capítulo se repasan los objetivos uno por uno y se explica qué se ha conseguido en cada caso.
+A continuación se comentan las limitaciones del sistema.
+Por último se plantean los trabajos futuros que se podrían abordar.
+
 \section{Conclusiones}
 \label{sec:conclusiones}
 
-El principal objetivo de este trabajo es el diseño de un sistema que clasifique los golpes de cada jugador en un partido de pádel.
-Sobre él se ha construido una herramienta que permite a clubes, equipos e incluso profesionales analizar el juego de pádel con el propósito de mejorar el rendimiento de los jugadores; sin el sistema, la herramienta no tendría estadísticas por jugador que mostrar.
+El objetivo general era desarrollar un sistema que, a partir del vídeo de un punto de pádel, identificara el jugador y el tipo de cada golpe, y construir sobre él una herramienta de análisis.
+Este objetivo se ha cumplido.
+El sistema entrega para cada golpe su instante, su jugador y su tipo, y su funcionamiento se ha medido con métricas definidas sobre torneos que no se utilizaron para entrenarlo.
+Los párrafos siguientes detallan cómo se ha logrado cada uno de los objetivos específicos (\cref{sec:objetivos-especificos}).
 
-La detección por sonido frente a imágenes resulta indispensable como base de toda la arquitectura por su alta precisión y eficiencia en cuanto a tiempos de procesado. Los resultados obtenidos con el tratamiento de la imagen han demostrado no ser suficientemente fiables.
+El primer objetivo específico era localizar a los jugadores y la pelota en cada fotograma.
+Los jugadores se detectan con un modelo de postura ya entrenado, al que bastó con ajustar el tamaño de la imagen de entrada.
+Con ello se encuentra a los cuatro a la vez en el 93,7~\% de los fotogramas, y sus nombres de J1 a J4 se mantienen durante todo el punto gracias a unas reglas de identidad.
+La pelota se localiza con una red propia que alcanza un F1 de 0,915 sobre un partido que no vio al entrenarse.
+Este objetivo puede darse por cumplido.
 
-Por otro lado, y por ser la postura y la pelota las únicas entradas del clasificador, el modelo no depende del aspecto de la pista y funciona en pistas que no ha visto durante el entrenamiento.
+El segundo objetivo era determinar cuándo se produce cada golpe y qué jugador lo ejecuta.
+Para el instante se descartó la imagen y se optó por el sonido, que obtiene un F1 de 0,958.
+Para el jugador se reimplementó el método de votación de Decorte \textit{et al.} con dos cambios propios, y con él se atribuye correctamente el 87,5~\% de los golpes de Vigo.
+Este resultado es comparable al del trabajo original pero no puede decirse que lo supere, porque la diferencia no es concluyente.
 
-Finalmente, tomar como punto de partida BST, una arquitectura diseñada para el bádminton, ha resultado acertado, ya que ha permitido clasificar golpes de pádel adaptando su entrada, sus clases y sus datos.
+El tercer objetivo era clasificar cada golpe como derecha, revés, remate o saque.
+Para conseguirlo se etiquetaron a mano los 2377 golpes de CVSPORTS y se adaptó BST, una red pensada para el bádminton, a las cuatro clases del pádel.
+Dejando un torneo fuera cada vez, el clasificador acierta el 82,7~\% de los golpes, con un macro-F1 de 0,859.
+Es un resultado nuevo, porque ningún trabajo anterior clasifica el tipo de golpe en pádel y por eso no existe otro con el que compararlo.
+El objetivo se ha cumplido.
+
+El cuarto objetivo era integrar todos los componentes en un único sistema y construir un visor web.
+El sistema completo procesa un punto en 1,05 veces su duración y, medido de extremo a extremo, detecta y clasifica correctamente cuatro de cada cinco golpes.
+En Vigo, donde además se conoce el jugador, tres de cada cuatro golpes salen completamente bien.
+El visor presenta con estos datos las estadísticas de cada jugador.
+Por tanto este objetivo también se ha cumplido.
+
+El quinto objetivo era medir el funcionamiento de cada componente y del sistema completo.
+Cada cifra se acompaña de su incertidumbre, los torneos se dejan fuera del entrenamiento para comprobar el comportamiento en pistas nuevas y los resultados se comparan con los trabajos previos allí donde existe una referencia.
+Esa comparación se declara no concluyente cuando los datos no permiten afirmar más.
+Con ello el objetivo se cumple, y las limitaciones que quedan se recogen en el apartado siguiente.
+
+Si hubiera que quedarse con una idea, sería que el sonido es la señal más fiable para localizar los golpes y que la postura de los jugadores junto con la trayectoria de la pelota bastan para reconocer su tipo con un acierto razonable.
+Esto permite construir estadísticas por jugador a partir de una sola cámara y sin sensores.
+Con ello se atiende la necesidad con la que arrancó el trabajo, que era que clubes y entrenadores pudieran analizar el juego sin dedicar horas a anotar cada golpe.
+
+\section{Limitaciones}
+\label{sec:limitaciones}
+
+Estos resultados deben leerse teniendo presentes las limitaciones del trabajo, porque condicionan hasta dónde pueden generalizarse.
+
+En primer lugar, la asignación del golpe solo se ha podido medir en un torneo, de modo que los intervalos de confianza son anchos y la comparación con el trabajo original no es concluyente.
+
+En segundo lugar, el etiquetado del tipo de golpe se ha realizado por una única persona.
+Esto favorece que las clases se interpreten siempre con el mismo criterio, pero impide medir el grado de acuerdo entre anotadores.
+No puede saberse, por tanto, cuántos casos dudosos habría etiquetado de otra forma otra persona.
+
+En tercer lugar, el clasificador se entrena con ejemplos en los que el jugador no viene de una etiqueta, sino que lo elige el propio sistema.
+Como la asignación acierta en torno al 87,5~\% de las veces, una parte de los ejemplos lleva el esqueleto de otro jugador.
+Se hizo así a propósito para que el modelo aprendiera con los mismos errores que encontrará después, pero significa que los fallos de la asignación también llegan a su entrenamiento.
+
+Por último, los resultados no permiten afirmar que el sistema funcione fuera de las retransmisiones.
+Todos los vídeos proceden de torneos grabados con la cámara habitual de la retransmisión.
 
 \section{Trabajo futuro}
 \label{sec:trabajo-futuro}
 
-Como trabajo futuro se plantea una serie de mejoras para ampliar las funcionalidades del sistema y su robustez.
+Las limitaciones anteriores y lo que el trabajo ha dejado fuera sugieren varias líneas para continuar el trabajo.
+Se presentan ordenadas de las más cercanas al sistema actual a las más alejadas.
 
-En primer lugar, respecto al clasificador, se plantea ampliar el conjunto de datos anotando más tipos de golpe según su frecuencia de uso, como el globo y la volea.
-El objetivo de esto es tener un catálogo de golpes más amplio para su análisis.
+En primer lugar, se plantea ampliar el conjunto de datos del tipo de golpe.
+Se eligieron cuatro clases para mantenerlas bien diferenciadas, pero existen otros tipos de golpe como el globo o la volea, que además son frecuentes en el juego.
+Anotar más golpes de esos tipos permitiría ofrecer un catálogo más completo para el análisis.
+La dificultad está en que cuanto más se parecen las clases más ejemplos hacen falta para separarlas, y por eso conviene empezar por las de mayor frecuencia de uso.
 
-En segundo lugar, se propone el análisis de los límites del sistema según las condiciones de la cámara: su altura, posición, ángulo y \ac{fps}.
-Esto consiste en grabar un mismo partido desde varias cámaras situadas a distintas alturas, posiciones y ángulos, y procesarlo con cada una de ellas, lo que permite medir de forma controlada cómo varían los resultados al alejarse de la cámara de retransmisión.
-Mediante los resultados obtenidos se podrá delimitar el rango de funcionamiento del sistema, es decir, en qué condiciones de grabación mantiene un rendimiento útil y a partir de cuáles deja de ser utilizable.
+Una segunda línea es medir los límites del sistema según las condiciones de la cámara.
+Todo el trabajo se ha hecho con la cámara de las retransmisiones, y se desconoce cuánto empeoraría el resultado con otra altura, posición, ángulo o frecuencia de fotogramas.
+Para averiguarlo se podría grabar un mismo partido desde varias cámaras y procesarlo con cada una, de modo que la única diferencia fuera la cámara.
+Así podría delimitarse el rango en el que el sistema mantiene un rendimiento útil y a partir de cuál deja de serlo.
 
-En tercer lugar, se propone investigar métodos para lograr procesar partidos completos, sin necesidad de recortar puntos individuales.
-Para ello será necesario identificar los tramos grabados desde la cámara principal, descartando el resto de planos, como las repeticiones o las imágenes de la grada, y reconocer a cada jugador por su apariencia para mantener su identidad cuando cambia de lado.
-De esta forma, se podría analizar directamente la grabación de un partido, sin recortar los puntos a mano, y obtener las estadísticas de cada jugador en el partido entero, y no solo en puntos sueltos.
+En tercer lugar, el sistema podría aprender a procesar partidos completos y no puntos recortados a mano.
+Para ello habría que identificar los tramos grabados con la cámara principal y descartar el resto, como las repeticiones o los planos de la grada.
+También habría que reconocer a cada jugador por su aspecto, para mantener su identidad cuando cambia de lado.
+Con ello las estadísticas se obtendrían directamente de la grabación completa.
 
-En cuarto lugar, se propone detectar los botes de la pelota y, a partir de ellos, reconstruir su trayectoria sobre la pista, una línea que también plantean como trabajo futuro Novillo \textit{et al.}~\cite{novillo2025padel}.
-Con una sola cámara no se conoce la profundidad, pero los botes se producen sobre el suelo, por lo que la homografía permite situarlos en metros.
-Unidos a la posición del jugador que golpea, que el sistema ya obtiene, permitirían aproximar en dos dimensiones el recorrido de la pelota entre un golpe y el siguiente.
-De esta forma, se podría estudiar hacia qué zonas de la pista dirige cada jugador cada tipo de golpe.
+Otra línea es detectar los botes de la pelota para reconstruir su recorrido sobre la pista, algo que también plantean como trabajo futuro Novillo \textit{et al.}~\cite{novillo2025padel}.
+Con una sola cámara no se conoce la profundidad, pero los botes ocurren sobre el suelo y la homografía permite situarlos en metros.
+Unidos a la posición del jugador que golpea, que el sistema ya obtiene, permitirían aproximar el recorrido de la pelota entre dos golpes.
+De este modo se podría estudiar hacia qué zonas de la pista dirige cada jugador cada tipo de golpe.
 
-Por último, se plantea detectar el final de cada punto y su causa: un golpe ganador, un error forzado por el golpe del rival o un error no forzado. A partir de ahí se podrían obtener estadísticas como el porcentaje de reveses que falla cada jugador o qué golpes del rival provocan más errores.
-El objetivo es añadir una nueva dimensión al análisis: no solo qué golpes da cada jugador, sino con cuáles gana y pierde los puntos.
+También se podría detectar cómo termina cada punto y por qué, ya sea por un golpe ganador, por un error forzado o por un error no forzado.
+Esto permitiría calcular estadísticas como el porcentaje de reveses que falla cada jugador o qué golpes del rival provocan más errores.
+Se añadiría así una dimensión nueva al análisis, que diría no solo qué golpes da cada jugador sino con cuáles gana y pierde los puntos.
+
+Todas estas líneas parten de lo construido en este trabajo y se apoyan en lo ya medido, de modo que ninguna exige empezar de cero.

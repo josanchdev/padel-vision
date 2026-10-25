@@ -1,7 +1,7 @@
 % Memoria del TFG. Se compila con pdfLaTeX y biber.
 % Configuración en config/config.tex.
 
-\documentclass[12pt,a4paper,twoside,openright]{report}
+\documentclass[11pt,a4paper,oneside]{report}
 
 % Datos del trabajo, tal como figuran en la plataforma de TFG
 \newcommand{\nombreautor}{Jorge Sánchez Aguilar}
@@ -64,6 +64,10 @@
 \label{cap:introduccion}
 \input{pages/introduccion}
 
+\chapter{Fundamentos}
+\label{cap:fundamentos}
+\input{pages/fundamentos}
+
 \chapter{Estado del arte}
 \label{cap:estado-del-arte}
 \input{pages/estado-del-arte}
@@ -76,9 +80,9 @@
 \label{cap:descripcion-informatica}
 \input{pages/descripcion-informatica}
 
-\chapter{Experimentos y validación}
-\label{cap:experimentos}
-\input{pages/experimentos}
+\chapter{Resultados}
+\label{cap:resultados}
+\input{pages/resultados}
 
 \chapter{Conclusiones y trabajo futuro}
 \label{cap:conclusiones}
@@ -97,10 +101,6 @@
 \chapter{Reproducibilidad}
 \label{anexo:reproducibilidad}
 \input{pages/anexos/reproducibilidad}
-
-\chapter{Herramientas de etiquetado}
-\label{anexo:etiquetado}
-\input{pages/anexos/etiquetado}
 
 \chapter{Visor web}
 \label{anexo:visor-web}

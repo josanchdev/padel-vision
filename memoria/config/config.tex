@@ -2,38 +2,55 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Página, letra e idioma %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\usepackage[a4paper,margin=2.5cm,headheight=15pt]{geometry}
+\usepackage[a4paper,left=3cm,right=2.5cm,top=2.7cm,bottom=2.7cm,headheight=15pt]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage[spanish,es-tabla,es-nosectiondot,es-noshorthands]{babel}
 \usepackage{microtype}
 \usepackage{csquotes}
 
-% Interlineado de 1,5 líneas; párrafos separados por un espacio y sin sangría
+% Interlineado de 1,2 sobre la letra de 11 pt (unos 16,3 pt entre líneas); párrafos sin sangría, separados por un espacio
 \usepackage{setspace}
-\onehalfspacing
-\usepackage{parskip}
+\setstretch{1.2}
+\usepackage[skip=0.6\baselineskip plus 2pt,indent=0pt]{parskip}
 \raggedbottom
 \clubpenalty=10000
 \widowpenalty=10000
 
-% Títulos de capítulo grandes, con los tamaños de la memoria de referencia
-% elegida: «Capítulo N» a 40 pt y el título a 35 pt; los capítulos sin número
-% (índices, resumen, bibliografía) a 40 pt. Los títulos no se parten con guion
-% y, si ocupan dos líneas, quedan alineados a la izquierda
+% Capítulo: número grande en gris, título debajo alineado a la derecha y línea fina
+\usepackage{xcolor}
+\definecolor{numcap}{HTML}{B0B0B0}
 \usepackage{titlesec}
 \titleformat{\chapter}[display]
-  {\normalfont\bfseries\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000}
-  {\fontsize{40}{48}\selectfont\chaptertitlename\ \thechapter}
-  {7pt}
-  {\fontsize{35}{42}\selectfont}
-\titleformat{name=\chapter,numberless}[block]
-  {\normalfont\bfseries\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000\fontsize{40}{48}\selectfont}
+  {\normalfont\bfseries\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000}
+  {\fontsize{90}{90}\selectfont\color{numcap}\thechapter}
+  {-6pt}
+  {\fontsize{32}{38}\selectfont}
+  [{\vspace{4pt}\titlerule[0.8pt]}]
+\titleformat{name=\chapter,numberless}[display]
+  {\normalfont\bfseries\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000}
   {}
   {0pt}
+  {\fontsize{32}{38}\selectfont}
+  [{\vspace{4pt}\titlerule[0.8pt]}]
+\titlespacing*{\chapter}{0pt}{-10pt}{36pt}
+\titlespacing*{name=\chapter,numberless}{0pt}{40pt}{36pt}
+\definecolor{azultitulo}{HTML}{1F2A44}
+\definecolor{numcap}{HTML}{B8BCC6}
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\raggedleft\color{azultitulo}\hyphenpenalty=10000\exhyphenpenalty=10000}
+  {\fontsize{90}{90}\selectfont\color{numcap}\thechapter}
+  {-6pt}
+  {\fontsize{32}{38}\selectfont}
+  [{\vspace{4pt}\titlerule[0.8pt]}]
+\titleformat{name=\chapter,numberless}[display]
+  {\normalfont\bfseries\raggedleft\color{azultitulo}\hyphenpenalty=10000\exhyphenpenalty=10000}
   {}
-\titlespacing*{\chapter}{0pt}{68pt}{23pt}
-\titlespacing*{name=\chapter,numberless}{0pt}{6pt}{31pt}
+  {0pt}
+  {\fontsize{32}{38}\selectfont}
+  [{\vspace{4pt}\titlerule[0.8pt]}]
+\titleformat{\section}{\normalfont\Large\bfseries\color{azultitulo}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{azultitulo}}{\thesubsection}{0.8em}{}
 
 % Las listas de los índices, a interlineado sencillo (el título no cambia)
 \makeatletter
@@ -100,8 +117,8 @@
   group-minimum-digits = 5,
 }
 
-% Diagramas (TikZ): cajas neutras, paneles de color suave por etapa y un solo
-% acento, el azul, para la aportación del trabajo. Cada diagrama, en figuras/
+% Diagramas (TikZ): cajas neutras y paneles de color suave por etapa. Cada
+% diagrama, en figuras/
 \usepackage{adjustbox} % reduce un diagrama que se pase del ancho del texto
 \usepackage{tikz}
 \usetikzlibrary{positioning,fit,arrows.meta,calc,backgrounds}
@@ -110,8 +127,6 @@
 \definecolor{tenue}{HTML}{898781}
 \definecolor{borde}{HTML}{b5b4aa}
 \definecolor{fondo}{HTML}{f4f4f1}
-\definecolor{acento}{HTML}{1b7fe0}
-\definecolor{acentofondo}{HTML}{e6f0fc}
 \definecolor{panelaudio}{HTML}{eef3f9}
 \definecolor{panelimagen}{HTML}{eef6f1}
 \definecolor{panelgolpe}{HTML}{fbf4ea}
@@ -121,7 +136,6 @@
 \tikzset{
   caja/.style={draw=borde, fill=white, rounded corners=2pt, align=center,
     font=\letradiagrama, inner sep=3.5pt, minimum height=9mm, text width=21mm, text=tinta},
-  aporta/.style={caja, draw=acento, fill=acentofondo, line width=0.8pt},
   entrada/.style={caja, fill=fondo},
   linea/.style={draw=tinta2, line width=0.55pt},
   flecha/.style={linea, -{Stealth[length=1.8mm]}},
@@ -210,38 +224,21 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Cabeceras y pies de página %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Como en una memoria impresa: capítulo en la cabecera de las páginas pares y
-% sección en la de las impares; en el pie, número de página por fuera, autor en
-% las impares y escuela en las pares
 \usepackage{fancyhdr}
-\newcommand{\piesdepagina}{%
-  \fancyfoot[LE,RO]{\small\thepage}%
-  \fancyfoot[RE]{\small\escuelalargo\ (URJC)}%
-  \fancyfoot[LO]{\small\nombreautor}%
-  \renewcommand{\footrulewidth}{0.4pt}}
-\renewcommand{\chaptermark}[1]{\markboth{\MakeUppercase{\chaptername\ \thechapter.\ #1}}{}}
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter.\ #1}{}}
 \renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
 \fancypagestyle{fancy}{%
   \fancyhf{}%
-  \fancyhead[LE]{\small\leftmark}%
-  \fancyhead[RO]{\small\rightmark}%
+  \fancyhead[L]{\small\itshape\leftmark}%
+  \fancyhead[R]{\small\rightmark}%
+  \fancyfoot[C]{\small\thepage}%
   \renewcommand{\headrulewidth}{0.4pt}%
-  \piesdepagina}
-% Primera página de cada capítulo: solo el número de página, centrado
+  \renewcommand{\footrulewidth}{0pt}}
 \fancypagestyle{plain}{%
   \fancyhf{}%
   \fancyfoot[C]{\small\thepage}%
   \renewcommand{\headrulewidth}{0pt}%
   \renewcommand{\footrulewidth}{0pt}}
-% Cada capítulo empieza en página impar; la página en blanco que queda antes, si
-% hace falta, va vacía del todo, sin cabecera ni pie, como pide la tipografía
-\makeatletter
-\renewcommand{\cleardoublepage}{%
-  \clearpage
-  \if@twoside\ifodd\c@page\else
-    \hbox{}\thispagestyle{empty}\newpage
-  \fi\fi}
-\makeatother
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Datos fijos %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

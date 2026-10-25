@@ -1,16 +1,19 @@
 % !TEX root = ../tfg.tex
 
-En la actualidad, el pádel es un deporte en crecimiento, y analizar su juego exige registrar los golpes de cada jugador, una tarea costosa si se hace a mano.
-Por ello, el objetivo principal de este trabajo es crear un sistema que los clasifique de forma automática en un partido de pádel.
-Sobre este sistema se construye una herramienta que permite a clubes, equipos y profesionales analizar el juego de cada jugador.
-Para clasificar cada golpe, es necesario conocer antes cuándo se produce y qué jugador lo da.
-Con este fin, el sistema combina el sonido del golpe con el movimiento de los jugadores y de la pelota.
+El pádel es un deporte en crecimiento, y analizar su juego exige registrar los golpes de cada jugador, una tarea costosa si se hace a mano.
+Este trabajo propone un sistema que, a partir del vídeo de un punto, determina cuándo se produce cada golpe, qué jugador lo ejecuta y de qué tipo es.
+Sobre este sistema se construye una herramienta que presenta las estadísticas de cada jugador a clubes, equipos y jugadores aficionados.
 
-A lo largo de este documento se presenta una herramienta propia de etiquetado, con la que se ha anotado el tipo de cada golpe de los datos de partida, que no lo incluían.
-Asimismo, se adaptan al pádel modelos diseñados para otros deportes de raqueta o para otras tareas.
-Además, se evalúa cada parte del sistema y el sistema completo en distintos torneos, y cada resultado se acompaña de un intervalo de confianza calculado mediante Monte Carlo.
+Para conseguirlo, el sistema combina el sonido, que permite localizar el instante de cada golpe, con la postura de los jugadores y la trayectoria de la pelota, que sirven para atribuir el golpe a su jugador y reconocer su tipo.
+Las dos primeras tareas reimplementan métodos publicados, y la clasificación del tipo adapta al pádel un modelo diseñado para el bádminton.
+Los datos de partida no indicaban el tipo de golpe, por lo que se etiquetaron a mano 2377 golpes con una herramienta propia.
 
-Por último, se incluye el visor web, la herramienta que muestra las estadísticas de cada jugador y de cada punto a partir de los resultados del sistema.
+El sistema se ha evaluado dejando torneos enteros fuera del entrenamiento, y cada cifra se acompaña de su incertidumbre.
+El detector de sonido alcanza un F1 de 0,958, y el clasificador acierta el 82,7~\% de los golpes en pistas que no ha visto, con un macro-F1 de 0,859.
+La atribución al jugador acierta el 87,5~\% de los golpes de un torneo, un resultado comparable al del trabajo original pero no concluyente.
+En el sistema completo cuatro de cada cinco golpes se detectan y se clasifican correctamente, y un punto se procesa en un tiempo casi igual al que dura.
+
+Por último, un visor web muestra las estadísticas de cada jugador y de cada punto a partir de los resultados del sistema.
 
 \vspace{\baselineskip}
 \noindent\textbf{Palabras clave:} pádel, visión artificial, aprendizaje profundo, clasificación de golpes, detección por sonido, estimación de la postura, análisis del rendimiento, herramienta de análisis.
