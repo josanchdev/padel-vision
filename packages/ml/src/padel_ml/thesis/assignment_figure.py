@@ -30,9 +30,8 @@ from padel_cv import overlay
 from padel_cv.arrays import ImageArray
 from padel_cv.detections import PoseDetection
 from padel_ml.hit_assignment import player_distance
-from padel_ml.thesis.figures import STYLE
+from padel_ml.thesis.figures import STYLE, TEXT_WIDTH_IN
 from padel_ml.thesis.latex import fixed, tabular
-from padel_ml.thesis.problem import TEXT_WIDTH_IN
 
 LEFT_WRIST, RIGHT_WRIST = 9, 10
 MIN_WRIST_CONFIDENCE = 0.3
@@ -215,7 +214,7 @@ def figure_tex(frame_pdf: str, measures: list[Measure]) -> str:
         [
             "% Generado por scripts/build_assignment_figure.py: no editar a mano.",
             rf"\begin{{minipage}}[c]{{{FRAME_SHARE:.2f}\linewidth}}",
-            rf"  \includegraphics{{{frame_pdf}}}",
+            rf"  \includegraphics[width=\linewidth]{{{frame_pdf}}}",
             r"\end{minipage}\hfill",
             rf"\begin{{minipage}}[c]{{{1 - FRAME_SHARE - 0.03:.2f}\linewidth}}",
             r"  \centering",

@@ -11,14 +11,10 @@ Python's round() goes half to even, and float arithmetic adds noise
 
 from __future__ import annotations
 
-import re
-from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
 PERCENT_PLACES = 1
 PROPORTION_PLACES = 3
-
-_KEY = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
 def fixed(value: float, places: int, *, scale: int = 1) -> str:
@@ -68,40 +64,6 @@ def percent_range(low: float, high: float) -> str:
 def proportion_range(low: float, high: float) -> str:
     """A 95 % interval of an F1 or similar: 0,939-0,955."""
     return rf"\num{{{fixed(low, PROPORTION_PLACES)}}}--\num{{{fixed(high, PROPORTION_PLACES)}}}"
-
-
-@dataclass(frozen=True)
-class Number:
-    """One number the text can print with \\cifra{key}."""
-
-    key: str
-    """Lower case words joined by hyphens: `tipo-accuracy`."""
-    tex: str
-    source: str
-    """Where the value comes from: `file.json: path`."""
-
-
-def numbers_file(numbers: list[Number]) -> str:
-    """`cifras.tex`: \\cifra{key} prints a number; an unknown key stops LaTeX."""
-    seen: set[str] = set()
-    for item in numbers:
-        if not _KEY.match(item.key):
-            raise ValueError(f"bad key {item.key!r}: lower case words joined by hyphens")
-        if item.key in seen:
-            raise ValueError(f"duplicated key {item.key!r}")
-        seen.add(item.key)
-    lines = [
-        "% Generado por scripts/build_thesis_assets.py desde docs/metrics/. No editar a mano.",
-        "% Uso en el texto: \\cifra{tipo-accuracy}.",
-        "\\makeatletter",
-        "\\newcommand{\\cifra}[1]{%",
-        "  \\@ifundefined{cifra@#1}%",
-        "    {\\PackageError{cifras}{Cifra desconocida: #1}{Las claves estan en cifras.tex}}%",
-        "    {\\@nameuse{cifra@#1}}}",
-    ]
-    lines += [f"\\@namedef{{cifra@{n.key}}}{{{n.tex}}} % {n.source}" for n in numbers]
-    lines.append("\\makeatother")
-    return "\n".join(lines) + "\n"
 
 
 def tabular(

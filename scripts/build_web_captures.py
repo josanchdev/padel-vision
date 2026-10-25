@@ -1,9 +1,10 @@
 """Write the screenshots of the web viewer for section 4.3 (memoria/figuras/capturas/).
 
-Starts the viewer locally, opens it in a headless browser and saves three images:
-the home page, and the page of one point split in two (the video, the court and
-the current shot above; the timeline and the player cards below). The video is
-paused at a fixed instant, so the images come out the same every time.
+Starts the viewer locally, opens it in a headless browser and saves four images:
+the home page, and the page of one point whole (visor-punto) and split in two (the
+video, the court and the current shot above; the timeline and the player cards
+below). The video is paused at a fixed instant, so the images come out the same
+every time.
 
 Needs the points already exported (scripts/export_points.py) and the web's
 dependencies (npm install in packages/web). Playwright is not a dependency of the
@@ -111,6 +112,7 @@ def capture_point(page: Page, out: Path, scale: int, ext: str) -> None:
         TIMELINE_HEADING.lower(),
     )
     image = full_page(page)
+    save(image, out / f"visor-punto.{ext}")
     split = int((split_css - GAP_PX) * scale)
     save(image[:split], out / f"visor-punto-arriba.{ext}")
     save(image[split:], out / f"visor-punto-abajo.{ext}")

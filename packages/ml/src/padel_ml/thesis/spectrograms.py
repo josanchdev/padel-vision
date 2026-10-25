@@ -31,8 +31,7 @@ import torch
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from padel_ml.thesis.figures import INK, STYLE
-from padel_ml.thesis.problem import TEXT_WIDTH_IN
+from padel_ml.thesis.figures import INK, STYLE, TEXT_WIDTH_IN
 
 FloatArray = npt.NDArray[np.float32]
 ByteArray = npt.NDArray[np.uint8]

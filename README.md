@@ -29,8 +29,8 @@ dataset de 2.377 golpes etiquetados a mano.
 
 ## Instalación
 
-Python 3.11 y [uv](https://docs.astral.sh/uv/). Entrenar o procesar vídeo pide
-una GPU NVIDIA; la web, Node.js.
+Python 3.11 y [uv](https://docs.astral.sh/uv/); la web, Node.js. El código usa la
+GPU (CUDA) si hay una disponible y, si no, la CPU.
 
 ```bash
 uv sync --all-packages

@@ -34,8 +34,7 @@ from matplotlib.patches import Polygon, Rectangle
 from padel_cv import overlay
 from padel_cv.arrays import ImageArray
 from padel_cv.court import COURT_LENGTH_M, COURT_WIDTH_M, NET_Y_M
-from padel_ml.thesis.figures import INK, SECONDARY_INK, STYLE
-from padel_ml.thesis.problem import TEXT_WIDTH_IN, image_panel
+from padel_ml.thesis.figures import INK, SECONDARY_INK, STYLE, TEXT_WIDTH_IN, image_panel
 
 OUTSIDE_BRIGHTNESS = 0.3
 """What is left of the image outside the mask: dark enough to read as discarded,
