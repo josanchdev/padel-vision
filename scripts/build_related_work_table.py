@@ -56,7 +56,10 @@ def build_table() -> str:
     rows: list[list[str] | str] = [
         [rf"{name}~\cite{{{key}}}", *cells] for name, key, cells in WORKS
     ]
-    return tabular("l" + "c" * len(COLUMNS), ["Trabajo", *COLUMNS], rows)
+    # The system of this work, in its own row: court marked by hand (ADR-0018), the
+    # rest extracted by the system (memoria, chapter 5).
+    rows.append([r"\textbf{HAT}", MANUAL, AUTO, AUTO, AUTO, AUTO, AUTO])
+    return tabular("l" + "c" * len(COLUMNS), ["Trabajo", *COLUMNS], rows, rules=[len(WORKS)])
 
 
 def main() -> None:

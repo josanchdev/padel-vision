@@ -29,7 +29,7 @@ En cada paso se calcula en qué dirección crece más la pérdida respecto de ca
 El tamaño de ese paso lo fija la tasa de aprendizaje.
 Si es demasiado grande el entrenamiento oscila sin llegar a ningún resultado, y si es demasiado pequeña avanza con mucha lentitud.
 
-Calcular el gradiente con todos los ejemplos a la vez sería muy costoso, así que cada paso se hace con un pequeño subconjunto elegido al azar, que se llama lote.
+Calcular el gradiente con todos los ejemplos a la vez sería costoso, por lo que cada paso se hace con un pequeño subconjunto elegido al azar, que se llama lote.
 Una pasada completa por todos los ejemplos se denomina época, y el entrenamiento repite varias de ellas.
 Los optimizadores modernos, además, ajustan por separado el tamaño del paso de cada parámetro.
 AdamW~\cite{loshchilov2019adamw}, que es el que se utiliza en este trabajo, es uno de ellos y añade un pequeño decaimiento de los pesos para evitar que crezcan sin control.
@@ -45,7 +45,7 @@ Donde tc vale 1 para la clase correcta y 0 para las demás, de modo que el model
 
 Un modelo con muchos parámetros puede acabar memorizando los ejemplos con los que se entrena en lugar de aprender lo que tienen en común.
 A este fenómeno se le llama sobreajuste, y hace que la pérdida baje mucho con los datos de entrenamiento y mucho menos con datos nuevos.
-Por eso el rendimiento de un modelo nunca se mide con los ejemplos con los que se ha entrenado, sino con otros que se han reservado de antemano.
+Por tanto, el rendimiento de un modelo nunca se mide con los ejemplos con los que se ha entrenado, sino con otros que se han reservado de antemano.
 
 Además, el resultado de un entrenamiento depende de factores aleatorios, como los valores iniciales de los pesos o el orden de los lotes.
 Dos entrenamientos del mismo modelo no dan exactamente lo mismo, y por eso en este trabajo el detector de golpes se entrena tres veces y se informa de la media (\cref{sec:resultados-instante}).
@@ -61,11 +61,11 @@ Una imagen de 1080p tiene más de dos millones de píxeles, de modo que una capa
 
 La convolución resuelve este problema.
 Consiste en deslizar por la imagen un filtro pequeño y calcular en cada posición una suma ponderada de los valores que cubre.
-Como el mismo filtro se aplica en todas las posiciones, sus pesos se comparten y el número de parámetros es muy pequeño.
+Como el mismo filtro se aplica en todas las posiciones, sus pesos se comparten y el número de parámetros es pequeño.
 Una capa usa muchos filtros, y cada uno produce su propio mapa de resultados, llamado canal.
 
-Una red convolucional apila varias de estas capas.
-Las primeras detectan patrones muy sencillos y las siguientes los combinan en otros más complejos, porque cada capa trabaja sobre lo que han detectado las anteriores.
+Una red convolucional (\acs{cnn}) apila varias de estas capas.
+Las primeras detectan patrones sencillos y las siguientes los combinan en otros más complejos, porque cada capa trabaja sobre lo que han detectado las anteriores.
 Entre capas suele reducirse el tamaño de la imagen, lo que obliga a la red a quedarse con lo esencial y permite que cada unidad abarque cada vez una zona mayor.
 
 En este trabajo las capas convolucionales aparecen en el detector de sonido, que las aplica sobre el espectrograma (\cref{sec:instante}) y en la red de la pelota (\cref{sec:pelota}).
@@ -77,29 +77,29 @@ El resultado es un mapa del tamaño de la imagen, o de una fracción de él, que
 
 Las secuencias, como el movimiento de un jugador, pueden tratarse con una convolución parecida pero en una sola dimensión.
 El filtro se desliza a lo largo del tiempo, de modo que cada paso de la salida se calcula a partir de él y de sus vecinos.
-Esta es la idea de las redes convolucionales temporales~\cite{bai2018tcn}, que convierten posiciones en movimiento porque recogen cómo cambian los valores de un paso al siguiente.
+Esta es la idea de las redes convolucionales temporales (\acs{tcn})~\cite{bai2018tcn}, que convierten posiciones en movimiento porque recogen cómo cambian los valores de un paso al siguiente.
 
 Para que cada paso abarque más tiempo sin aumentar el número de pesos se utiliza la dilatación, que consiste en separar los puntos del filtro dejando huecos entre ellos.
 Si una capa tiene un filtro de tamaño $k$ y una dilatación $d$, cada paso de su salida cubre $(k-1)d+1$ pasos de la entrada.
 Con varias capas, la zona total que abarca un paso de la salida se llama campo receptivo y vale $1 + \sum (k-1)d$ de todas las capas.
-La red convolucional temporal del clasificador tiene dos capas con $k = 5$ y dilataciones 1 y 3, de modo que cada paso abarca 17 pasos de la entrada.
+La \acs{tcn} del clasificador tiene dos capas con $k = 5$ y dilataciones 1 y 3, de modo que cada paso abarca 17 pasos de la entrada.
 
-Otra forma de tratar secuencias son las redes recurrentes, que las leen paso a paso y van guardando un estado interno que resume lo visto hasta el momento.
+Otra forma de tratar secuencias son las redes recurrentes (\acs{rnn}), que las leen paso a paso y van guardando un estado interno que resume lo visto hasta el momento.
 En cada paso el estado se actualiza con la entrada nueva.
-La unidad \ac{gru}~\cite{cho2014gru} controla esa actualización con una puerta que decide cuánto del estado anterior se conserva y cuánto se sustituye por información nueva.
+La unidad recurrente con puertas (\acs{gru})~\cite{cho2014gru} controla esa actualización con una puerta que decide cuánto del estado anterior se conserva y cuánto se sustituye por información nueva.
 
-Una red recurrente normal solo conoce el pasado de cada paso.
+Una \acs{rnn} normal solo conoce el pasado de cada paso.
 En una versión bidireccional se lee la secuencia dos veces, una hacia delante y otra hacia atrás, y se combinan los dos resultados.
-Así cada paso se interpreta teniendo en cuenta lo que ocurre antes y después, algo muy útil para distinguir un golpe de un ruido que se le parece.
+Así cada paso se interpreta teniendo en cuenta lo que ocurre antes y después, algo útil para distinguir un golpe de un ruido que se le parece.
 
-Estas dos ideas se combinan en las redes convolucionales recurrentes~\cite{adavanne2017sed}.
+Estas dos ideas se combinan en las redes convolucionales recurrentes (\acs{crnn})~\cite{adavanne2017sed}.
 Las capas convolucionales detectan en cada instante el patrón local de frecuencias y las recurrentes lo interpretan con ayuda del contexto temporal.
 Es la arquitectura del detector de golpes por sonido (\cref{sec:instante}).
 
 \section{Atención y transformers}
 \label{sec:fund-atencion}
 
-Las redes recurrentes procesan la secuencia paso a paso, y eso dificulta que un paso lejano influya en el actual.
+Las \acs{rnn} procesan la secuencia paso a paso, y eso dificulta que un paso lejano influya en el actual.
 En un golpe esto es un inconveniente, porque lo que ocurre en el impacto depende de cómo se preparó el jugador un segundo antes.
 El mecanismo de atención resuelve este problema porque permite que cada paso consulte directamente a todos los demás, sin importar la distancia que los separe~\cite{vaswani2017attention}.
 
@@ -133,7 +133,7 @@ En el clasificador hay seis cabezas.
 
 La atención tiene una limitación importante, y es que no sabe en qué orden están los pasos.
 Esto es necesario para clasificar un golpe, y por tanto es esencial saber el orden de la preparación, el impacto y el cierre.
-Por eso a cada paso se le suma una codificación posicional, que le da una firma de su posición dentro de la secuencia.
+Por ello, a cada paso se le suma una codificación posicional, que le da una firma de su posición dentro de la secuencia.
 
 Se utiliza la codificación sinusoidal del Transformer, en la que cada posición recibe un vector formado por senos y cosenos de distinta frecuencia.
 Posiciones cercanas reciben vectores parecidos y posiciones lejanas vectores distintos, y la red puede aprovechar esa diferencia para razonar sobre el orden.
@@ -151,7 +151,7 @@ Las consultas proceden de una de ellas y las claves y los valores de la otra, de
 En el clasificador la postura consulta a la pelota, y eso resuelve la ambigüedad que tiene la postura sola (\cref{sec:red-clasificador}).
 Las matrices se obtienen como indica la \cref{eq:cruzada}.
 
-El último bloque del clasificador es un perceptrón multicapa, que no es más que varias capas como las de la \cref{sec:fund-aprendizaje} apiladas una tras otra.
+El último bloque del clasificador es un perceptrón multicapa (\acs{mlp}), que no es más que varias capas como las de la \cref{sec:fund-aprendizaje} apiladas una tras otra.
 Recibe los resúmenes de las secuencias y devuelve una puntuación por cada clase, que la función softmax convierte en probabilidades.
 
 \section{Audio y espectrogramas}
@@ -163,7 +163,7 @@ Para guardarla en un ordenador esa señal se mide muchas veces por segundo, y el
 Los vídeos de este trabajo tienen el audio a 48~kHz, es decir, \num{48000} medidas cada segundo.
 
 Esta representación tiene un inconveniente, y es que mezcla todas las frecuencias en un único valor por instante.
-El golpe de una pala y el murmullo del público ocupan la misma señal, y es muy difícil distinguirlos mirando solo cómo sube y baja.
+El golpe de una pala y el murmullo del público ocupan la misma señal, y es difícil distinguirlos mirando solo cómo sube y baja.
 Lo que los separa es qué frecuencias contiene cada uno, es decir, si el sonido es grave o agudo y cuánta energía aporta cada zona del rango.
 Para ver esa información hay que pasar de la señal en el tiempo a su descomposición en frecuencias.
 
@@ -185,7 +185,7 @@ Cada columna corresponde a un trozo y equivale a unos 21~ms de audio, que es el 
 El espectrograma permite reconocer a simple vista distintos tipos de sonido.
 Un sonido de frecuencia estable, como un silbido, aparece como una línea horizontal porque mantiene su energía constante durante un tiempo.
 El impacto de una pala es lo contrario, porque dura muy poco pero reparte su energía por muchas frecuencias a la vez.
-Por eso un golpe se ve como una raya vertical, que es lo que debe aprender a reconocer el detector (\cref{fig:espectrogramas}).
+De ahí que un golpe se vea como una raya vertical, que es lo que debe aprender a reconocer el detector (\cref{fig:espectrogramas}).
 
 El espectrograma tiene todavía un inconveniente práctico, y es que cada columna tiene 1025 valores, muchos más de los que la red necesita.
 Además, el oído no percibe todas las frecuencias con la misma finura.
@@ -197,7 +197,7 @@ Como esa escala crece más despacio en las frecuencias altas, las bandas graves 
 La energía de cada banda $b$ es la suma de la energía de las frecuencias que cubre su filtro $H_b(k)$.
 
 Además, las energías de un audio varían en un rango enorme, desde el murmullo de fondo hasta el golpe más fuerte, y el oído percibe la intensidad de forma aproximadamente logarítmica.
-Por eso se aplica el logaritmo a la energía de cada banda, con lo que se comprimen las diferencias y los golpes suaves dejan de quedar tapados por los fuertes:
+Por esta razón, se aplica el logaritmo a la energía de cada banda, con lo que se comprimen las diferencias y los golpes suaves dejan de quedar tapados por los fuertes:
 \begin{equation}
   L(m, b) = \log\!\Bigl( \varepsilon + \sum_{k} H_b(k)\, S(m, k) \Bigr).
   \label{eq:logmel}
@@ -213,7 +213,7 @@ La red analiza secuencias de 256 columnas, que abarcan algo más de cinco segund
 \label{sec:fund-vision}
 
 Se presentan a continuación tres conceptos de imagen que utiliza el sistema.
-El primero es una medida del solape entre dos cajas, el segundo es la manera de representar la posición de un objeto muy pequeño y el tercero es la transformación que permite pasar de la imagen a la pista real.
+El primero es una medida del solape entre dos cajas, el segundo es la manera de representar la posición de un objeto pequeño y el tercero es la transformación que permite pasar de la imagen a la pista real.
 Se aplican en la \cref{sec:jugadores}, en la \cref{sec:pelota} y en la \cref{sec:asignacion}.
 
 Para seguir a una persona a lo largo de un vídeo hay que decidir, en cada fotograma, cuál de las cajas detectadas corresponde a quien ya se estaba siguiendo.
@@ -296,7 +296,7 @@ El macro-F1 calcula el F1 de cada clase por separado y hace la media de todos el
 De este modo todas las clases pesan lo mismo, y una clase poco frecuente que se clasifica mal baja el resultado tanto como una muy frecuente.
 
 Toda cifra se calcula con una muestra limitada de datos, y con otra muestra saldría algo distinta.
-Por eso una cifra sin una medida de su incertidumbre dice poco, y la forma habitual de darla es un intervalo de confianza.
+Por tanto, una cifra sin una medida de su incertidumbre dice poco, y la forma habitual de darla es un intervalo de confianza.
 Un intervalo del 95~\% es un rango que contendría el valor verdadero en el 95~\% de las ocasiones si el estudio se repitiera con otras muestras, y cuanto más ancho es, más incierta resulta la cifra.
 
 El método de Monte Carlo consiste en aproximar un resultado repitiendo muchas veces un experimento aleatorio, igual que se estimaría la probabilidad de que salga un seis lanzando un dado en lugar de calcularla.

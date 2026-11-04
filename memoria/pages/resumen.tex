@@ -1,10 +1,10 @@
 % !TEX root = ../tfg.tex
 
 El pádel es un deporte en crecimiento, y analizar su juego exige registrar los golpes de cada jugador, una tarea costosa si se hace a mano.
-Este trabajo presenta un sistema que, a partir del vídeo de un punto, determina cuándo se produce cada golpe, qué jugador lo ejecuta y de qué tipo es (derecha, revés, remate o saque).
+Este trabajo presenta HAT (\textit{Hit, Assign, Type})\acuse{hat}, un sistema que, a partir del vídeo de un punto, determina cuándo se produce cada golpe, qué jugador lo ejecuta y de qué tipo es (derecha, revés, remate o saque).
 Sobre este sistema se construye una herramienta web que presenta las estadísticas de cada jugador, pensada para clubes, equipos y jugadores aficionados.
 
-Para conseguirlo, el sistema combina el sonido, que permite localizar el instante de cada golpe, con la postura de los jugadores y la trayectoria de la pelota, que sirven para atribuir el golpe a su jugador y reconocer su tipo.
+Para conseguirlo, HAT combina el sonido, que permite localizar el instante de cada golpe, con la postura de los jugadores y la trayectoria de la pelota, que sirven para atribuir el golpe a su jugador y reconocer su tipo.
 Como los datos de partida no indicaban el tipo de golpe, fue necesario etiquetarlo a mano con una herramienta propia.
 
 El sistema se ha evaluado dejando torneos enteros fuera del entrenamiento, para comprobar su comportamiento en pistas que no ha visto, y cada resultado se presenta con su incertidumbre.

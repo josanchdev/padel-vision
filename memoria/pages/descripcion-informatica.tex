@@ -34,8 +34,8 @@ La \cref{tab:requisitos} reúne los requisitos.
 \end{table}
 
 Entre los requisitos no funcionales, el primero es el que más condiciona el diseño.
-Cada torneo se juega en una pista distinta, con su propia iluminación y su propia posición de cámara, así que un sistema que solo funcionara con las pistas vistas durante el entrenamiento tendría un uso muy limitado.
-Por eso se exige que su comportamiento se compruebe en torneos que el modelo no ha visto (\cref{cap:resultados}).
+Cada torneo se juega en una pista distinta, con su propia iluminación y su propia posición de cámara, de modo que un sistema que solo funcionara con las pistas vistas durante el entrenamiento tendría un uso limitado.
+Por tanto, se exige que su comportamiento se compruebe en torneos que el modelo no ha visto (\cref{cap:resultados}).
 Los dos últimos tienen que ver con la confianza en los resultados.
 El segundo garantiza que cada cifra de la memoria pueda regenerarse y el tercero que el código se pueda mantener y comprobar.
 
@@ -56,7 +56,7 @@ La \cref{fig:flujo} muestra cómo se combinan todos estos elementos.
   \label{fig:flujo}
 \end{figure}
 
-A partir de ahí el procesamiento se divide en dos ramas que no depende una de la otra.
+A continuación, el procesamiento se divide en dos ramas que no dependen una de la otra.
 La del sonido se encarga de localizar el instante de cada golpe (\cref{sec:instante}), mientras que la de la imagen sitúa a los jugadores y mantiene su identidad durante todo el punto (\cref{sec:jugadores}) y localiza además la pelota en cada fotograma (\cref{sec:pelota}).
 Esta separación tiene una razón de fondo.
 El sonido señala cuándo se produce un golpe con más fiabilidad que la imagen, mientras que saber quién lo ejecuta y de qué tipo es solo se puede deducir mirando el movimiento de los jugadores y la trayectoria de la pelota.
@@ -65,7 +65,7 @@ De ahí que el sonido decida cuándo hay que mirar y la imagen qué ha ocurrido 
 Las dos ramas se unen en cada golpe detectado.
 Para cada instante que señala el sonido, el sistema examina los fotogramas que lo rodean, atribuye el golpe al jugador cuya posición mejor lo explica (\cref{sec:asignacion}) y después clasifica su tipo a partir del movimiento de ese jugador y de la trayectoria de la pelota (\cref{sec:tipo}).
 Este orden viene impuesto por la propia naturaleza del problema, ya que la clasificación necesita saber de qué jugador es el golpe y la asignación necesita saber cuándo ocurre.
-Por eso un error en las primeras etapas se arrastra hasta el final, tal como se describió en la \cref{sec:problema}.
+En consecuencia, un error en las primeras etapas se arrastra hasta el final, tal como se describió en la \cref{sec:problema}.
 
 El sistema entrega los datos de cada punto y una copia del vídeo con esa información dibujada encima, que sirve para comprobar a simple vista si los resultados son razonables.
 Ambos resultados alimentan el visor web descrito en la \cref{sec:visor}.
@@ -106,9 +106,9 @@ En total se dispone de 2377 golpes etiquetados distribuidos a lo largo de 99 pun
 \end{figure}
 
 La entrada del modelo es un espectrograma \textit{log-Mel} de 40 bandas, en secuencias de 256 columnas.
-Con ella la red debe decidir en cada instante si hay un golpe o no, y para ello se utiliza una arquitectura que combina dos tipos de capas y que está adaptada de la red convolucional recurrente de Adavanne \textit{et al.}~\cite{adavanne2017sed}.
+Con ella la red debe decidir en cada instante si hay un golpe o no, y para ello se utiliza una arquitectura que combina dos tipos de capas y que está adaptada de la \acs{crnn} de Adavanne \textit{et al.}~\cite{adavanne2017sed}.
 Primero actúan tres capas convolucionales, que detectan en cada instante el patrón de frecuencias propio de un impacto.
-Después trabajan dos capas recurrentes bidireccionales de tipo GRU, que leen la secuencia en los dos sentidos para decidir con ayuda del contexto, lo que facilita separar un golpe de un ruido que se le parece.
+Después trabajan dos capas recurrentes bidireccionales de tipo \acs{gru}, que leen la secuencia en los dos sentidos para decidir con ayuda del contexto, lo que facilita separar un golpe de un ruido que se le parece.
 Dos capas densas finales producen la salida, y en total la red tiene \num{114561} parámetros (\cref{tab:red-audio}).
 
 \begin{table}[htbp]
@@ -232,9 +232,9 @@ En el instante del impacto la pelota está junto a la pala de quien golpea, y es
 Además, su trayectoria es una de las dos entradas del clasificador del tipo de golpe.
 
 Conseguir localizar la pelota en cada fotograma es difícil por las mismas razones que llevaron a descartar la imagen para detectar los golpes.
-La pelota es muy pequeña, se mueve a gran velocidad y con frecuencia queda oculta tras un jugador.
+La pelota es pequeña, se mueve a gran velocidad y con frecuencia queda oculta tras un jugador.
 Al ser tan pequeña, un detector de objetos corriente tendría muchas dificultades para encontrarla.
-Por eso se recurrió a un enfoque diseñado para seguir objetos pequeños y rápidos en deportes, el de TrackNet~\cite{huang2019tracknet}.
+Por ello, se recurrió a un enfoque diseñado para seguir objetos pequeños y rápidos en deportes, el de TrackNet~\cite{huang2019tracknet}.
 
 \subsection{La red de detección}
 \label{sec:red-pelota}
@@ -298,7 +298,7 @@ Aun con la red entrenada, las detecciones de la pelota no son siempre fiables de
 En una parte importante de los fotogramas la red no devuelve nada o devuelve una posición con un fallo evidente.
 Estos fallos son un problema porque la posición de la pelota decide a qué jugador se atribuye el golpe, y por eso antes de usarla se limpia la trayectoria.
 
-El primer tipo de fallo son las detecciones congeladas, en las que la red se queda fijada en un objeto estático y devuelve la misma posición fotograma tras fotograma.
+El primer tipo de fallo son las detecciones congeladas, en las que la red queda fijada en un objeto estático y devuelve la misma posición fotograma tras fotograma.
 Se eliminan las que se repiten en el mismo punto durante más de tres fotogramas.
 Este error es especialmente dañino porque, si la posición congelada queda cerca de un jugador, el sistema le atribuye todos los golpes con total confianza.
 
@@ -317,7 +317,7 @@ De ello depende la clasificación del tipo de golpe, porque el clasificador anal
 
 La idea es sencilla. En el momento del impacto la pelota está junto a la pala de quien golpea, de modo que el golpe pertenece al jugador que se encuentra más cerca de ella.
 Medir esa cercanía en un único fotograma resulta sin embargo arriesgado, porque justo en ese instante puede faltar la pelota o puede haberse dejado de detectar a algún jugador.
-Por eso conviene apoyarse en varios fotogramas alrededor del golpe y no en uno solo.
+De ahí que convenga apoyarse en varios fotogramas alrededor del golpe y no en uno solo.
 
 El procedimiento que se utiliza es el que proponen Decorte \textit{et al.}~\cite{decorte2024padel}, basado en una votación.
 En cada fotograma cercano al golpe se mide la distancia de la pelota a la muñeca de cada jugador, porque la muñeca es el punto del esqueleto más próximo a la pala.
@@ -356,7 +356,7 @@ Reducir la ventana mejora el resultado porque los fotogramas alejados del impact
 Lejos del golpe la pelota no está junto a nadie en particular, y el voto de esos fotogramas favorece a quien esté cerca de ella en ese momento y no a quien golpeó.
 Con cuatro fotogramas a cada lado el acierto es del 87,5~\%, con cinco baja al 86,8~\% y con seis, que es el tamaño original, al 85,6~\%.
 
-No se redujo la ventana más allá de cuatro fotogramas porque con muy pocos el resultado depende de que la pelota se haya detectado justo en ellos.
+No se redujo la ventana más allá de cuatro fotogramas porque con pocos el resultado depende de que la pelota se haya detectado justo en ellos.
 Una ventana algo más amplia da más margen para que algún fotograma falle sin que cambie la decisión.
 
 Con estas dos modificaciones cada golpe queda atribuido a un jugador sin necesidad de entrenar ningún modelo, porque el procedimiento solo compara distancias.
@@ -370,12 +370,12 @@ Esto convierte la detección en información útil para analizar el juego, como 
 También abre la puerta a análisis más completos, como estudiar con qué golpes se pierden más puntos.
 
 Para clasificar los golpes se probó primero con modelos que solo reciben la postura del jugador, como los descritos en la \cref{sec:arte-esqueleto}, y confundían con frecuencia la derecha, el revés y el remate.
-La razón es que la postura sola es ambigua, porque gestos muy parecidos pueden mandar la pelota a sitios distintos.
+La razón es que la postura sola es ambigua, porque gestos parecidos pueden mandar la pelota a sitios distintos.
 
-Por eso se buscó un modelo que combinara la postura con la trayectoria de la pelota, que es justo lo que hace BST~\cite{chang2026bst}.
+Por eso se buscó un modelo que combinara la postura con la trayectoria de la pelota, que es justo lo que hace \acs{bst}~\cite{chang2026bst}.
 Este modelo se propuso para reconocer los golpes del bádminton.
 
-Llevar BST al pádel exigió adaptar qué recibe el modelo, qué clases distingue y con qué datos se entrena.
+Llevar \acs{bst} al pádel exigió adaptar qué recibe el modelo, qué clases distingue y con qué datos se entrena.
 Estos cambios se explican en los apartados siguientes, que siguen el recorrido de un golpe desde que se recorta su ventana de vídeo hasta que el modelo decide su tipo.
 
 \subsection{La ventana de cada golpe}
@@ -443,13 +443,13 @@ La \cref{fig:entrada} muestra la entrada correspondiente a un remate.
 \subsection{La red}
 \label{sec:red-clasificador}
 
-El modelo que clasifica cada ventana es una adaptación de BST en su variante más sencilla, sin los módulos opcionales que sus autores proponen.
+El modelo que clasifica cada ventana es una adaptación de \acs{bst} en su variante más sencilla, sin los módulos opcionales que sus autores proponen.
 Esta variante alcanza en su artículo casi el mismo resultado que la versión completa con la mitad de complejidad y es por ello que se optó por la versión base.
 
 Antes de describir cada módulo conviene seguir el recorrido de los datos, que muestra la \cref{fig:clasificador}.
-Las dos secuencias entran en sendas redes convolucionales temporales que las llevan a un mismo tamaño.
+Las dos secuencias entran en dos \acs{tcn}, una para cada una, que las llevan a un mismo tamaño.
 Después un codificador temporal procesa cada secuencia por separado y una atención cruzada junta la postura con la pelota.
-Por último un perceptrón multicapa decide el tipo a partir de un resumen de cada secuencia y de otro de su combinación.
+Por último un \acs{mlp} decide el tipo a partir de un resumen de cada secuencia y de otro de su combinación.
 
 \begin{figure}[H]
   \centering
@@ -461,7 +461,7 @@ Por último un perceptrón multicapa decide el tipo a partir de un resumen de ca
 La red recibe la postura del jugador asignado en el paso anterior y la trayectoria de la pelota.
 Los conceptos que usa la red (la convolución temporal con dilatación, el token de clase, la codificación posicional, las capas de transformer con sus cabezas y la atención cruzada) se explican en las \cref{sec:fund-redes} y \cref{sec:fund-atencion}, y aquí solo se indica cómo se emplean.
 
-El primer módulo es una red convolucional temporal~\cite{bai2018tcn}, que convierte posiciones en movimiento.
+El primer módulo es una \acs{tcn}~\cite{bai2018tcn}, que convierte posiciones en movimiento.
 La red calcula cada paso a partir de él y de sus vecinos, de modo que puede recoger hacia dónde se desplazan los puntos del cuerpo y la pelota, algo que una posición aislada no contiene.
 Lleva además las dos secuencias a un mismo tamaño $D$, porque los módulos siguientes las comparan entre sí.
 
@@ -474,7 +474,7 @@ El codificador temporal es una pila de dos capas de transformer, y la atención 
 El mismo codificador, con los mismos pesos, procesa por separado la postura y la pelota.
 A la salida, el token de cada secuencia contiene su resumen y va directamente al último módulo, mientras que el resto de los pasos continúan hacia la atención cruzada.
 
-La atención cruzada es la idea central de BST y la que justifica combinar la postura con la pelota.
+La atención cruzada es la idea central de \acs{bst} y la que justifica combinar la postura con la pelota.
 Aplica la misma operación de atención que el codificador temporal, con la diferencia de que las consultas proceden de la postura y las claves y los valores de la pelota.
 En cada paso la postura pregunta a la pelota qué momentos suyos son importantes.
 Esto resuelve la ambigüedad de la postura sola, porque gestos parecidos pueden enviar la pelota a lugares distintos y la trayectoria permite distinguirlos.
@@ -489,7 +489,7 @@ El resultado es una secuencia en la que cada paso lleva la información de la pe
 Un último codificador, el de interacción, resume esta secuencia en un único vector.
 Es igual que el codificador temporal pero con una sola capa y con su propio token de clase.
 
-El perceptrón multicapa recibe los tres resúmenes (el de la postura, el de la pelota y el de su combinación) y devuelve un valor por cada clase de golpe.
+El \acs{mlp} recibe los tres resúmenes (el de la postura, el de la pelota y el de su combinación) y devuelve un valor por cada clase de golpe.
 Cada resumen aporta algo distinto, porque el tipo de golpe depende del gesto, de la trayectoria de la pelota y de la relación entre ambos.
 
 \subsection{Salida y regla del saque}
@@ -500,7 +500,7 @@ Esta función hace que la puntuación más alta se lleve la mayor parte de la pr
 El tipo que se asigna al golpe es, por defecto, el de mayor probabilidad.
 
 Esta regla general tiene una única excepción, que procede del reglamento del pádel.
-Solo el primer golpe de cada punto puede ser un saque, así que en el resto de golpes esa clase puede descartarse de antemano.
+Solo el primer golpe de cada punto puede ser un saque, de modo que en el resto de golpes esa clase puede descartarse de antemano.
 Si $\mathcal{C}_j$ es el conjunto de clases posibles para el golpe $j$, que son las cuatro si es el primero del punto y todas salvo el saque en los demás, la clase elegida es:
 \begin{equation}
   \hat{y}_j = \arg\max_{c \,\in\, \mathcal{C}_j} p_c.
@@ -565,7 +565,7 @@ El control de versiones con git registra cada cambio en confirmaciones pequeñas
 \label{sec:pruebas}
 
 Un sistema que produce cifras necesita algo más que un código que funcione, porque quien lea esas cifras debe poder fiarse de ellas.
-Por eso el trabajo incorpora, además de la evaluación de los modelos, una serie de comprobaciones sobre el propio programa, que aseguran que el código producido cumple unos estándares.
+Por esta razón, el trabajo incorpora, además de la evaluación de los modelos, una serie de comprobaciones sobre el propio programa, que aseguran que el código producido cumple unos estándares.
 
 Conviene distinguir estas comprobaciones de la evaluación de los modelos.
 La evaluación mide lo bien que acierta el sistema, y por ello se presenta con sus métricas en el \cref{cap:resultados}.

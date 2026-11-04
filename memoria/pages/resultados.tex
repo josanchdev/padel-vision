@@ -47,11 +47,11 @@ La precisión es mayor que el \textit{recall}, y eso indica que casi todas las d
 \subsection{Pelota}
 \label{sec:resultados-pelota}
 
-La pelota se evalua con la final femenina del conjunto PadelTracker100 que la red no ha visto durante el entrenamiento (\cref{sec:padeltracker}).
+La pelota se evalúa con la final femenina del conjunto PadelTracker100 que la red no ha visto durante el entrenamiento (\cref{sec:padeltracker}).
 
 Para decidir si una detección es correcta se compara su posición con la que consta en las
 anotaciones.
-Si esta posicion se encuentra a menos de 15 píxeles de la pelota anotada se considera un acierto.
+Si esta posición se encuentra a menos de 15 píxeles de la pelota anotada se considera un acierto.
 Esta tolerancia es algo mayor que el lado de una celda del mapa de calor, que equivale a 10 píxeles, y deja un margen razonable para el error propio de la red.
 
 Con este criterio el F1 medido es de 0,915, con una precisión de 0,871 y un \textit{recall} de 0,964.
@@ -72,9 +72,9 @@ De este modo los errores del detector no afectan a la medida, que refleja única
 
 Se mide además si el sistema acierta la pareja cuando el jugador asignado pertenece al mismo equipo que el que golpea.
 Esta medida se incluye porque es la que ofrecen también Decorte \textit{et al.} y permite comparar con ellos.
-Para este trabajo, sin embargo, la cifra que realmente importa es la del jugador.
+Para HAT, sin embargo, la cifra que realmente importa es la del jugador.
 Si el golpe no se atribuye al jugador exacto no puede conocerse su tipo, porque el clasificador analizaría el movimiento de otra persona, y tampoco puede contarse en las estadísticas de quien lo ejecutó.
-Es por ello que acertar solo la pareja no es una métrica válida para nuestros fines.
+Es por ello que acertar solo la pareja no es una métrica válida para los fines de HAT.
 
 Como muestra la \cref{tab:asignacion-paper}, el sistema acierta el jugador en el 87,5~\% de los golpes y la pareja en el 92,2~\%, lo que supone 3,8 y 5,4 puntos más que el resultado de Decorte \textit{et al.} sobre esos mismos golpes.
 Los intervalos de confianza para esta comparación son anchos, de entre 12 y 15 puntos.
@@ -88,7 +88,7 @@ Esto se debe a que la medida se apoya en un solo torneo y en un número pequeño
 \end{table}
 
 Para saber si esa diferencia es concluyente no es suficiente con comparar las dos cifras, porque cada una tiene su propia incertidumbre.
-Por eso se calcula el intervalo de la diferencia con el mismo \textit{bootstrap}, eligiendo en cada remuestreo los mismos puntos para los dos métodos.
+Para ello, se calcula el intervalo de la diferencia con el mismo \textit{bootstrap}, eligiendo en cada remuestreo los mismos puntos para los dos métodos.
 Así la dificultad de cada punto afecta por igual a ambos y se cancela en la comparación.
 
 El intervalo de la diferencia va de $-5{,}4$ a 9,9 puntos para el jugador y de $-2{,}9$ a 10,2 para la pareja.
@@ -105,7 +105,7 @@ Es necesario descartar los 167 que se anotaron como ``otro'', que no se emplean 
 
 Para repartir esos golpes entre entrenamiento y evaluación no es suficiente con hacerlo al azar.
 La razón de esto es que los puntos de un mismo torneo comparten pista, cámara e iluminación, y si se mezclaran el modelo podría entrenar con la misma pista con la que después se evalúa, lo que daría un resultado optimista.
-Por eso se deja un torneo fuera cada vez, de modo que se entrena con diez y se mide en el que falta, y esto se repite once veces.
+Por esta razón, se deja un torneo fuera cada vez, de modo que se entrena con diez y se mide en el que falta, y esto se repite once veces.
 Así la evaluación muestra cómo funciona el clasificador en una pista y una cámara que nunca ha visto.
 
 Con este protocolo el acierto global, medido con el \textit{accuracy}, es del 82,7~\%, con un intervalo de confianza que va del 80,3~\% al 85,0~\%.
@@ -113,9 +113,9 @@ El intervalo se calcula remuestreando torneos completos y no golpes sueltos.
 La segunda medida es el macro-F1, que es la media del F1 de las cuatro clases y hace que todas pesen igual aunque tengan un número muy distinto de ejemplos.
 Su valor es de 0,859.
 
-El resultado varía bastante de un torneo a otro, como muestra la \cref{tab:tipo-torneos}.
+El resultado varía considerablemente de un torneo a otro, como muestra la \cref{tab:tipo-torneos}.
 El acierto va del 75,4~\% de Ámsterdam al 91,7~\% de Malmö, una diferencia de más de 16 puntos.
-Esto indica que la dificultad no es la misma en todas las pistas, y que la cifra global es un promedio de situaciones bastante distintas.
+Esto indica que la dificultad no es la misma en todas las pistas, y que la cifra global es un promedio de situaciones distintas.
 
 \begin{table}[htbp]
   \centering
@@ -143,7 +143,7 @@ Esto indica que la dificultad no es la misma en todas las pistas, y que la cifra
 
 Los resultados por clase se recogen en la \cref{tab:tipo-clases}.
 El saque y el remate son las clases que mejor se reconocen, con un F1 de 0,956 y de 0,879 respectivamente.
-La derecha y el revés se quedan en torno a 0,80, y son además las dos clases con más ejemplos.
+La derecha y el revés están en torno a 0,80, y son además las dos clases con más ejemplos.
 
 \begin{table}[htbp]
   \centering
@@ -204,7 +204,7 @@ En el conjunto de los 11 torneos el sistema detecta el 96,0~\% de los golpes y a
 Estos 2210 golpes son los que se han etiquetado con una de las cuatro clases.
 A diferencia de la evaluación del clasificador, que usa 2186, aquí también cuentan como fallo los 24 golpes que no pueden clasificarse porque no tienen jugador asignado.
 La tabla solo cuenta golpes reales y no refleja las detecciones falsas, que son las que el sistema señala sin que haya ningún golpe.
-Estas suponen apenas el 2,8~\% de todas las detecciones, así que añaden muy pocos golpes inexistentes a las estadísticas.
+Estas suponen apenas el 2,8~\% de todas las detecciones, por lo que añaden pocos golpes inexistentes a las estadísticas.
 
 \section{Coste de procesado}
 \label{sec:coste}
@@ -238,7 +238,7 @@ Son las dos etapas que procesan la imagen fotograma a fotograma con una red neur
   \input{figuras/tabla-coste}
 \end{table}
 
-En el extremo contrario está el audio, donde el detector de golpes por sonido tarda 0,2~s, menos del 1~\% del tiempo de computo total.
+En el extremo contrario está el audio, donde el detector de golpes por sonido tarda 0,2~s, menos del 1~\% del tiempo de cómputo total.
 El resto del tiempo, un 20,5~\%, se reparte entre la lectura del vídeo, la identidad de los jugadores, la asignación de cada golpe y la clasificación de su tipo.
 Ninguna de estas tareas destaca por sí sola, y su suma es menor que cualquiera de las dos etapas principales.
 

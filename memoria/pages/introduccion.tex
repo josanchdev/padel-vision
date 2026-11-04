@@ -28,7 +28,7 @@ Este trabajo se sitúa en ese punto de partida, y la \cref{sec:problema} describ
 \subsection{Qué se pide}
 \label{sec:que-se-pide}
 
-El sistema que se plantea en este trabajo recibe como entrada el vídeo de un punto de pádel y debe devolver la información de cada uno de los golpes que se producen en él.
+El sistema que se plantea en este trabajo, HAT (\textit{Hit, Assign, Type}), recibe como entrada el vídeo de un punto de pádel y debe devolver la información de cada uno de los golpes que se producen en él.
 De cada golpe interesa saber en qué instante tiene lugar el impacto, cuál de los cuatro jugadores de la pista lo ejecuta y a qué tipo pertenece, que puede ser derecha, revés, remate o saque.
 El tipo se acompaña además de la confianza con la que el sistema lo ha decidido.
 
@@ -39,23 +39,23 @@ A partir de ellos se obtienen los datos de cada golpe y de estos las estadístic
 
 Este planteamiento esconde una dificultad que condiciona todo el trabajo, y es que cada resultado depende del anterior.
 Para saber quién ha golpeado hay que conocer primero el instante del golpe, y para clasificarlo hace falta haber identificado antes al jugador, porque lo que se analiza es su movimiento.
-Por eso un error en cualquier punto de la cadena se arrastra hasta el final, ya que un golpe que no se detecta no puede asignarse a nadie y uno que se atribuye al jugador equivocado acaba clasificándose a partir del movimiento de otra persona.
+En consecuencia, un error en cualquier punto de la cadena se arrastra hasta el final, ya que un golpe que no se detecta no puede asignarse a nadie y uno que se atribuye al jugador equivocado acaba clasificándose a partir del movimiento de otra persona.
 
 \subsection{Dificultades}
 \label{sec:dificultades}
 
 Cada etapa de esta cadena tiene además sus propias dificultades.
 La primera surge al intentar localizar el instante del golpe, porque el elemento que mejor lo delata es la pelota y es también el más difícil de seguir.
-Esto se debe a que es muy pequeña, se desplaza a gran velocidad y en el momento del impacto suele quedar oculta tras el propio jugador.
+Esto se debe a que es pequeña, se desplaza a gran velocidad y en el momento del impacto suele quedar oculta tras el propio jugador.
 Por este motivo se probó inicialmente a detectar los golpes siguiendo su trayectoria, pero los resultados no fueron suficientemente fiables y esta vía acabó descartándose (\cref{sec:instante}).
 
 Para atribuir cada golpe a un jugador, el principal obstáculo es la perspectiva.
-Al estar la cámara en un extremo de la pista, los jugadores del fondo se ven mucho más pequeños que los que están junto a la red, de modo que una misma distancia en píxeles equivale a longitudes reales muy distintas según la zona.
+Al estar la cámara en un extremo de la pista, los jugadores del fondo se ven mucho más pequeños que los que están junto a la red, de modo que una misma distancia en píxeles equivale a longitudes reales distintas según la zona.
 A esto se suma que el detector de personas no recuerda quién es quién de un fotograma al siguiente y que en la imagen aparecen otras personas que no juegan, como los espectadores, los árbitros o los recogepelotas.
 
-Para clasificar el tipo, la dificultad está en que los golpes son movimientos muy rápidos que se distinguen por detalles sutiles.
+Para clasificar el tipo, la dificultad está en que los golpes son movimientos rápidos que se distinguen por detalles sutiles.
 Una derecha y un revés se diferencian por el lado en el que el jugador golpea la pelota respecto a la mano con la que sujeta la pala, mientras que un remate puede confundirse con otros golpes realizados por encima de la cabeza.
-Clasificar el golpe por lo tanto en una imagen aislada es una tarea muy complicada, y es por eso por lo que nos hace falta analizar el movimiento completo del jugador alrededor del impacto.
+Clasificar el golpe, por lo tanto, en una imagen aislada es una tarea complicada, y por eso es necesario analizar el movimiento completo del jugador alrededor del impacto.
 
 \subsection{Alcance y supuestos}
 \label{sec:alcance}
@@ -75,7 +75,7 @@ Por último, esta marca puede reutilizarse en todos los puntos de un mismo torne
 \subsection{Objetivo general}
 \label{sec:objetivo-general}
 
-El objetivo general de este trabajo es desarrollar un sistema que, a partir del vídeo de un punto de pádel, identifique qué jugador ejecuta cada golpe y lo clasifique según su tipo.
+El objetivo general de este trabajo es desarrollar HAT, un sistema que, a partir del vídeo de un punto de pádel, identifique qué jugador ejecuta cada golpe y lo clasifique según su tipo.
 Sobre este sistema se construye una herramienta de análisis que muestra las estadísticas de cada jugador y que está pensada para clubes, equipos y jugadores aficionados.
 Con ella, entrenadores y jugadores dispondrían de datos con los que orientar el entrenamiento y mejorar el rendimiento.
 El objetivo se considerará cumplido si el sistema entrega para cada golpe su instante, su jugador y su tipo, y si su funcionamiento se mide con métricas definidas sobre datos que no se hayan usado para entrenarlo.
@@ -119,10 +119,10 @@ Además, procesar el audio añade un coste mínimo al sistema.
 
 La segunda decisión fue cómo pasar de la imagen a posiciones reales sobre la pista.
 Todo lo que depende de saber dónde está cada jugador se apoya en esa traducción, y para obtenerla hacen falta unos puntos de la pista marcados en la imagen.
-Una opción era encontrarlos con un detector automático, y de hecho se empezó por ahí, etiquetando pistas para entrenarlo.
+Una opción era encontrarlos con un detector automático, y de hecho se empezó por esa opción, etiquetando pistas para entrenarlo.
 Mejorarlo habría exigido seguir etiquetando más pistas, más cámaras y más condiciones de grabación, y dedicarle más tiempo de entrenamiento.
 Además, unos puntos mal colocados no avisan de que lo están, sino que estropean en silencio la separación entre jugadores y público, las posiciones en metros y los mapas de calor, de modo que los resultados saldrían mal sin que nadie lo notara.
-En cambio, marcar los puntos a mano solo hay que hacerlo una vez por torneo y cuesta unos segundos.
+En cambio, marcar los puntos a mano solo hay que hacerlo una vez por torneo y requiere unos segundos.
 Por eso se descartó el detector automático y se eligió marcar la pista a mano.
 
 La tercera decisión fue cómo presentar los resultados.
@@ -148,7 +148,7 @@ Cualquier idea que surgía durante el trabajo se trataba como una hipótesis que
 
 El trabajo se desarrolló a lo largo de muchos meses y obligó a tomar muchas decisiones, cada una apoyada en las anteriores.
 Con el tiempo es fácil olvidar por qué se eligió algo, y sin ese porqué resulta difícil defender la decisión o saber si todavía tiene sentido.
-Por eso desde el principio se llevaron dos registros, cada uno con un propósito distinto.
+Por ello, desde el principio se llevaron dos registros, cada uno con un propósito distinto.
 
 El primero reúne las decisiones de diseño importantes, cada una en un documento breve con el formato de los \ac{adr}.
 En él se anota la situación que obligaba a decidir, lo que se decidió y lo que eso implica para el resto del sistema.

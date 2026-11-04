@@ -17,7 +17,7 @@ Contiene 99 puntos tomados de los resúmenes de las retransmisiones de 11 torneo
 Las anotaciones del conjunto son de dos clases.
 De cada uno de los 2377 golpes se conoce el momento en que empieza y termina su sonido, lo que permite entrenar y evaluar la detección de los golpes.
 Además, en 16 puntos de Vigo se indica el jugador que ejecuta cada golpe.
-Son los únicos del conjunto que lo incluyen, así que son también los únicos con los que se puede medir si el sistema atribuye bien cada golpe.
+Son los únicos del conjunto que lo incluyen, por lo que son también los únicos con los que se puede medir si el sistema atribuye bien cada golpe.
 
 La \cref{tab:dataset} muestra cómo se reparten los puntos y los golpes entre los torneos, junto con su entorno.
 
@@ -52,9 +52,9 @@ El etiquetado consiste por tanto en ir directamente a cada instante anotado y el
 Esto acelera el etiquetado, ya que localizar cada golpe dentro de un vídeo completo es una tarea tediosa.
 
 Para etiquetar se desarrolló una herramienta propia.
-La primera versión mostraba solo el fotograma del instante de cada golpe, pero al usarla resultaba muy difícil saber de qué tipo era.
+La primera versión mostraba solo el fotograma del instante de cada golpe, pero al usarla resultaba difícil saber de qué tipo era.
 La razón es que un golpe no se define por la posición del cuerpo en un instante sino por el movimiento completo, desde que el jugador se prepara hasta que termina el gesto.
-Por eso la herramienta pasó a reproducir en bucle y a velocidad real una ventana de vídeo antes y después del golpe, y con ello facilita su clasificación.
+Por ello, la herramienta pasó a reproducir en bucle y a velocidad real una ventana de vídeo antes y después del golpe, y con ello facilita su clasificación.
 La \cref{fig:herramienta} muestra la interfaz, en la que cada golpe se etiqueta pulsando una sola tecla.
 
 \begin{figure}[H]
@@ -72,7 +72,7 @@ Cada golpe se etiqueta con una de estas cuatro clases:
   \item El saque es el golpe con el que empieza cada punto. El jugador deja botar la pelota, la golpea por debajo de la cintura y debe enviarla en diagonal a la zona de saque del rival, por lo que solo hay uno por punto.
 \end{itemize}
 Cuando un golpe no encaja en ninguna de las cuatro clases se anota como ``otro''.
-Es el caso de los gestos muy atípicos y también de los golpes que no pueden etiquetarse con seguridad.
+Es el caso de los gestos atípicos y también de los golpes que no pueden etiquetarse con seguridad.
 
 Estas cuatro clases se eligieron por ser las familias básicas de golpes del pádel y se definen por el gesto con el que se ejecuta el golpe.
 La \cref{tab:etiquetado} muestra el resultado del etiquetado.

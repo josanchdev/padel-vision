@@ -15,16 +15,17 @@ Con este planteamiento muestran que la posición sobre la pista puede estimarse 
 Sobre esa base, Novillo \textit{et al.}~\cite{novillo2025padel} dan un paso más y extraen del vídeo, de forma automática, la pista, los jugadores y la pelota.
 Con ello consiguen representar el juego sobre una pista en dos dimensiones, que es la base de cualquier análisis posterior de posiciones y desplazamientos.
 Para detectar la pista emplean métodos clásicos basados en el color y los contornos.
-Su trabajo señala además la dirección en la que continúa este proyecto, porque proponen como trabajo futuro incorporar información sobre el tipo de golpe.
+Su trabajo señala además la dirección en la que continúa HAT, porque proponen como trabajo futuro incorporar información sobre el tipo de golpe.
 
 La tercera pieza la aportan Decorte \textit{et al.}~\cite{decorte2024padel}, que abordan qué ocurre en cada golpe y no solo dónde están los jugadores.
 Para saber cuándo se produce utilizan el sonido, que procesan con una red neuronal que aprende a reconocer el impacto de la pala.
 Para saber quién lo ejecuta comparan la posición de la pelota con la de cada jugador mediante un voto repartido entre varios fotogramas.
 Así reparten el trabajo entre dos señales distintas, el sonido para el instante y la imagen para el jugador.
-Publican además el conjunto de datos con el que trabaja este proyecto (\cref{sec:cvsports}).
+Publican además el conjunto de datos con el que trabaja HAT (\cref{sec:cvsports}).
 
 La \cref{tab:trabajos-padel} resume la información que extrae cada uno de estos trabajos.
 En conjunto cubren dónde están los jugadores, dónde está la pelota y cuándo y quién golpea, pero ninguno dice de qué tipo es cada golpe.
+La última fila corresponde a HAT, que extrae todas ellas.
 Ese es el vacío que se aborda en la \cref{sec:arte-tipo}, y antes conviene ver qué han hecho otros deportes con cada una de las piezas necesarias para llenarlo.
 
 \begin{table}[htbp]
@@ -48,7 +49,7 @@ Sus autores plantean además, y esto interesa a este trabajo, que localizar el i
 
 Otra forma de resolverlo es escuchar el evento en lugar de verlo.
 La detección de eventos sonoros es un problema clásico del procesamiento de audio, y las redes que mejor lo resuelven combinan capas convolucionales sobre el espectrograma con capas recurrentes, como la propuesta por Adavanne \textit{et al.}~\cite{adavanne2017sed}.
-Decorte \textit{et al.} adaptan esa idea a los golpes de pádel, y su resultado muestra que el sonido es una señal muy informativa en este deporte.
+Decorte \textit{et al.} adaptan esa idea a los golpes de pádel, y su resultado muestra que el sonido es una señal informativa en este deporte.
 
 Las dos vías tienen puntos fuertes distintos.
 La imagen contiene mucha información pero obliga a seguir objetos pequeños y rápidos, que quedan ocultos justo en el momento del golpe.
@@ -69,13 +70,13 @@ Esta forma de plantear el problema se ha convertido en una referencia, y se ha m
 En pádel el panorama es menos desarrollado.
 Decorte \textit{et al.} emplean un detector de la pelota preentrenado con datos de tenis, y no miden su rendimiento en pádel.
 Para entrenar un detector propio hacen falta partidos con la pelota anotada, y el conjunto PadelTracker100~\cite{badanerin2026padeltracker100} ofrece justamente eso con dos finales del World Padel Tour.
-Este trabajo se apoya en él para entrenar su propia red (\cref{sec:pelota}).
+HAT se apoya en él para entrenar su propia red (\cref{sec:pelota}).
 
 \section{Reconocimiento de acciones con esqueleto}
 \label{sec:arte-esqueleto}
 
 El reconocimiento de acciones en vídeo ha evolucionado de analizar los píxeles de la imagen a trabajar también sobre el esqueleto de las personas.
-Trabajar con el esqueleto tiene una ventaja clara, y es que ignora el aspecto de la escena, como la ropa o el fondo, y se queda solo con el movimiento.
+Trabajar con el esqueleto tiene una ventaja clara, y es que ignora el aspecto de la escena, como la ropa o el fondo, y conserva solo el movimiento.
 Esto lo hace atractivo para un sistema que debe aplicarse a pistas distintas.
 
 ST-GCN~\cite{yan2018stgcn} propuso tratar la secuencia de esqueletos como un grafo.
@@ -83,20 +84,20 @@ Los nodos son las articulaciones, que se conectan entre sí según la estructura
 De este modo la red puede aprender tanto la forma de la postura como la manera en que cambia en el tiempo.
 
 PoseConv3D~\cite{duan2022poseconv3d} propone otra vía.
-Representa el esqueleto como un volumen de mapas de calor, que procesa con una red convolucional 3D, y esto lo hace más robusto ante los errores de la estimación de la postura.
+Representa el esqueleto como un volumen de mapas de calor, que procesa con una \acs{cnn} 3D, y esto lo hace más robusto ante los errores de la estimación de la postura.
 
-Ambos modelos se evaluaron sobre todo con acciones cotidianas, muy distintas entre sí.
+Ambos modelos se evaluaron sobre todo con acciones cotidianas, distintas entre sí.
 
 En los deportes de raqueta el problema cambia.
-Todos los golpes son movimientos rápidos y breves que se diferencian en detalles sutiles, de modo que un modelo pensado para acciones muy distintas entre sí tiene que afinar mucho más.
+Todos los golpes son movimientos rápidos y breves que se diferencian en detalles sutiles, de modo que un modelo pensado para acciones distintas entre sí tiene que afinar mucho más.
 Para el bádminton, TemPose~\cite{ibh2023tempose} adapta la arquitectura transformer al reconocimiento de este tipo de movimientos y añade como entrada la posición del volante, lo que mejora sus resultados.
 
 \ac{bst}~\cite{chang2026bst} parte de esta idea y la desarrolla.
 Combina la postura de los jugadores con la trayectoria del volante mediante una atención cruzada, y sus autores consideran que esta es una vía prometedora para reconocer golpes.
 En sus experimentos con un conjunto de bádminton de más de treinta mil golpes, la trayectoria del volante es la entrada que más aporta, por encima de la posición de los jugadores en la pista.
 
-Este es el modelo en el que se apoya el clasificador de este trabajo, y por eso se describe con detalle en la \cref{sec:tipo}.
-Lo que BST no hace es resolver el pádel, un deporte con sus propias clases de golpe, sus propias cámaras y sus propios datos.
+Este es el modelo en el que se apoya el clasificador de HAT, y por eso se describe con detalle en la \cref{sec:tipo}.
+Lo que \acs{bst} no hace es resolver el pádel, un deporte con sus propias clases de golpe, sus propias cámaras y sus propios datos.
 Adaptarlo exige decidir qué clases distinguir, qué entrada recibe y con qué ejemplos se entrena.
 
 \section{Tipo de golpe en pádel}
@@ -114,4 +115,4 @@ Esto impide saber hasta qué punto sus resultados son fiables y también reprodu
 Por tanto, hasta donde se ha podido comprobar, no existe ningún trabajo publicado que clasifique automáticamente el tipo de golpe en pádel a partir de un vídeo.
 Las piezas necesarias sí existen por separado.
 Se sabe localizar los golpes por el sonido, atribuirlos a un jugador, seguir la pelota y reconocer gestos a partir del esqueleto en otros deportes de raqueta.
-Lo que falta es reunirlas en pádel y medir cuánto se puede confiar en el resultado, que es lo que propone este trabajo.
+Lo que falta es reunirlas en pádel y medir cuánto se puede confiar en el resultado, que es lo que propone HAT.

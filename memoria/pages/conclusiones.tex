@@ -9,7 +9,7 @@ Por último se plantean los trabajos futuros que se podrían abordar.
 
 El objetivo general era desarrollar un sistema que, a partir del vídeo de un punto de pádel, identificara el jugador y el tipo de cada golpe, y construir sobre él una herramienta de análisis.
 Este objetivo se ha cumplido.
-El sistema entrega para cada golpe su instante, su jugador y su tipo, y su funcionamiento se ha medido con métricas definidas sobre torneos que no se utilizaron para entrenarlo.
+HAT entrega para cada golpe su instante, su jugador y su tipo, y su funcionamiento se ha medido con métricas definidas sobre torneos que no se utilizaron para entrenarlo.
 Los párrafos siguientes detallan cómo se ha logrado cada uno de los objetivos específicos (\cref{sec:objetivos-especificos}).
 
 El primer objetivo específico era localizar a los jugadores y la pelota en cada fotograma.
@@ -24,7 +24,7 @@ Para el jugador se reimplementó el método de votación de Decorte \textit{et a
 Este resultado es comparable al del trabajo original pero no puede decirse que lo supere, porque la diferencia no es concluyente.
 
 El tercer objetivo era clasificar cada golpe como derecha, revés, remate o saque.
-Para conseguirlo se etiquetaron a mano los 2377 golpes de CVSPORTS y se adaptó BST, una red pensada para el bádminton, a las cuatro clases del pádel.
+Para conseguirlo se etiquetaron a mano los 2377 golpes de CVSPORTS y se adaptó \acs{bst}, una red pensada para el bádminton, a las cuatro clases del pádel.
 Dejando un torneo fuera cada vez, el clasificador acierta el 82,7~\% de los golpes, con un macro-F1 de 0,859.
 Es un resultado nuevo, porque ningún trabajo anterior clasifica el tipo de golpe en pádel y por eso no existe otro con el que compararlo.
 El objetivo se ha cumplido.
@@ -57,7 +57,7 @@ No puede saberse, por tanto, cuántos casos dudosos habría etiquetado de otra f
 
 En tercer lugar, el clasificador se entrena con ejemplos en los que el jugador no viene de una etiqueta, sino que lo elige el propio sistema.
 Como la asignación acierta en torno al 87,5~\% de las veces, una parte de los ejemplos lleva el esqueleto de otro jugador.
-Se hizo así a propósito para que el modelo aprendiera con los mismos errores que encontrará después, pero significa que los fallos de la asignación también llegan a su entrenamiento.
+Se diseñó así deliberadamente para que el modelo aprendiera con los mismos errores que encontrará después, pero esto implica que los fallos de la asignación también llegan a su entrenamiento.
 
 Por último, los resultados no permiten afirmar que el sistema funcione fuera de las retransmisiones.
 Todos los vídeos proceden de torneos grabados con la cámara habitual de la retransmisión.
