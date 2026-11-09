@@ -6,7 +6,7 @@ puede re-graficar, ni re-verificar, ni defender ante la pregunta "¿de dónde sa
 
 Todo se mide con la configuración exacta del sistema que se entrega
 (`padel_ml.rally_analysis`): mismos modelos, pista marcada a mano, mismos
-umbrales. Las cifras viven en los JSON; `docs/sistema.md` las cita.
+umbrales. Las cifras viven en los JSON.
 
 ## Formato
 
@@ -126,7 +126,6 @@ memoria debe presentarlas como mediciones puntuales:
 
 ## Fuera de esta carpeta
 
-- `docs/sistema.md`: la ficha técnica, que cita estas cifras.
 - `docs/experiments.md`: la bitácora, con el relato cronológico y el porqué.
 - `docs/decisions/`: los ADRs.
 - `runs/` (gitignoreado): los modelos entrenados, las rondas de `chain_cv` y el

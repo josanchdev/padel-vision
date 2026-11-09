@@ -1,7 +1,7 @@
-# Padel Vision
+# HAT
 
-Análisis automático de puntos de pádel a partir del vídeo de retransmisión. Para
-cada golpe, el sistema responde:
+HAT (*Hit, Assign, Type*) analiza automáticamente puntos de pádel a partir del
+vídeo de retransmisión. Para cada golpe, responde:
 
 - **cuándo** se golpea, con un detector de audio;
 - **quién** golpea, con la pose de los jugadores y la trayectoria de la pelota;
@@ -14,17 +14,15 @@ el quién reimplementan el método de Decorte et al. (CVPRW 2024), con el que se
 comparan los resultados. El tipo de golpe es la aportación propia, sobre un
 dataset de 2.377 golpes etiquetados a mano.
 
-**Ficha técnica y resultados:** [docs/sistema.md](docs/sistema.md).
-
 ## Estructura
 
 | Carpeta | Contenido |
 |---|---|
 | `packages/cv` | Jugadores (YOLO26-pose e identidad J1-J4), geometría de pista y herramientas de etiquetado |
 | `packages/ml` | Modelos y sistema: audio (CRNN), pelota (TrackNetV3), asignación, tipo de golpe (BST-0) y `analyze_rally`, el sistema completo |
-| `packages/web` | Visor web estático de puntos analizados (React + Vite + Motion) |
+| `packages/web` | Padel Vision, el visor web estático de puntos analizados (React + Vite + Motion) |
 | `scripts/` | Procesar puntos, entrenar los modelos y regenerar cada evidencia |
-| `docs/` | Ficha técnica, [decisiones](docs/decisions/README.md), [evidencias](docs/metrics/README.md) y bitácora de experimentos |
+| `docs/` | [Decisiones](docs/decisions/README.md), [evidencias](docs/metrics/README.md) y bitácora de experimentos |
 | `data/` | Datos de terceros, etiquetado propio y cachés; solo el etiquetado va a git ([data/README.md](data/README.md)) |
 
 ## Instalación
@@ -95,3 +93,10 @@ uv run padel-cv annotate-court RALLY.mp4                              # pista de
 
 Cada cifra de la memoria sale de un fichero de `docs/metrics/` y cada fichero,
 de un script. La lista está en [docs/metrics/README.md](docs/metrics/README.md).
+
+## Licencia
+
+El código se distribuye bajo licencia MIT ([LICENSE](LICENSE)). Depende de
+Ultralytics (YOLO26-pose y seguimiento), que se distribuye bajo AGPL-3.0: quien
+redistribuya HAT junto con Ultralytics debe cumplir también esa licencia. Los
+datos de terceros (CVSPORTS_Padel y PadelTracker100) conservan sus propios términos.

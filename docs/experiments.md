@@ -244,10 +244,9 @@ línea temporal (donde los golpes son <5% de los frames), el detector se
 desmorona: prob media 0,55 en TODOS los frames → no discrimina. **Conclusión
 definitiva (medida 3 veces: heurística 15-52%, detector balanceado 0,60, detector
 deslizado 29%): el cuello de botella son los DATOS (905 golpes de 2 partidos), no
-la arquitectura.** No hay atajo de ingeniería. La decisión (Jorge, confirmando su
+la arquitectura.** No hay atajo de ingeniería. La decisión (del autor, confirmando su
 instinto) es ir al ETIQUETADO en serio: vídeos HD → pre-anotar con nuestros
-modelos → corregir en CVAT → reentrenar con miles de golpes. Ver `docs/backlog.md`
-(Fase B) para el pipeline de datos.
+modelos → corregir en CVAT → reentrenar con miles de golpes.
 
 ### Clasificador pose+pelota — Modelo 2, intento 1 FALLIDO (30 jul 2026, ADR-0013)
 
@@ -370,8 +369,7 @@ mientras los del 509/585 se descartan por coincidir con golpes reales. Es decir:
 **los tres subsistemas (pelota + golpes + pista) se necesitan mutuamente**, y el
 Nivel 2 no es solo un entregable previo sino un requisito del Nivel 3.
 
-Distinguir bote de suelo vs pared/cristal queda para más adelante
-(`docs/backlog.md`).
+Distinguir bote de suelo vs pared/cristal queda para más adelante.
 
 ## Capa de datos estructurados (ADR-0010)
 
@@ -418,12 +416,12 @@ Inspección visual de frames: rechaza bien gráficos de título y primeros plano
 "no-pista"). El detector de pista (entrenado solo con azul WPT + 40 PADELVIC) no
 generaliza a pistas nuevas → keypoints insuficientes.
 
-**Matiz clave (Jorge):** un vídeo = una pista (nunca cambia a mitad). Así que el
+**Matiz clave (autor):** un vídeo = una pista (nunca cambia a mitad). Así que el
 sesgo NO es "detectar cambio de pista" (irrelevante) sino que el detector debe
 poner bien los keypoints en CUALQUIER pista de un vídeo dado. Solución: más datos
 de entrenamiento diversos (estos vídeos), no una arquitectura de cambio de escena.
 
-**Prioridad de mejora (Jorge):** viendo los vídeos, donde más falla el sistema es
+**Prioridad de mejora (autor):** viendo los vídeos, donde más falla el sistema es
 la **detección de pelota** (modelo actual = prueba corta, solo WPT, 6 epochs).
 Los vídeos nuevos son munición kickstarter para mejorar pelota, pista, golpes
 (incl. dejada) y validar escena/segmentación — respetando que son material de
@@ -487,7 +485,7 @@ uv run padel-ball-train --model tracknetv3 \
 ```
 
 Con V3 entrenado: comparativa V2 vs V3 + Fase 1d (`padel-ball-generalization`).
-**Decisión Jorge:** V3 (moderno, refinador de oclusiones) será el modelo de
+**Decisión del autor:** V3 (moderno, refinador de oclusiones) será el modelo de
 PRODUCCIÓN si confirma su mejora (esperado; en prueba corta 0,911 vs 0,896),
 igual que se eligió PoseConv3D sobre ST-GCN en golpes. V2 queda como baseline de
 la comparativa (evidencia científica). El criterio final es el F1 con el
@@ -512,7 +510,7 @@ indistintamente; para desempatar de verdad hace falta anotar oclusión nosotros
 (ver backlog). Ambos F1 ~0,94 a 1080p — el detector de pelota está sólido.
 
 **Por qué super-entreno con WPT si el objetivo es generalizar (razonamiento
-estratégico, cuestión planteada por Jorge).** Los ~100k frames WPT NO generalizan
+estratégico, cuestión planteada por el autor).** Los ~100k frames WPT NO generalizan
 por sí solos a pistas nuevas (más azul no enseña negro). El super-entreno vale
 por tres cosas distintas: (1) **base para fine-tuning** — el modelo aprende del
 volumen "qué es una pelota, cómo se mueve, cómo separarla del fondo"; luego 1-2k
@@ -598,9 +596,9 @@ golpe hay que replantearla (ver estado del arte abajo: BST/TemPose no "detectan"
 el impacto por heurística — parten de clips ya recortados en torno al contacto;
 la localización del golpe es un problema separado que merece su propio enfoque).
 
-**Hallazgo clave (Jorge, revisión del estado del arte).** El problema de fondo NO
+**Hallazgo clave (autor, revisión del estado del arte).** El problema de fondo NO
 es solo la detección: la CLASIFICACIÓN del tipo de golpe (PoseConv3D, solo pose)
-falla — confunde derecha/revés/remate. Jorge cuestiona si pose es el enfoque
+falla — confunde derecha/revés/remate. Se cuestiona si pose es el enfoque
 correcto. La literatura de deportes de raqueta lo confirma:
 
 - **ST-GCN** (2018, solo pose): baseline, el nuestro de Nivel 2.
@@ -617,7 +615,7 @@ los métodos SotA la incorporan; "aprovechar la trayectoria de pelota es LA
 tendencia en deportes de raqueta" (BST). Encaja con que PadelTracker100 anota
 pose Y pelota: ambas hacen falta.
 
-**Implicación para el TFG.** El instinto de Jorge era correcto: pose-solo no es el
+**Implicación para el TFG.** El instinto del autor era correcto: pose-solo no es el
 enfoque bueno para el TIPO de golpe. El rumbo es **evolucionar a pose + pelota**
 (replicando TemPose/BST). Ya tenemos la pelota funcionando (el trabajo de estas
 sesiones era el ingrediente que faltaba) y ya la usamos para DETECTAR el golpe;
@@ -633,7 +631,7 @@ pádel (ML/DL shot classification).
 TemPose NO detectan el golpe; parten de clips ya recortados en torno al contacto
 (ShuttleSet anota el frame de golpe). El SotA **separa localizar de clasificar**.
 Nosotros los mezclábamos en la heurística ADR-0012, que hace mal las dos cosas
-(recall 15-52%). Insight de Jorge: un humano detecta el golpe sin esqueleto ni
+(recall 15-52%). Insight del autor: un humano detecta el golpe sin esqueleto ni
 reglas, viendo partidos; la arquitectura correcta es la de detección industrial
 de Ferrovial — un **detector** genérico alimenta a un **clasificador**
 especializado (camiones → tipo de camión). **Decisión (ADR-0013): dos modelos
@@ -683,7 +681,7 @@ método. Material visual para la defensa.
 
 ## Detector de golpe entrenado con datos propios — hallazgo por-ventana vs por-frame (ago 2026)
 
-Primer entrenamiento del DETECTOR (Modelo 1) con datos etiquetados por Jorge
+Primer entrenamiento del DETECTOR (Modelo 1) con datos etiquetados a mano
 (herramienta ADR-0014): 413 golpes de citys_cup (pose YOLO propia + pelota
 TrackNet, submuestreado 60→30fps) + 906 de PadelTracker100.
 
@@ -693,9 +691,9 @@ con viejos + mitad de citys_cup, validar en la otra mitad):
 | Entreno | prob golpes | prob no-golpes | Recall | Precisión | F1 |
 |---|---|---|---|---|---|
 | Solo 906 viejos | 1,00 | 0,92 | 100 % | 52 % | 0,68 |
-| Viejos + datos de Jorge | 0,92 | 0,10 | 96 % | 93 % | **0,94** |
+| Viejos + datos propios | 0,92 | 0,10 | 96 % | 93 % | **0,94** |
 
-Sin los datos de Jorge el detector dice "golpe" a TODO en su partido (no
+Sin los datos propios el detector dice "golpe" a TODO en su partido (no
 generaliza: los viejos son pose GT limpia, el suyo es pose YOLO real). Con sus
 datos discrimina. Confirma que el cuello de botella eran los datos DEL DOMINIO
 propio, no la arquitectura.
@@ -705,7 +703,7 @@ Al deslizar el detector por-ventana sobre un rally real, la señal no son picos 
 golpe sino una MESETA plana en 1,00 sobre toda la ráfaga de golpes (evidencia:
 `docs/media/senal_por_ventana_meseta.png`, 3 golpes seguidos = 1 bloque de 123
 frames). Causa: la ventana de ~1s es más ancha que el hueco entre golpes, así que
-toda ventana de la zona contiene algún golpe → todas dicen "sí". Jorge lo detectó
+toda ventana de la zona contiene algún golpe → todas dicen "sí". Se detectó
 visualmente ("detecta el mismo golpe 2-3 veces"). El NMS no lo arregla (fusiona
 golpes reales). **Solución: `ShotLocalizer`** — emite un logit POR FRAME (1x1 conv
 temporal, sin pooling), entrenado con etiqueta densa por frame. Prueba de concepto
@@ -714,7 +712,7 @@ valles entre golpes → el concepto por-frame funciona, aunque aún ruidoso (fal
 suavizado/más datos). Es el enfoque de localización temporal del SotA. Siguiente:
 builder denso por-frame + inferencia deslizante + pulido.
 
-**Nota de pipeline (Jorge):** el detector debe iluminar AL GOLPEADOR (no un flash
+**Nota de pipeline (autor):** el detector debe iluminar AL GOLPEADOR (no un flash
 global), porque su pose es justo lo que se pasa al clasificador (Modelo 2). El
 golpeador se elige por "muñeca más cercana a la pelota"; a veces falla si la
 pelota está mal detectada (ilumina al jugador equivocado) → a pulir.
@@ -748,7 +746,7 @@ señal, y mejor pelota en el frame de impacto (donde más falla). Pendiente de p
 
 ## Localizer — evaluación rigurosa por frame exacto + criterio min_run (ago 2026)
 
-Jorge señaló (correctamente) que "6 detectados = 6 reales" no vale como métrica
+Se señaló (correctamente) que "6 detectados = 6 reales" no vale como métrica
 sin emparejar cada pico con el FRAME exacto de un golpe. Eval riguroso: cada pico
 se empareja con el golpe real más cercano (±4 frames), sobre 149 golpes reales de
 citys_cup (tramo grande, muestra fiable). También se implementó su idea de exigir
@@ -763,12 +761,12 @@ picos aislados ("pum golpe" falsos).
 | 0,7 | 1 | 256 | 111 | 74 % | 43 % |
 | 0,7 | 4 | 45 | 33 | 22 % | 73 % |
 
-**Lecturas:** (1) El min_run de Jorge SÍ sube la precisión (24→44 %) quitando picos
+**Lecturas:** (1) El min_run del autor SÍ sube la precisión (24→44 %) quitando picos
 aislados, a costa de recall — trade-off claro. (2) El recall real es bueno (88 %
 pillando 131/149) pero la PRECISIÓN es el problema: ~3 falsos por golpe a recall
 alto. La señal base es demasiado alta (media 0,35-0,53); el v1 con 413 golpes no
 afina. (3) Parte de los "falsos" pueden ser golpes reales no etiquetados
-(especialmente en el fondo, donde pose/pelota fallan y Jorge nota que se pierden).
+(especialmente en el fondo, donde pose/pelota fallan y se nota que se pierden).
 
 **Palancas pendientes (todas identificadas):** más golpes etiquetados (413→~900),
 suavizado temporal más fuerte, mejor pose/pelota en el fondo y en el impacto. El
@@ -781,15 +779,15 @@ seguro golpes NO etiquetados o duplicados de rally, NO ruido. Solo el **17 %
 (15/86) están en tiempo muerto** (ruido real). Es decir: la precisión efectiva del
 modelo es MUCHO mejor que el número crudo; el limitante principal es la
 COMPLETITUD del etiquetado (413 golpes de 66 min es parcial; los rallies rápidos y
-los golpes del fondo se saltan). Confirma el instinto de Jorge de que "6 vs 6" no
+los golpes del fondo se saltan). Confirma el instinto del autor de que "6 vs 6" no
 vale — pero al revés de lo temido: el modelo pilla golpes reales que faltan en el
 GT. **Conclusión de rumbo:** la palanca nº1 es completar el etiquetado con cuidado
 (no saltar golpes de rally); el ruido real (17 %) lo cubre el min_run + suavizado.
 
-**Medición JUSTA — solo dentro de rallies (ago 2026).** Jorge reveló que NO
+**Medición JUSTA — solo dentro de rallies (ago 2026).** El autor reveló que NO
 etiqueta todo: se salta las REPETICIONES (replays con golpes en cámara lenta) y el
 último golpe si se falla. Evaluar sobre todo el partido cuenta como "falsos" los
-golpes de replay que el modelo detecta correctamente pero que Jorge no marca.
+golpes de replay que el modelo detecta correctamente pero que no están marcados.
 Re-medición excluyendo los huecos grandes (>3 s = replay/tiempo muerto), solo
 dentro de los 63 rallies (374 golpes):
 
@@ -799,7 +797,7 @@ partido. Al excluir replays, la precisión sube de 24 % a 70 %: la mayor parte d
 
 **Conclusión estratégica del día:** el detector dispara en las REPETICIONES (hay
 golpes reales en cámara lenta). El sistema completo NECESITA el eslabón nº1 de la
-pila de robustez (`docs/backlog.md`): distinguir juego real de replay/tiempo
+pila de robustez: distinguir juego real de replay/tiempo
 muerto. Sin él, los golpes de repetición inflan cualquier stat. Es ahora un
 requisito medido, no teórico. Palancas del localizer: completar etiquetado
 (413→~900), segmentar juego-vs-replay, suavizado.
@@ -831,7 +829,7 @@ Módulos: `audio_dataset` (features), `audio_detector` (CRNN + focal), `audio_tr
 
 ## Backbone del paper replicado: identidad, re-id, ventanas y pelota (sep 2026)
 
-Decisión de Jorge (ADR-0015 D): el "quién golpea" es backbone, así que se replica
+Decisión del autor (ADR-0015 D): el "quién golpea" es backbone, así que se replica
 el método publicado, no una versión ingenua. Leído el paper entero
 (Decorte et al., CVPRW 2024) y contrastado punto por punto con lo que teníamos.
 
@@ -881,7 +879,7 @@ la caja; detectar la pelota solo cerca de los golpes, no en todo el vídeo.
   del otro. Recupera EQUIPO, no jugador — se marca con valor negativo (-equipo)
   para no fingir una precisión que no se tiene.
 
-**Decisión de diseño (opción B, elegida con Jorge):** el detector emite VENTANAS
+**Decisión de diseño (opción B, elegida tras discutirla):** el detector emite VENTANAS
 reales (onset/offset por umbral) en lugar de picos aislados, como el paper, que
 usa los límites del modelo y solo rellena hasta 500 ms si la ventana es corta.
 Además de ser más fiel, la anchura de la ventana es información aprovechable
@@ -1071,7 +1069,7 @@ Sobre ShuttleSet (25 clases, 33.481 golpes), efecto de cada entrada:
 | BST-CG-AP | J+B | ✓ | ✓ | **0,8254** | 0,7983 | 0,5196 |
 
 **La PELOTA es la entrada que más aporta** (+3,4 pts de accuracy sobre pose sola;
-más que la posición en pista). Confirma la intuición de Jorge de que la pelota
+más que la posición en pista). Confirma la intuición del autor de que la pelota
 servía, y valida conservar nuestro TrackNet (F1 0,94).
 
 ### La estrategia de recorte (respuesta a "¿cuántos frames?")
@@ -1121,7 +1119,7 @@ tarea, medido por ellos) · TrackNetV3 para la pelota.
 
 ## Infraestructura de evidencias + hallazgo del umbral óptimo (sep 2026)
 
-Petición de Jorge: toda afirmación de la memoria debe apoyarse en datos guardados
+Petición del autor: toda afirmación de la memoria debe apoyarse en datos guardados
 (matriz de confusión, F1/recall/precisión, gráficas, hiperparámetros), no en una
 frase de la bitácora, y debe poder regenerarse. Creada `docs/metrics/`
 (**versionada**, a diferencia de `runs/`, gitignoreada y solo en disco local) con
@@ -1164,7 +1162,7 @@ son utilizables.
 Hasta ahora la justificación del giro al audio comparaba cifras de datasets
 distintos (localizer 61% recall en citys_cup vs audio F1 0,93 en CVSPORTS), lo
 que es débil: cabía la objeción de que el audio ganara por tener un dataset más
-fácil. Petición de Jorge: correr el método antiguo sobre los mismos datos.
+fácil. Petición del autor: correr el método antiguo sobre los mismos datos.
 
 `scripts/evidence_method_comparison.py` entrena el `ShotLocalizer` (TCN sobre
 pose+pelota, ADR-0013) sobre los **mismos rallies de VIGO**, con el **mismo split
@@ -1223,13 +1221,13 @@ temporal del anotador (que era una debilidad conocida de ADR-0014).
 Dos decisiones de diseño de la herramienta, ambas nacidas de etiquetar de verdad:
 
 1. **Cada golpe se reproduce en BUCLE a velocidad real** (±25 frames, ~1 s a cada
-   lado), no como frame estático. Jorge lo detectó al empezar: con una imagen
+   lado), no como frame estático. Se detectó al empezar: con una imagen
    suelta es dificilísimo distinguir derecha de revés. Y era incoherente —el
    modelo ve una ventana entera (ADR-0016 F) y al anotador se le estaba dando
    menos información que al modelo. Etiquetas dudosas producen ruido que el
    modelo hereda.
 2. **Una sola decisión por golpe.** Se retiró el flag "de pared" (ADR-0016 C) por
-   objeción de Jorge: un atributo que solo existe en los datos etiquetados a mano
+   objeción del autor: un atributo que solo existe en los datos etiquetados a mano
    no se puede producir en inferencia, luego como estadística de producto no
    sirve. Pasa a derivarse de la trayectoria de la pelota.
 
@@ -1300,7 +1298,7 @@ viable un dataset de este tamaño en un TFG.
 
 ## HITO: la resolución de la pelota supera al paper (sep 2026)
 
-Observación de Jorge al ver el vídeo: el sistema atribuía mal el golpe con
+Observación del autor al ver el vídeo: el sistema atribuía mal el golpe con
 frecuencia, sobre todo en remates, y la estela de la pelota "iba a saltos"
 comparada con la de una demo comercial. Su hipótesis: el problema principal está
 en la pelota, no en el clasificador.
@@ -1381,10 +1379,10 @@ partes — mantenía recall 0,94 pero su precisión caía a 0,605, y esos 58 fal
 saques se comían aciertos de las otras tres clases. Dejándolo en paz encuentra
 casi los mismos y acierta mucho más.
 
-Postura de Jorge, coincidente y previa a la medición: no dar nunca peso adicional
+Postura del autor, coincidente y previa a la medición: no dar nunca peso adicional
 a una clase minoritaria como ésta. La medición le da la razón.
 
-### La regla del saque (observación de Jorge)
+### La regla del saque (observación del autor)
 
 *"El saque se hace siempre en el primer golpe de cada rally. No tiene sentido que
 se clasifique como saque si hay más golpes antes."*
@@ -1466,7 +1464,7 @@ deducir de los propios datos, porque el correcto es el que menos se viola:
 
 6 de 26 golpes violan la alternancia, así que al menos uno de cada par está mal:
 **suelo de error ~23%**, frente al 12,5% medido sobre CVSPORTS. Confirma la
-intuición de Jorge de que la asignación es el problema dominante fuera de
+intuición del autor de que la asignación es el problema dominante fuera de
 dominio.
 
 Matiz importante: tres de esos seis pares coinciden con intervalos de 0,43-0,53 s
@@ -1614,7 +1612,7 @@ evaluación cross-torneo y la inferencia, para que no puedan divergir.
 ## Evaluación externa v1: el sistema generaliza; la sincronización audio-imagen, no
 
 Primera evaluación sobre metraje que ningún modelo ha visto, con **etiquetas a
-ciegas** (Jorge marca instante, clic en el golpeador y tipo sin ver ninguna
+ciegas** (el autor marca instante, clic en el golpeador y tipo sin ver ninguna
 salida del sistema) y **sistema congelado** (commit registrado en la evidencia).
 Clip `miami_rally1`: 30 golpes etiquetados. El golpe cuyo impacto cae en la
 congelación de la emisión no se etiquetó (no se ve); la regla simétrica —las
@@ -1633,7 +1631,7 @@ detecciones junto a una congelación no se juzgan— se fijó y se subió a git
 
 ### Diagnóstico: el instante llega tarde
 
-Emparejando cada detección con la marca visual de Jorge, el sistema cae **~5
+Emparejando cada detección con la marca visual del autor, el sistema cae **~5
 frames (167 ms) tarde** en casi todos los golpes. El voto mira ±4 frames
 alrededor de ese instante, así que mira la pelota cuando ya ha salido de la pala:
 **la hipótesis del tutor**, que CVSPORTS no mostraba porque allí la asignación se
@@ -1664,7 +1662,7 @@ dominio es la sincronización audio-imagen, no la visión.
 
 Consecuencia para la memoria: la cifra de asignación de CVSPORTS mide el paso
 aislado y es correcta como tal, pero la cadena completa nunca se había medido con
-instantes detectados. Pendiente de decidir con Jorge cómo corregirlo.
+instantes detectados. Pendiente de decidir cómo corregirlo.
 
 Evidencias: `external_evaluation.json`, `external_hits.csv` (cada golpe),
 `external_av_offset.json`, `figures/external_type_confusion.png`. Regenerables con
@@ -1703,7 +1701,7 @@ sobre ellos.
 
 ## Decisión: se retira la sincronización audio-imagen (28 sep 2026)
 
-Decisión de Jorge. La sincronización por vídeo (estimar el retraso del sonido y
+Decisión del autor. La sincronización por vídeo (estimar el retraso del sonido y
 mover el instante del golpe) **se elimina del sistema y no forma parte de los
 resultados de la memoria**. Motivos:
 
@@ -1732,7 +1730,7 @@ Lo que **sí queda**, porque no depende de la sincronización:
 - La **evaluación externa de Miami** tal cual se congeló (`external_evaluation.json`).
 - La unificación del entrenamiento del clasificador y su curva de convergencia.
 
-**Addendum (28 sep 2026), decisión de Jorge:** la evaluación externa de Miami
+**Addendum (28 sep 2026), decisión del autor:** la evaluación externa de Miami
 tampoco entra en los resultados de la memoria; las dos tablas de CVSPORTS (cada
 paso aislado y el sistema completo por torneos) bastan. Su código, etiquetas y
 evidencias (`blind_annotator`, `external_eval`, `evaluate_external.py`,
@@ -1763,7 +1761,7 @@ Con la configuración real: **jugador 87,46%, equipo 92,16%** (paper 83,70% /
 perdidos): la pista manual y la automática dan exactamente lo mismo (la pista
 solo sirve para la máscara de público, y ambas difieren en 20-35 px); el umbral
 0,25 hace que la re-identificación cruce dos jugadores a partir del 7.º golpe
-(J1 pasa a numerarse J3). **Decisión de Jorge:** se informa la cifra del sistema
+(J1 pasa a numerarse J3). **Decisión del autor:** se informa la cifra del sistema
 real, y VIGO_00 no se corrige: ajustar el sistema sobre los golpes de la
 evaluación sería sobreajuste.
 
@@ -1788,7 +1786,7 @@ validación del clasificador y el modelo de producción.
 - `torchaudio` y `lap` (ByteTrack) se usaban sin estar declaradas: un clon
   limpio no habría podido ejecutar el audio ni el seguimiento de jugadores.
 - Las notas de `hit_assignment_replica.json` aún decían que el paper deja golpes
-  sin asignar (falso, corregido en `sistema.md` el 29 sep) y declaraban la
+  sin asignar (falso, corregido el 29 sep) y declaraban la
   ventana como ±6; ahora se escriben desde el código.
 - `fit_and_save` aceptaba una semilla que no usaba: ahora la usa.
 - El detector de audio de producción se entrena con su propio script

@@ -30,7 +30,7 @@ faltaba: RGB gana en *detectar el instante* (PES, diferencias visuales sutiles
 entre frames casi idénticos); pose+pelota gana en *clasificar el gesto*. Nuestro
 instante ya lo da el AUDIO, más barato. Luego no necesitamos RGB.
 
-Presupuesto de datos (techo, decisión de Jorge de no etiquetar más): 937
+Presupuesto de datos (techo, decisión del autor de no etiquetar más): 937
 (PadelTracker100) + 413 (citys_cup) + 2.377 (CVSPORTS, instante ya marcado por
 su GT, falta el tipo) = **~3.727 golpes**. Referencia: TenniSet tiene 3.569
 golpes y 6 clases → 98,9% de accuracy. Estamos en ese régimen.
@@ -50,19 +50,19 @@ golpes y 6 clases → 98,9% de accuracy. Estamos en ese régimen.
   smash`, `defensive return drive → drive`).
   **Regla adoptada: separar clases solo cuando difiere el GESTO, no la intención
   táctica ni la posición.**
-  - **Volea NO es clase** (pregunta explícita de Jorge, volea-en-red vs volea
+  - **Volea NO es clase** (pregunta explícita del autor, volea-en-red vs volea
     atrás): una volea de derecha es un gesto de derecha, más corto y bloqueado —
     es el caso `defensive return drive → drive` que ellos fusionaron. Y no se
     pierde el dato: "volea" se deriva de `derecha + jugador cerca de la red`,
     usando la homografía (0,113 m). Atributo, no clase.
   - **Víbora NO es clase**: remate cortado, mismo gesto por encima de la cabeza
     (= `wrist smash → smash`).
-  - **Bandeja NO es clase** (decisión de Jorge): el gesto sí difiere, pero
+  - **Bandeja NO es clase** (decisión del autor): el gesto sí difiere, pero
     saldrían pocos ejemplos y hundiría el macro-F1 como el `Other` a 0,18 del
     Nivel 2. Es más fácil añadir una clase después que rescatar un macro-F1
     hundido.
 - **C — Atributos derivados, NO anotados. Se retira el flag de pared del
-  etiquetado** (corrige ADR-0014 D). Objeción de Jorge: *"si el modelo no
+  etiquetado** (corrige ADR-0014 D). Objeción del autor: *"si el modelo no
   aprende a detectar que el golpe viene de la pared, ¿para qué lo quiero?"* —
   y tiene razón: un flag que solo existe en los datos etiquetados a mano no se
   puede producir en inferencia, así que como estadística de producto es inútil.
@@ -82,7 +82,7 @@ golpes y 6 clases → 98,9% de accuracy. Estamos en ese régimen.
   parecen entre sí, y "brazo alto raro = Other" robaría remates). Ya entrenado,
   se le pasan los `Other` para ver qué confianza les da y fijar ahí el umbral.
 - **E — En producción, "Sin clasificar" por umbral de confianza.** Decisión de
-  Jorge: "prefiero que diga nada a que intente adivinar". Un softmax de 4 clases
+  Autor: "prefiero que diga nada a que intente adivinar". Un softmax de 4 clases
   nunca dice "no sé" por sí solo, así que el rechazo se hace por umbral
   calibrado con los `Other` (Decisión D). Se guarda SIEMPRE la confianza en
   CSV/API aunque no se muestre (métrica para la memoria). Beneficio secundario:
@@ -96,7 +96,7 @@ golpes y 6 clases → 98,9% de accuracy. Estamos en ese régimen.
   (+6 puntos en la clase más difícil) frente a ventana de ancho fijo. Límite
   práctico suyo: no más de 1,5 s de distancia al golpe objetivo.
 - **G — Etiquetado sobre el GT de CVSPORTS.** Sus 2.377 golpes traen el instante
-  anotado (`hits.csv`), así que el anotador SALTA de golpe en golpe y Jorge solo
+  anotado (`hits.csv`), así que el anotador SALTA de golpe en golpe y el autor solo
   pulsa el tipo. Desaparece la parte lenta (buscar el frame) y la fuente de
   ruido de ADR-0014 (puntería temporal del anotador).
 
@@ -105,7 +105,7 @@ golpes y 6 clases → 98,9% de accuracy. Estamos en ese régimen.
 - (+) No hay que montar pipeline de RGB (pesado, caro, muchos datos): las tres
   entradas que BST necesita ya existen en nuestro backbone.
 - (+) 4 clases sobre ~3.700 golpes es mejor régimen que TenniSet (6 clases /
-  3.569 → 98,9%). El objetivo de Jorge (>90% en golpes típicos) es alcanzable.
+  3.569 → 98,9%). El objetivo del autor (>90% en golpes típicos) es alcanzable.
 - (+) El rechazo por umbral es defendible ante el tribunal: el sistema conoce
   sus límites y están medidos, en vez de adivinar.
 - (+) Los descartes dejan de ser basura: son el conjunto de calibración.
@@ -116,9 +116,9 @@ golpes y 6 clases → 98,9% de accuracy. Estamos en ese régimen.
   ruidosas que el modelo hereda. Coherente con que el modelo vea una ventana
   entera (Decisión F).
 - (−) Se renuncia a distinguir bandeja/víbora/dejada. Aceptado a propósito
-  (Jorge): la granularidad se puede añadir después si los datos acompañan.
+  (autor): la granularidad se puede añadir después si los datos acompañan.
 - (−) Se renuncia al RGB como verificador de las dejadas que el audio no oye
-  (decisión de Jorge: recall 0,87 con casi cero falsos positivos es suficiente;
+  (decisión del autor: recall 0,87 con casi cero falsos positivos es suficiente;
   el coste/beneficio de un pipeline RGB para la clase más rara no compensa).
 - (−) El calibrado del umbral necesita ~50-100 `Other`; si salen muy pocos, se
   fija mirando solo la distribución de los golpes buenos, con menos garantías.

@@ -33,7 +33,7 @@ detectan el golpe — parten de clips ya recortados en torno al contacto (el
 dataset lo anota). El SotA **separa localizar el golpe de clasificar su tipo**.
 Nosotros los mezclábamos en una heurística que hacía mal las dos cosas.
 
-**Insight de Jorge:** un humano no necesita esqueleto ni reglas para saber que
+**Insight del autor:** un humano no necesita esqueleto ni reglas para saber que
 alguien ha golpeado — lo aprende viendo partidos. La arquitectura correcta es la
 misma que usábamos en detección industrial (Ferrovial): un **detector** genérico
 alimenta a un **clasificador** especializado (detector de camiones → clasificador

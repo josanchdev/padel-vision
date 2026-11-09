@@ -14,7 +14,7 @@ they need nothing. Pose and ball come from the per-rally cache.
 
 Ground truth:
     WHEN   the dataset's annotated hit windows (99 rallies, 2,377 hits)
-    WHAT   Jorge's type labels, same hits ("Other" left out)
+    WHAT   the author's type labels, same hits ("Other" left out)
     WHO    the paper's per-hit player, VIGO only (16 rallies, 319 hits)
 
 A detection is paired with a real hit within 250 ms (the paper's collar).

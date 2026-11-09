@@ -34,7 +34,7 @@ def best_class(probabilities: npt.ArrayLike, may_serve: bool) -> int:
     """Argmax, except that a hit which cannot be a serve is never given one.
 
     Only the first hit of a rally may be a serve — and it almost always is.
-    Jorge's observation, and the labels bear it out exactly: all 97 serves in the
+    The labels bear it out exactly: all 97 serves in the
     dataset are the opening hit of their rally, and 97 of the 99 rallies open
     with one. That makes the serve a rule of the sport rather than something to
     be learned, so the classifier is not left guessing at it.

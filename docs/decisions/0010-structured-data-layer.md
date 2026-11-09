@@ -9,7 +9,7 @@ metros, golpes, pelota, botes) pero hoy la **tira**: solo la pinta sobre el víd
 y la pierde. Un vídeo anotado es *verificación visual*, no un producto — un
 entrenador no puede filtrar, comparar ni agregar sobre píxeles. El valor está en
 los **datos estructurados** que permiten tomar decisiones (como el CSV de
-detecciones era el entregable real en la experiencia previa de Jorge en
+detecciones era el entregable real en la experiencia previa del autor en
 Ferrovial, no el vídeo con cajas).
 
 Este ADR reorienta el producto: la salida canónica del sistema es una **capa de

@@ -14,7 +14,7 @@ etiquetar más (Fase B), pero el etiquetado "completo" estilo PadelTracker100
 (mover keypoints de pose en ~10 frames por golpe) es demasiado caro (~2-3
 min/golpe) para llegar a miles.
 
-**Idea de Jorge (coincide con el SotA ShuttleSet/BST):** no anotar keypoints —
+**Idea del autor (coincide con el SotA ShuttleSet/BST):** no anotar keypoints —
 ver el vídeo, pausar en cada golpe y marcar solo `(frame, tipo)`. El sistema
 recorta la ventana ±N frames con la pose+pelota que YA detectamos.
 
@@ -32,10 +32,10 @@ recorta la ventana ±N frames con la pose+pelota que YA detectamos.
 - **C — Taxonomía = gesto (4 clases):** Saque, Derecha, Revés, Remate.
   **Descartados:** volea (→ derecha/revés según gesto), bandeja (ambigua/rara),
   dejada/chiquita (se confunde con volea suave, pocos ejemplos, rompería métricas
-  como "Other" a 0,18). **Globo/lob descartado (31 jul, Jorge):** no es un gesto
+  como "Other" a 0,18). **Globo/lob descartado (31 jul, decisión del autor):** no es un gesto
   distinto — es una derecha/revés con trayectoria alta, INDISTINGUIBLE en el frame
   de contacto (la ventana que ve el modelo); solo se sabe viendo la pelota subir
-  DESPUÉS. Jorge lo detectó al anotar (tenía que rectificar constantemente). Un
+  DESPUÉS. Se detectó al anotar (tenía que rectificar constantemente). Un
   globo se etiqueta por su gesto (derecha/revés). Si el dato "es globo" resulta
   valioso, se añade como FLAG (como la pared), no como tipo. El eje del gesto
   queda limpio y todo distinguible en el contacto.

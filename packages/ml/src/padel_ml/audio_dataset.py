@@ -6,7 +6,7 @@ audio decoded, turned into a log-Mel spectrogram, and labelled per spectrogram
 frame from hits.csv (onset/offset in seconds → the frames inside a hit window are
 positive). The CRNN then reads sequences of these frames.
 
-Dataset: CVSPORTS_Padel (audio + 2377 annotated hits) — see docs/bibliography.md.
+Dataset: CVSPORTS_Padel (audio + 2377 annotated hits).
 """
 
 from __future__ import annotations

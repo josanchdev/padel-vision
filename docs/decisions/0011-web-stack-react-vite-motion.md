@@ -4,14 +4,13 @@
 
 ## Contexto
 
-La web es el escaparate del producto y Jorge la considera importantísima: debe
+La web es el escaparate del producto y el autor la considera importantísima: debe
 sorprender (estándares 2026), no ser un "generic AI website". El mockup actual
 (`static/index.html` a mano) validó el bucle diseño→backend→frontend, pero su
 piel es deliberadamente desechable. El factor "wow" real (animaciones fluidas a
 60fps, transiciones, micro-interacciones con propósito) no sale de CSS/JS a mano:
 sale de frameworks modernos sobre React. Además conviene montar la base bien para
-expandir sin rehacer cada sección. Investigación de referencias y stack en
-`docs/web-design-dossier.md`.
+expandir sin rehacer cada sección. Antes de decidir se investigaron referencias y stack.
 
 ## Decisiones
 

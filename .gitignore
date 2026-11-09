@@ -48,3 +48,15 @@ packages/web/public/points/
 # Local assistant configuration: kept on this machine, not part of the project
 CLAUDE.md
 .claude/
+
+# Memoria, presentación y documentos de trabajo: se mantienen en local, fuera del repositorio
+/memoria/
+/presentacion/
+/docs/sistema.md
+/docs/backlog.md
+/docs/bibliography.md
+/docs/research-shot-detection-2026.md
+/docs/web-design-dossier.md
+/docs/web-sections-and-data-contract.md
+/docs/reporte-tecnico.md
+/scripts/build_*.py

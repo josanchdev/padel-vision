@@ -11,7 +11,7 @@ Toda la línea de detección de golpes por POSE+PELOTA se agotó, medido paso a 
 (docs/experiments.md): heurística ADR-0012 (recall 15-52%), detector aprendido
 por-ventana (meseta en rallies), localizer por-frame (61% recall / 70% precisión,
 insuficiente). El paso atrás + investigación del estado del arte
-(docs/research-shot-detection-2026.md, docs/bibliography.md) dio dos hallazgos
+dio dos hallazgos
 decisivos:
 
 1. **El problema es Precise Event Spotting**, y reducir a pose+pelota TIRA
@@ -21,7 +21,7 @@ decisivos:
    AUDIO** con un CRNN sobre log-Mel. El golpe SUENA; es binario (hit/no-hit). Y
    publican dataset abierto con audio + 2377 golpes anotados (CVSPORTS_Padel).
 
-Insight de Jorge: el audio detecta CUÁNDO (barato, alto recall); el RGB —como un
+Insight del autor: el audio detecta CUÁNDO (barato, alto recall); el RGB —como un
 humano viendo la jugada— clasifica QUÉ tipo y puede además VERIFICAR (rechazar
 falsos del audio). Cada señal en lo que es mejor.
 
@@ -43,10 +43,10 @@ falsos del audio). Cada señal en lo que es mejor.
   al. enteros. No hay recorte de píxeles (ni frame entero ni recorte del
   golpeador): no se procesan píxeles. La ventana sí es "el golpe entero", y
   además adaptativa (de golpe vecino a golpe vecino + ε), como midió BST.
-  También se descarta el RGB como verificador de dejadas (decisión de Jorge:
+  También se descarta el RGB como verificador de dejadas (decisión del autor:
   recall 0,87 con casi cero falsos positivos es suficiente).
 - **D — El "QUIÉN golpea" se REPLICA del paper (no versión ingenua).** Decisión de
-  Jorge: esto es el BACKBONE, y hacerlo ingenuo (1 frame muñeca-pelota) es
+  Autor: esto es el BACKBONE, y hacerlo ingenuo (1 frame muñeca-pelota) es
   inaceptable — cada eslabón multiplica al siguiente (detectar 30% × clasificar 25%
   = nefasto; detectar 93% × jugador 84% = base sólida). Se replica el método del
   paper (accuracy 83,7% jugador / 86,8% equipo):

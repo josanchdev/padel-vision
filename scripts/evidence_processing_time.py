@@ -1,4 +1,4 @@
-"""How long the system takes per stage, on one rally (the cost table of sistema.md).
+"""How long the system takes per stage, on one rally (the cost table).
 
 Runs `analyze_rally` — the code the demo and the web export run — over one
 CVSPORTS rally and adds up the time spent in each stage: the audio detector, the
